@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import CountUp from "react-countup";
 import {
   Leaf, Globe, Wind, Sprout, ArrowRight, X, Menu,
-  CheckCircle2, LineChart, ShieldCheck, MapPin, 
-  ChevronRight, Languages
+  CheckCircle2, LineChart, ShieldCheck, MapPin,
+  ChevronRight, Languages, BarChart2, Users, BookOpen,
+  Newspaper, Radio, FileText, CalendarDays, Mic2
 } from "lucide-react";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { Button } from "@/components/ui/button";
@@ -86,17 +87,98 @@ function AnnouncementBanner() {
   );
 }
 
+const IMPACT_LINKS = [
+  { label: "Our Impact", href: "#impact", icon: <BarChart2 className="w-4 h-4 text-primary" />, desc: "Working at a global scale" },
+  { label: "Client Impact", href: "#impact", icon: <Users className="w-4 h-4 text-accent" />, desc: "Stories of transformation" },
+  { label: "Case Studies", href: "#impact", icon: <BookOpen className="w-4 h-4 text-secondary" />, desc: "Deep-dive project results" },
+  { label: "Carbon Projects", href: "#impact", icon: <Leaf className="w-4 h-4 text-primary" />, desc: "Live carbon initiatives" },
+];
+
+const RESOURCES_LINKS = [
+  { label: "News & Insights", href: "#resources", icon: <Newspaper className="w-4 h-4 text-primary" /> },
+  { label: "Events & Webinars", href: "#resources", icon: <CalendarDays className="w-4 h-4 text-accent" /> },
+  { label: "Regulations & Standards", href: "#resources", icon: <FileText className="w-4 h-4 text-secondary" /> },
+  { label: "Podcasts", href: "#resources", icon: <Mic2 className="w-4 h-4 text-primary" /> },
+  { label: "Newsletters", href: "#resources", icon: <Radio className="w-4 h-4 text-accent" /> },
+];
+
+function DesktopDropdown({ label, children, isOpen, setOpen }: {
+  label: string;
+  children: React.ReactNode;
+  isOpen: boolean;
+  setOpen: (v: boolean) => void;
+}) {
+  return (
+    <div className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+      <button className="flex items-center gap-1 hover:text-primary transition-colors">
+        {label}
+        <ChevronRight className={cn("w-4 h-4 transition-transform duration-200", isOpen ? "rotate-90" : "rotate-0")} />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 6 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full left-0 mt-2 bg-background border border-border rounded-xl shadow-xl overflow-hidden min-w-[220px]"
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function MobileAccordion({ label, children, isOpen, setOpen }: {
+  label: string;
+  children: React.ReactNode;
+  isOpen: boolean;
+  setOpen: (v: boolean) => void;
+}) {
+  return (
+    <div>
+      <button
+        className="w-full flex items-center justify-between p-3 hover:bg-muted rounded-xl font-medium text-left"
+        onClick={() => setOpen(!isOpen)}
+      >
+        {label}
+        <ChevronRight className={cn("w-4 h-4 transition-transform duration-200", isOpen ? "rotate-90" : "rotate-0")} />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden pl-4"
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
+  const [impactOpen, setImpactOpen] = useState(false);
+  const [resourcesOpen, setResourcesOpen] = useState(false);
   const [mobileSolutionsOpen, setMobileSolutionsOpen] = useState(false);
+  const [mobileImpactOpen, setMobileImpactOpen] = useState(false);
+  const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const closeAll = () => setMobileMenuOpen(false);
 
   return (
     <nav className={cn(
@@ -115,49 +197,55 @@ function Navbar() {
         <div className="hidden md:flex items-center gap-8 font-medium text-sm text-foreground/80">
           <a href="#about" className="hover:text-primary transition-colors">About Us</a>
           <a href="#how-it-works" className="hover:text-primary transition-colors">How It Works</a>
-          <a href="#impact" className="hover:text-primary transition-colors">Impact</a>
+
+          {/* Impact dropdown */}
+          <DesktopDropdown label="Impact" isOpen={impactOpen} setOpen={setImpactOpen}>
+            <div className="px-4 py-3 border-b border-border bg-muted/40">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Our Impact</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Working with organisations to deliver sustainable performance at a global scale.</p>
+            </div>
+            {IMPACT_LINKS.map((item, i) => (
+              <a key={i} href={item.href}
+                className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border/50 first:border-t-0"
+                onClick={() => setImpactOpen(false)}
+              >
+                {item.icon}
+                <div>
+                  <div className="font-medium">{item.label}</div>
+                  <div className="text-xs text-muted-foreground">{item.desc}</div>
+                </div>
+              </a>
+            ))}
+          </DesktopDropdown>
 
           {/* Solutions dropdown */}
-          <div
-            className="relative"
-            onMouseEnter={() => setSolutionsOpen(true)}
-            onMouseLeave={() => setSolutionsOpen(false)}
-          >
-            <button className="flex items-center gap-1 hover:text-primary transition-colors">
-              Solutions
-              <ChevronRight className={cn("w-4 h-4 transition-transform duration-200", solutionsOpen ? "rotate-90" : "rotate-0")} />
-            </button>
-            <AnimatePresence>
-              {solutionsOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-full left-0 mt-2 w-44 bg-background border border-border rounded-xl shadow-xl overflow-hidden"
-                >
-                  <a
-                    href="#farmers"
-                    className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors"
-                    onClick={() => setSolutionsOpen(false)}
-                  >
-                    <Sprout className="w-4 h-4 text-primary" />
-                    Farmers
-                  </a>
-                  <a
-                    href="#buyers"
-                    className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border"
-                    onClick={() => setSolutionsOpen(false)}
-                  >
-                    <Globe className="w-4 h-4 text-accent" />
-                    For Buyers
-                  </a>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+          <DesktopDropdown label="Solutions" isOpen={solutionsOpen} setOpen={setSolutionsOpen}>
+            <a href="#farmers" className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors"
+              onClick={() => setSolutionsOpen(false)}>
+              <Sprout className="w-4 h-4 text-primary" /> Farmers
+            </a>
+            <a href="#buyers" className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border"
+              onClick={() => setSolutionsOpen(false)}>
+              <Globe className="w-4 h-4 text-accent" /> For Buyers
+            </a>
+          </DesktopDropdown>
 
-          <a href="#resources" className="hover:text-primary transition-colors">Resources</a>
+          {/* Resources dropdown */}
+          <DesktopDropdown label="Resources" isOpen={resourcesOpen} setOpen={setResourcesOpen}>
+            <div className="px-4 py-3 border-b border-border bg-muted/40">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Explore</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Latest news, insights and industry developments.</p>
+            </div>
+            {RESOURCES_LINKS.map((item, i) => (
+              <a key={i} href={item.href}
+                className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border/50 first:border-t-0"
+                onClick={() => setResourcesOpen(false)}
+              >
+                {item.icon}
+                <span className="font-medium">{item.label}</span>
+              </a>
+            ))}
+          </DesktopDropdown>
         </div>
 
         <div className="hidden md:flex items-center gap-4">
@@ -170,10 +258,7 @@ function Navbar() {
         </div>
 
         {/* Mobile Toggle */}
-        <button 
-          className="md:hidden p-2 text-foreground"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
+        <button className="md:hidden p-2 text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           {mobileMenuOpen ? <X /> : <Menu />}
         </button>
       </div>
@@ -181,45 +266,49 @@ function Navbar() {
       {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 w-full bg-background border-b border-border shadow-xl p-4 flex flex-col gap-1 md:hidden"
+            className="absolute top-full left-0 w-full bg-background border-b border-border shadow-xl p-4 flex flex-col gap-1 md:hidden max-h-[80vh] overflow-y-auto"
           >
-            <a href="#about" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>About Us</a>
-            <a href="#how-it-works" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>How It Works</a>
-            <a href="#impact" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>Impact</a>
+            <a href="#about" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={closeAll}>About Us</a>
+            <a href="#how-it-works" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={closeAll}>How It Works</a>
 
-            {/* Mobile Solutions toggle */}
-            <div>
-              <button
-                className="w-full flex items-center justify-between p-3 hover:bg-muted rounded-xl font-medium text-left"
-                onClick={() => setMobileSolutionsOpen(!mobileSolutionsOpen)}
-              >
-                Solutions
-                <ChevronRight className={cn("w-4 h-4 transition-transform duration-200", mobileSolutionsOpen ? "rotate-90" : "rotate-0")} />
-              </button>
-              <AnimatePresence>
-                {mobileSolutionsOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden pl-4"
-                  >
-                    <a href="#farmers" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={() => setMobileMenuOpen(false)}>
-                      <Sprout className="w-4 h-4 text-primary" /> Farmers
-                    </a>
-                    <a href="#buyers" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={() => setMobileMenuOpen(false)}>
-                      <Globe className="w-4 h-4 text-accent" /> For Buyers
-                    </a>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            {/* Impact accordion */}
+            <MobileAccordion label="Impact" isOpen={mobileImpactOpen} setOpen={setMobileImpactOpen}>
+              {IMPACT_LINKS.map((item, i) => (
+                <a key={i} href={item.href}
+                  className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary"
+                  onClick={closeAll}
+                >
+                  {item.icon} {item.label}
+                </a>
+              ))}
+            </MobileAccordion>
 
-            <a href="#resources" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>Resources</a>
+            {/* Solutions accordion */}
+            <MobileAccordion label="Solutions" isOpen={mobileSolutionsOpen} setOpen={setMobileSolutionsOpen}>
+              <a href="#farmers" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={closeAll}>
+                <Sprout className="w-4 h-4 text-primary" /> Farmers
+              </a>
+              <a href="#buyers" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={closeAll}>
+                <Globe className="w-4 h-4 text-accent" /> For Buyers
+              </a>
+            </MobileAccordion>
+
+            {/* Resources accordion */}
+            <MobileAccordion label="Resources" isOpen={mobileResourcesOpen} setOpen={setMobileResourcesOpen}>
+              {RESOURCES_LINKS.map((item, i) => (
+                <a key={i} href={item.href}
+                  className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary"
+                  onClick={closeAll}
+                >
+                  {item.icon} {item.label}
+                </a>
+              ))}
+            </MobileAccordion>
+
             <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-border">
               <Button variant="outline" className="w-full">Log In</Button>
               <Button className="w-full">Get Started</Button>
