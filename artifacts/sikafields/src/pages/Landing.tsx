@@ -111,10 +111,12 @@ function Navbar() {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8 font-medium text-sm text-foreground/80">
+          <a href="#about" className="hover:text-primary transition-colors">About Us</a>
           <a href="#how-it-works" className="hover:text-primary transition-colors">How It Works</a>
           <a href="#impact" className="hover:text-primary transition-colors">Impact</a>
           <a href="#farmers" className="hover:text-primary transition-colors">Farmers</a>
           <a href="#buyers" className="hover:text-primary transition-colors">For Buyers</a>
+          <a href="#resources" className="hover:text-primary transition-colors">Resources</a>
         </div>
 
         <div className="hidden md:flex items-center gap-4">
@@ -144,10 +146,12 @@ function Navbar() {
             exit={{ opacity: 0, y: -20 }}
             className="absolute top-full left-0 w-full bg-background border-b border-border shadow-xl p-4 flex flex-col gap-4 md:hidden"
           >
+            <a href="#about" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>About Us</a>
             <a href="#how-it-works" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>How It Works</a>
             <a href="#impact" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>Impact</a>
             <a href="#farmers" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>Farmers</a>
             <a href="#buyers" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>For Buyers</a>
+            <a href="#resources" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>Resources</a>
             <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-border">
               <Button variant="outline" className="w-full">Log In</Button>
               <Button className="w-full">Get Started</Button>
