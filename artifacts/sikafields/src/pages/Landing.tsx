@@ -5,7 +5,10 @@ import {
   Leaf, Globe, Wind, Sprout, ArrowRight, X, Menu,
   CheckCircle2, LineChart, ShieldCheck, MapPin,
   ChevronRight, Languages, BarChart2, Users, BookOpen,
-  Newspaper, Radio, FileText, CalendarDays, Mic2
+  Newspaper, Radio, FileText, CalendarDays, Mic2,
+  Target, TreePine, DollarSign, Building2, Smartphone,
+  SatelliteDish, HeartHandshake, TrendingUp, AlertTriangle,
+  Lightbulb, Info
 } from "lucide-react";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { Button } from "@/components/ui/button";
@@ -102,6 +105,13 @@ const RESOURCES_LINKS = [
   { label: "Newsletters", href: "#resources", icon: <Radio className="w-4 h-4 text-accent" /> },
 ];
 
+const ABOUT_LINKS = [
+  { label: "Our Mission", href: "#about", icon: <Target className="w-4 h-4 text-primary" />, desc: "Reducing emissions, empowering farmers" },
+  { label: "Our Story", href: "#about", icon: <BookOpen className="w-4 h-4 text-accent" />, desc: "A spin-off from Esoko AgriTech" },
+  { label: "Impact Stats", href: "#about", icon: <BarChart2 className="w-4 h-4 text-secondary" />, desc: "2.5M+ trees, 10K+ farmers" },
+  { label: "Partners & Certifications", href: "#about", icon: <HeartHandshake className="w-4 h-4 text-primary" />, desc: "Open Forest Protocol & more" },
+];
+
 function DesktopDropdown({ label, children, isOpen, setOpen }: {
   label: string;
   children: React.ReactNode;
@@ -165,9 +175,11 @@ function MobileAccordion({ label, children, isOpen, setOpen }: {
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
   const [impactOpen, setImpactOpen] = useState(false);
   const [resourcesOpen, setResourcesOpen] = useState(false);
+  const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
   const [mobileSolutionsOpen, setMobileSolutionsOpen] = useState(false);
   const [mobileImpactOpen, setMobileImpactOpen] = useState(false);
   const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
@@ -195,7 +207,26 @@ function Navbar() {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8 font-medium text-sm text-foreground/80">
-          <a href="#about" className="hover:text-primary transition-colors">About Us</a>
+          {/* About Us dropdown */}
+          <DesktopDropdown label="About Us" isOpen={aboutOpen} setOpen={setAboutOpen}>
+            <div className="px-4 py-3 border-b border-border bg-muted/40">
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">SikaFields</p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Reducing emissions while empowering farmers across Africa.</p>
+            </div>
+            {ABOUT_LINKS.map((item, i) => (
+              <a key={i} href={item.href}
+                className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border/50 first:border-t-0"
+                onClick={() => setAboutOpen(false)}
+              >
+                {item.icon}
+                <div>
+                  <div className="font-medium">{item.label}</div>
+                  <div className="text-xs text-muted-foreground">{item.desc}</div>
+                </div>
+              </a>
+            ))}
+          </DesktopDropdown>
+
           <a href="#how-it-works" className="hover:text-primary transition-colors">How It Works</a>
 
           {/* Impact dropdown */}
@@ -272,7 +303,18 @@ function Navbar() {
             exit={{ opacity: 0, y: -20 }}
             className="absolute top-full left-0 w-full bg-background border-b border-border shadow-xl p-4 flex flex-col gap-1 md:hidden max-h-[80vh] overflow-y-auto"
           >
-            <a href="#about" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={closeAll}>About Us</a>
+            {/* About Us accordion */}
+            <MobileAccordion label="About Us" isOpen={mobileAboutOpen} setOpen={setMobileAboutOpen}>
+              {ABOUT_LINKS.map((item, i) => (
+                <a key={i} href={item.href}
+                  className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary"
+                  onClick={closeAll}
+                >
+                  {item.icon} {item.label}
+                </a>
+              ))}
+            </MobileAccordion>
+
             <a href="#how-it-works" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={closeAll}>How It Works</a>
 
             {/* Impact accordion */}
@@ -450,58 +492,360 @@ function LiveStats() {
   );
 }
 
-function HowItWorks() {
-  const steps = [
-    {
-      title: "Farmers Register",
-      desc: "Simple mobile enrollment works entirely offline. Farmers map their land using our GPS tool.",
-      icon: <MapPin className="w-6 h-6 text-white" />
-    },
-    {
-      title: "Data Verified",
-      desc: "Satellite imagery paired with ground-truth checks ensure 98% accuracy of carbon sequestered.",
-      icon: <ShieldCheck className="w-6 h-6 text-white" />
-    },
-    {
-      title: "Credits Sold",
-      desc: "Verified credits hit the global market. 80% of revenue goes directly back to the farmers.",
-      icon: <LineChart className="w-6 h-6 text-white" />
-    }
+function AboutSection() {
+  const counters = [
+    { label: "Trees Planted", value: 2.5, suffix: "M+", icon: <TreePine className="w-6 h-6" />, color: "text-primary" },
+    { label: "Farmers Empowered", value: 10000, suffix: "+", icon: <Users className="w-6 h-6" />, color: "text-accent" },
+    { label: "CO₂ Removed (tons)", value: 500, suffix: "K+", icon: <Wind className="w-6 h-6" />, color: "text-secondary" },
+    { label: "Communities Impacted", value: 200, suffix: "+", icon: <HeartHandshake className="w-6 h-6" />, color: "text-primary" },
   ];
 
+  const partners = ["Open Forest Protocol", "Treeeconomy", "Esoko", "Google Earth"];
+
   return (
-    <section id="how-it-works" className="py-24 bg-background">
+    <section id="about" className="py-24 bg-card">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-primary font-semibold tracking-wide uppercase text-sm mb-3">The Process</h2>
-          <h3 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-6">From soil to global markets in 3 steps.</h3>
-          <p className="text-muted-foreground text-lg">We remove the middlemen so farmers get paid fairly for healing the planet.</p>
+        {/* Mission */}
+        <div className="grid lg:grid-cols-2 gap-16 items-center mb-20">
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary font-semibold text-sm mb-6 border border-primary/20">
+              <Info className="w-4 h-4" /> About SikaFields
+            </div>
+            <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-6">
+              Our mission is to <span className="text-primary">reduce greenhouse gas emissions</span> while creating economic empowerment.
+            </h2>
+            <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+              For farmers and rural communities across Africa, we bridge the gap between the fields and global carbon markets — bringing science-backed impact where it matters most.
+            </p>
+            <div className="p-5 bg-muted/60 rounded-2xl border border-border mb-8">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <Lightbulb className="w-5 h-5 text-accent" />
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground mb-1">A spin-off from Esoko</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    As a spin-off from Esoko — a pioneer in leveraging mobile and web technologies for agricultural innovation — SikaFields brings a decade of expertise and impact in the AgriTech sector to the forefront of climate action.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button size="lg" className="group">
+                <Sprout className="mr-2 w-5 h-5" />
+                Start Farming Carbon
+                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <Button size="lg" variant="outline">
+                <DollarSign className="mr-2 w-5 h-5" />
+                Buy Verified Credits
+              </Button>
+            </div>
+          </motion.div>
+
+          {/* Visual: map placeholder + floating stat cards */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="relative h-[420px]"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-secondary/20 rounded-3xl border border-border overflow-hidden">
+              {/* CSS landscape art */}
+              <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-primary/40 to-transparent rounded-b-3xl" />
+              <div className="absolute bottom-0 left-[-10%] w-[60%] h-40 bg-gradient-to-t from-primary to-emerald-500 rounded-[100%] opacity-70" />
+              <div className="absolute bottom-0 right-[-5%] w-[55%] h-32 bg-gradient-to-t from-emerald-800 to-primary/60 rounded-[100%] opacity-80" />
+              <div className="absolute top-8 right-8 w-20 h-20 bg-gradient-to-br from-secondary to-amber-300 rounded-full opacity-90 blur-[1px]" />
+              {/* Floating indicators */}
+              <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }}
+                className="absolute top-8 left-8 bg-white/95 backdrop-blur p-3 rounded-2xl shadow-xl flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Active Regions</p>
+                  <p className="font-bold text-gray-900 text-sm">14 Countries</p>
+                </div>
+              </motion.div>
+              <motion.div animate={{ y: [0, 12, 0] }} transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+                className="absolute bottom-16 right-8 bg-white/95 backdrop-blur p-3 rounded-2xl shadow-xl flex items-center gap-3">
+                <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-secondary" />
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Avg Farmer Earn</p>
+                  <p className="font-bold text-gray-900 text-sm">+$520/year</p>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 relative">
-          {/* Connecting line for desktop */}
-          <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-border -z-10" />
-
-          {steps.map((step, idx) => (
-            <motion.div 
-              key={idx}
+        {/* Live Counters */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+          {counters.map((c, i) => (
+            <motion.div key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.2 }}
-              className="relative flex flex-col items-center text-center group"
+              transition={{ delay: i * 0.1 }}
+              className="bg-background rounded-2xl p-6 border border-border text-center shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl shadow-primary/20 mb-8 transform group-hover:-translate-y-2 transition-transform duration-300">
-                {step.icon}
-                <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-secondary text-white flex items-center justify-center font-bold border-4 border-background">
-                  {idx + 1}
-                </div>
+              <div className={cn("flex justify-center mb-3", c.color)}>{c.icon}</div>
+              <div className="text-3xl font-display font-bold text-foreground mb-1 tabular-nums">
+                <CountUp end={c.value} duration={2.5} decimals={c.value < 100 ? 1 : 0} enableScrollSpy scrollSpyOnce />{c.suffix}
               </div>
-              <h4 className="text-xl font-bold text-foreground mb-3">{step.title}</h4>
-              <p className="text-muted-foreground leading-relaxed">{step.desc}</p>
+              <p className="text-sm text-muted-foreground font-medium">{c.label}</p>
             </motion.div>
           ))}
         </div>
+
+        {/* Trust Indicators */}
+        <div className="text-center">
+          <p className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-6">Certified & Powered By</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {partners.map((p, i) => (
+              <div key={i} className="flex items-center gap-2 px-4 py-2 bg-background border border-border rounded-full text-sm font-semibold text-foreground/70 shadow-sm">
+                <CheckCircle2 className="w-4 h-4 text-primary" /> {p}
+              </div>
+            ))}
+            <div className="flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full text-sm font-semibold text-primary">
+              <Smartphone className="w-4 h-4" /> Mobile-first · Offline-capable
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ProblemSection() {
+  const challenges = [
+    { text: "2 billion smallholder farmers face intensifying climate impacts", icon: <AlertTriangle className="w-5 h-5 text-orange-500" /> },
+    { text: "Limited access to global carbon credit markets", icon: <AlertTriangle className="w-5 h-5 text-orange-500" /> },
+    { text: "Complex, expensive verification (MRV) processes", icon: <AlertTriangle className="w-5 h-5 text-orange-500" /> },
+    { text: "Lack of technical support and local guidance", icon: <AlertTriangle className="w-5 h-5 text-orange-500" /> },
+  ];
+
+  const solutions = [
+    { text: "Direct farmer access to global carbon markets", icon: <CheckCircle2 className="w-5 h-5 text-primary" /> },
+    { text: "AI-powered guidance in local languages", icon: <CheckCircle2 className="w-5 h-5 text-primary" /> },
+    { text: "Simplified MRV through mobile technology", icon: <CheckCircle2 className="w-5 h-5 text-primary" /> },
+    { text: "Community-based support networks", icon: <CheckCircle2 className="w-5 h-5 text-primary" /> },
+  ];
+
+  return (
+    <section className="py-24 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-16">
+          <h2 className="text-primary font-semibold tracking-wide uppercase text-sm mb-3">The Opportunity</h2>
+          <h3 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-6">
+            Climate Crisis Meets <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Economic Opportunity.</span>
+          </h3>
+          <p className="text-muted-foreground text-lg">The same communities most vulnerable to climate change are also the most powerful force to reverse it.</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 items-stretch">
+          {/* The Challenge */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="bg-orange-50 border border-orange-100 rounded-3xl p-8"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-orange-600" />
+              </div>
+              <h4 className="text-xl font-bold text-foreground">The Challenge</h4>
+            </div>
+            <ul className="space-y-5">
+              {challenges.map((c, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className="shrink-0 mt-0.5">{c.icon}</span>
+                  <span className="text-foreground/80 leading-relaxed">{c.text}</span>
+                </li>
+              ))}
+            </ul>
+            {/* Visual: split income comparison */}
+            <div className="mt-8 grid grid-cols-2 gap-4">
+              <div className="bg-white rounded-2xl p-4 text-center border border-orange-100">
+                <p className="text-xs text-muted-foreground font-medium mb-1">Traditional Farming</p>
+                <p className="text-2xl font-display font-bold text-orange-600">$320<span className="text-sm font-normal">/yr</span></p>
+              </div>
+              <div className="bg-primary/10 rounded-2xl p-4 text-center border border-primary/20">
+                <p className="text-xs text-muted-foreground font-medium mb-1">With SikaFields</p>
+                <p className="text-2xl font-display font-bold text-primary">$840<span className="text-sm font-normal">/yr</span></p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* The Solution */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="bg-primary/5 border border-primary/20 rounded-3xl p-8"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                <Lightbulb className="w-5 h-5 text-primary" />
+              </div>
+              <h4 className="text-xl font-bold text-foreground">The SikaFields Solution</h4>
+            </div>
+            <ul className="space-y-5">
+              {solutions.map((s, i) => (
+                <li key={i} className="flex items-start gap-3">
+                  <span className="shrink-0 mt-0.5">{s.icon}</span>
+                  <span className="text-foreground/80 leading-relaxed">{s.text}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8 p-5 bg-primary/10 rounded-2xl border border-primary/20">
+              <p className="text-sm font-semibold text-primary mb-1">Result</p>
+              <p className="text-foreground/80 text-sm leading-relaxed">Farmers who join SikaFields see an average <strong>2.6× increase</strong> in annual income while actively restoring their land and local ecosystems.</p>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HowItWorks() {
+  const [activeTab, setActiveTab] = useState<"farmers" | "buyers">("farmers");
+
+  const farmerSteps = [
+    {
+      emoji: "📱",
+      title: "Register & Assess",
+      items: ["Download mobile app (works offline)", "Land eligibility assessment via satellite", "Personalised project recommendations"],
+      icon: <Smartphone className="w-6 h-6 text-white" />,
+    },
+    {
+      emoji: "🌱",
+      title: "Plant & Practice",
+      items: ["Receive seedlings and training", "Implement agroforestry & regenerative practices", "Get AI guidance in local language"],
+      icon: <Sprout className="w-6 h-6 text-white" />,
+    },
+    {
+      emoji: "📊",
+      title: "Monitor & Report",
+      items: ["Track progress via mobile app", "Automated satellite verification", "Regular field agent support"],
+      icon: <SatelliteDish className="w-6 h-6 text-white" />,
+    },
+    {
+      emoji: "💰",
+      title: "Earn & Grow",
+      items: ["Receive payments via mobile money", "Earn from carbon credits + co-benefits", "Scale operations over time"],
+      icon: <TrendingUp className="w-6 h-6 text-white" />,
+    },
+  ];
+
+  const buyerSteps = [
+    { title: "Browse Projects", desc: "Explore verified agroforestry projects across Africa & India with full transparency.", icon: <Globe className="w-6 h-6 text-white" /> },
+    { title: "Purchase Credits", desc: "Buy Gold Standard-certified credits with instant registry confirmation.", icon: <DollarSign className="w-6 h-6 text-white" /> },
+    { title: "Track Impact", desc: "Live dashboard showing farm-level data, satellite imagery, and farmer earnings.", icon: <BarChart2 className="w-6 h-6 text-white" /> },
+    { title: "Report Results", desc: "Auto-generate ESG reports and retirement certificates for compliance.", icon: <FileText className="w-6 h-6 text-white" /> },
+  ];
+
+  return (
+    <section id="how-it-works" className="py-24 bg-card">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <h2 className="text-primary font-semibold tracking-wide uppercase text-sm mb-3">How It Works</h2>
+          <h3 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-6">From Seedling to Carbon Credit<br className="hidden md:block" /> in 4 Simple Steps.</h3>
+          <p className="text-muted-foreground text-lg">Whether you're a farmer or a corporate buyer, SikaFields makes participation straightforward.</p>
+        </div>
+
+        {/* Tab switcher */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex bg-muted rounded-xl p-1 gap-1">
+            <button
+              onClick={() => setActiveTab("farmers")}
+              className={cn("px-6 py-2.5 rounded-lg font-semibold text-sm transition-all",
+                activeTab === "farmers" ? "bg-primary text-white shadow-md" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              🌱 For Farmers
+            </button>
+            <button
+              onClick={() => setActiveTab("buyers")}
+              className={cn("px-6 py-2.5 rounded-lg font-semibold text-sm transition-all",
+                activeTab === "buyers" ? "bg-primary text-white shadow-md" : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              🏢 For Buyers
+            </button>
+          </div>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {activeTab === "farmers" ? (
+            <motion.div key="farmers"
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+              className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            >
+              {farmerSteps.map((step, idx) => (
+                <motion.div key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="relative bg-background rounded-3xl p-6 border border-border shadow-sm hover:shadow-lg hover:shadow-primary/5 transition-all group"
+                >
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 group-hover:-translate-y-1 transition-transform">
+                      {step.icon}
+                    </div>
+                    <span className="text-3xl">{step.emoji}</span>
+                  </div>
+                  <div className="w-6 h-6 rounded-full bg-secondary text-white text-xs font-bold flex items-center justify-center mb-3">{idx + 1}</div>
+                  <h4 className="text-lg font-bold text-foreground mb-3">{step.title}</h4>
+                  <ul className="space-y-2">
+                    {step.items.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div key="buyers"
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+              className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+            >
+              {buyerSteps.map((step, idx) => (
+                <motion.div key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="relative bg-background rounded-3xl p-6 border border-border shadow-sm hover:shadow-lg hover:shadow-primary/5 transition-all group"
+                >
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-foreground to-foreground/70 flex items-center justify-center shadow-lg group-hover:-translate-y-1 transition-transform">
+                      {step.icon}
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      {idx < buyerSteps.length - 1 && <ChevronRight className="w-4 h-4" />}
+                    </div>
+                  </div>
+                  <div className="w-6 h-6 rounded-full bg-accent text-white text-xs font-bold flex items-center justify-center mb-3">{idx + 1}</div>
+                  <h4 className="text-lg font-bold text-foreground mb-2">{step.title}</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
@@ -849,6 +1193,8 @@ export default function LandingPage() {
       <main>
         <HeroSection />
         <LiveStats />
+        <AboutSection />
+        <ProblemSection />
         <HowItWorks />
         <ImpactMapSection />
         <FarmerStories />
