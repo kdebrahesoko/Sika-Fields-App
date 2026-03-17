@@ -109,6 +109,8 @@ const ABOUT_LINKS = [
   { label: "Our Mission", href: "#about", icon: <Target className="w-4 h-4 text-primary" />, desc: "Reducing emissions, empowering farmers" },
   { label: "Our Story", href: "#about", icon: <BookOpen className="w-4 h-4 text-accent" />, desc: "A spin-off from Esoko AgriTech" },
   { label: "Impact Stats", href: "#about", icon: <BarChart2 className="w-4 h-4 text-secondary" />, desc: "2.5M+ trees, 10K+ farmers" },
+  { label: "Our Leadership", href: "#leadership", icon: <Users className="w-4 h-4 text-accent" />, desc: "Meet the team driving our mission" },
+  { label: "Advisory Board", href: "#leadership", icon: <Building2 className="w-4 h-4 text-secondary" />, desc: "DIFC-registered, Ghana-based" },
   { label: "Partners & Certifications", href: "#about", icon: <HeartHandshake className="w-4 h-4 text-primary" />, desc: "Open Forest Protocol & more" },
 ];
 
@@ -618,6 +620,123 @@ function AboutSection() {
             </div>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function LeadershipSection() {
+  const leaders = [
+    { name: "Matthew Bell", role: "Group Chief Executive Officer", col: 0, row: 0, initials: "MB", color: "from-primary to-accent" },
+    { name: "Ray Leclercq", role: "Group Chief Financial Officer", col: 1, row: 0, initials: "RL", color: "from-accent to-teal-600" },
+    { name: "Rebecca Pashley-Robinson", role: "Global Head of People", col: 2, row: 0, initials: "RP", color: "from-secondary to-amber-600" },
+    { name: "Kirsten Doddy", role: "Group Chief Marketing Officer", col: 3, row: 0, initials: "KD", color: "from-primary to-emerald-800" },
+  ];
+
+  const advisors = [
+    { name: "Advisory Member", role: "Strategy & Governance", col: 0, row: 1, initials: "AM", color: "from-teal-600 to-primary" },
+    { name: "Advisory Member", role: "Climate Finance", col: 1, row: 1, initials: "AM", color: "from-secondary to-primary" },
+    { name: "Advisory Member", role: "AgriTech Innovation", col: 2, row: 1, initials: "AM", color: "from-accent to-teal-700" },
+    { name: "Advisory Member", role: "Carbon Markets", col: 3, row: 1, initials: "AM", color: "from-primary to-secondary" },
+  ];
+
+  const photoStyle = (col: number, row: number) => ({
+    backgroundImage: "url('/team-leadership.png')",
+    backgroundSize: "400% 200%",
+    backgroundPosition: `${col === 0 ? 0 : col === 3 ? 100 : (col / 3) * 100}% ${row === 0 ? 0 : 100}%`,
+  });
+
+  function ProfileCard({ person, showPhoto }: { person: typeof leaders[0]; showPhoto?: boolean }) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="group bg-card rounded-3xl overflow-hidden border border-border shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-1"
+      >
+        {/* Photo area */}
+        <div className="relative h-64 overflow-hidden">
+          {showPhoto ? (
+            <div
+              className="w-full h-full"
+              style={photoStyle(person.col, person.row)}
+            />
+          ) : (
+            <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center", person.color)}>
+              <span className="text-5xl font-display font-bold text-white/90">{person.initials}</span>
+            </div>
+          )}
+          {/* Overlay gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+        </div>
+        {/* Info */}
+        <div className="p-5">
+          <h4 className="font-bold text-foreground text-lg leading-snug mb-1">{person.name}</h4>
+          <p className="text-sm text-muted-foreground">{person.role}</p>
+        </div>
+      </motion.div>
+    );
+  }
+
+  return (
+    <section id="leadership" className="py-24 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* Leadership header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center max-w-3xl mx-auto mb-6"
+        >
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 text-accent font-semibold text-sm mb-4 border border-accent/20">
+            <Users className="w-4 h-4" /> Our Team
+          </div>
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-4">Our Leadership</h2>
+          <p className="text-muted-foreground text-lg leading-relaxed">
+            Each member plays a pivotal role in guiding our organisation towards achieving our mission and vision. With diverse backgrounds and expertise, our leaders are united by a shared passion for driving success and fostering a collaborative culture.
+          </p>
+        </motion.div>
+
+        {/* Leadership grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+          {leaders.map((person, i) => (
+            <ProfileCard key={i} person={person} showPhoto />
+          ))}
+        </div>
+
+        {/* Advisory Board divider */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-12"
+        >
+          <div className="flex items-center gap-4 mb-8">
+            <div className="flex-1 h-px bg-border" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/20">
+              <Building2 className="w-4 h-4 text-primary" />
+              <span className="text-sm font-semibold text-primary">Our Advisory Board</span>
+            </div>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
+          <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-3xl border border-primary/10 p-8 mb-10">
+            <p className="text-muted-foreground leading-relaxed text-lg text-center max-w-4xl mx-auto">
+              SikaFields, a proud member of the <strong className="text-foreground">Esoko family</strong>, is registered under the prestigious{" "}
+              <strong className="text-foreground">Dubai International Financial Centre (DIFC)</strong> as a holding company with subsidiaries across Africa. Our journey begins in{" "}
+              <strong className="text-foreground">Ghana</strong>, home to our first Africa country office, where we are developing pioneering carbon farms.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Advisory board grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {advisors.map((person, i) => (
+            <ProfileCard key={i} person={person} showPhoto />
+          ))}
+        </div>
+
       </div>
     </section>
   );
@@ -1194,6 +1313,7 @@ export default function LandingPage() {
         <HeroSection />
         <LiveStats />
         <AboutSection />
+        <LeadershipSection />
         <ProblemSection />
         <HowItWorks />
         <ImpactMapSection />
