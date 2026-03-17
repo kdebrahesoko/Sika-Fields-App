@@ -625,58 +625,169 @@ function AboutSection() {
   );
 }
 
-function LeadershipSection() {
-  const leaders = [
-    { name: "Matthew Bell", role: "Group Chief Executive Officer", col: 0, row: 0, initials: "MB", color: "from-primary to-accent" },
-    { name: "Ray Leclercq", role: "Group Chief Financial Officer", col: 1, row: 0, initials: "RL", color: "from-accent to-teal-600" },
-    { name: "Rebecca Pashley-Robinson", role: "Global Head of People", col: 2, row: 0, initials: "RP", color: "from-secondary to-amber-600" },
-    { name: "Kirsten Doddy", role: "Group Chief Marketing Officer", col: 3, row: 0, initials: "KD", color: "from-primary to-emerald-800" },
-  ];
+type PersonCard = {
+  name: string;
+  role: string;
+  initials: string;
+  color: string;
+  bgImage?: string;
+  bgPos?: string;
+  bgSize?: string;
+  placeholder?: boolean;
+};
 
-  const advisors = [
-    { name: "Advisory Member", role: "Strategy & Governance", col: 0, row: 1, initials: "AM", color: "from-teal-600 to-primary" },
-    { name: "Advisory Member", role: "Climate Finance", col: 1, row: 1, initials: "AM", color: "from-secondary to-primary" },
-    { name: "Advisory Member", role: "AgriTech Innovation", col: 2, row: 1, initials: "AM", color: "from-accent to-teal-700" },
-    { name: "Advisory Member", role: "Carbon Markets", col: 3, row: 1, initials: "AM", color: "from-primary to-secondary" },
-  ];
-
-  const photoStyle = (col: number, row: number) => ({
-    backgroundImage: "url('/team-leadership.png')",
-    backgroundSize: "400% 200%",
-    backgroundPosition: `${col === 0 ? 0 : col === 3 ? 100 : (col / 3) * 100}% ${row === 0 ? 0 : 100}%`,
-  });
-
-  function ProfileCard({ person, showPhoto }: { person: typeof leaders[0]; showPhoto?: boolean }) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="group bg-card rounded-3xl overflow-hidden border border-border shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-1"
-      >
-        {/* Photo area */}
-        <div className="relative h-64 overflow-hidden">
-          {showPhoto ? (
-            <div
-              className="w-full h-full"
-              style={photoStyle(person.col, person.row)}
-            />
-          ) : (
-            <div className={cn("w-full h-full bg-gradient-to-br flex items-center justify-center", person.color)}>
-              <span className="text-5xl font-display font-bold text-white/90">{person.initials}</span>
+function ProfileCard({ person, delay = 0 }: { person: PersonCard; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay }}
+      className="group bg-card rounded-3xl overflow-hidden border border-border shadow-sm hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-1"
+    >
+      <div className="relative h-64 overflow-hidden">
+        {person.bgImage ? (
+          <div
+            className="w-full h-full"
+            style={{
+              backgroundImage: `url('${person.bgImage}')`,
+              backgroundSize: person.bgSize ?? "310% 260%",
+              backgroundPosition: person.bgPos ?? "50% 50%",
+              backgroundRepeat: "no-repeat",
+            }}
+          />
+        ) : (
+          <div className={cn("w-full h-full bg-gradient-to-br flex flex-col items-center justify-center gap-3", person.color)}>
+            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center">
+              <span className="text-3xl font-display font-bold text-white">{person.initials}</span>
             </div>
-          )}
-          {/* Overlay gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-        </div>
-        {/* Info */}
-        <div className="p-5">
-          <h4 className="font-bold text-foreground text-lg leading-snug mb-1">{person.name}</h4>
-          <p className="text-sm text-muted-foreground">{person.role}</p>
-        </div>
-      </motion.div>
-    );
-  }
+            {person.placeholder && (
+              <span className="text-xs text-white/60 font-medium tracking-wide uppercase">Photo coming soon</span>
+            )}
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+      </div>
+      <div className="p-5">
+        <h4 className="font-bold text-foreground text-base leading-snug mb-1">{person.name}</h4>
+        <p className="text-sm text-muted-foreground">{person.role}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+function LeadershipSection() {
+  const leaders: PersonCard[] = [
+    {
+      name: "Daniel Asare-Kyei PhD",
+      role: "Chief Executive Officer",
+      initials: "DA",
+      color: "from-primary to-accent",
+      bgImage: "/leadership-team.png",
+      bgSize: "320% 265%",
+      bgPos: "0% 6%",
+    },
+    {
+      name: "William Osei Agyemang",
+      role: "Chief Finance Officer",
+      initials: "WO",
+      color: "from-accent to-teal-600",
+      bgImage: "/leadership-team.png",
+      bgSize: "320% 265%",
+      bgPos: "50% 6%",
+    },
+    {
+      name: "Valentijn Venus",
+      role: "Chief Product & Research Officer",
+      initials: "VV",
+      color: "from-secondary to-amber-600",
+      bgImage: "/leadership-team.png",
+      bgSize: "320% 265%",
+      bgPos: "100% 6%",
+    },
+    {
+      name: "Charlotte Owusu-Ansah",
+      role: "Chief Talent and Administrative Officer",
+      initials: "CO",
+      color: "from-primary to-emerald-800",
+      bgImage: "/leadership-team.png",
+      bgSize: "320% 265%",
+      bgPos: "0% 82%",
+    },
+    {
+      name: "Vijay Palat",
+      role: "Chief Strategy & Sustainability Officer",
+      initials: "VP",
+      color: "from-teal-700 to-primary",
+      bgImage: "/leadership-team.png",
+      bgSize: "320% 265%",
+      bgPos: "47% 82%",
+    },
+    {
+      name: "Join Our Team",
+      role: "Open Positions Available",
+      initials: "+",
+      color: "from-muted to-muted",
+      placeholder: true,
+    },
+  ];
+
+  const advisors: PersonCard[] = [
+    {
+      name: "Derrick Adu Gyamfi",
+      role: "Advisory Board Member",
+      initials: "DG",
+      color: "from-primary to-accent",
+      bgImage: "/advisory-board.png",
+      bgSize: "320% 340%",
+      bgPos: "0% 42%",
+    },
+    {
+      name: "Dr. Cheryl Sterling",
+      role: "Advisory Board Member",
+      initials: "CS",
+      color: "from-accent to-teal-600",
+      bgImage: "/advisory-board.png",
+      bgSize: "320% 340%",
+      bgPos: "50% 42%",
+    },
+    {
+      name: "Festus William Amoyaw",
+      role: "Advisory Board Member",
+      initials: "FA",
+      color: "from-secondary to-amber-600",
+      bgImage: "/advisory-board.png",
+      bgSize: "320% 340%",
+      bgPos: "100% 42%",
+    },
+    {
+      name: "Nana Ama Boateng-Kagyah",
+      role: "Advisory Board Member",
+      initials: "NB",
+      color: "from-primary to-emerald-800",
+      bgImage: "/advisory-board.png",
+      bgSize: "320% 340%",
+      bgPos: "0% 90%",
+    },
+    {
+      name: "Valentijn Venus",
+      role: "Advisory Board Member",
+      initials: "VV",
+      color: "from-teal-700 to-primary",
+      bgImage: "/advisory-board.png",
+      bgSize: "320% 340%",
+      bgPos: "50% 90%",
+    },
+    {
+      name: "Olubgenga Olanrewaju Awe",
+      role: "Group Head, Structured Trade & Commodities Finance — The Alternative Bank",
+      initials: "OA",
+      color: "from-primary to-accent",
+      bgImage: "/advisory-board.png",
+      bgSize: "320% 340%",
+      bgPos: "100% 90%",
+    },
+  ];
 
   return (
     <section id="leadership" className="py-24 bg-background">
@@ -687,7 +798,7 @@ function LeadershipSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center max-w-3xl mx-auto mb-6"
+          className="text-center max-w-3xl mx-auto mb-12"
         >
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 text-accent font-semibold text-sm mb-4 border border-accent/20">
             <Users className="w-4 h-4" /> Our Team
@@ -698,10 +809,10 @@ function LeadershipSection() {
           </p>
         </motion.div>
 
-        {/* Leadership grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+        {/* Leadership grid — 3 cols desktop */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
           {leaders.map((person, i) => (
-            <ProfileCard key={i} person={person} showPhoto />
+            <ProfileCard key={i} person={person} delay={i * 0.07} />
           ))}
         </div>
 
@@ -721,8 +832,8 @@ function LeadershipSection() {
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-3xl border border-primary/10 p-8 mb-10">
-            <p className="text-muted-foreground leading-relaxed text-lg text-center max-w-4xl mx-auto">
+          <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-3xl border border-primary/10 p-8 mb-10 text-center">
+            <p className="text-muted-foreground leading-relaxed text-lg max-w-4xl mx-auto">
               SikaFields, a proud member of the <strong className="text-foreground">Esoko family</strong>, is registered under the prestigious{" "}
               <strong className="text-foreground">Dubai International Financial Centre (DIFC)</strong> as a holding company with subsidiaries across Africa. Our journey begins in{" "}
               <strong className="text-foreground">Ghana</strong>, home to our first Africa country office, where we are developing pioneering carbon farms.
@@ -730,10 +841,10 @@ function LeadershipSection() {
           </div>
         </motion.div>
 
-        {/* Advisory board grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Advisory board grid — 3 cols desktop */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {advisors.map((person, i) => (
-            <ProfileCard key={i} person={person} showPhoto />
+            <ProfileCard key={i} person={person} delay={i * 0.07} />
           ))}
         </div>
 
