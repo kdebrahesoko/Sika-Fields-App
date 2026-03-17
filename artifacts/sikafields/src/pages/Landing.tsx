@@ -89,6 +89,8 @@ function AnnouncementBanner() {
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [solutionsOpen, setSolutionsOpen] = useState(false);
+  const [mobileSolutionsOpen, setMobileSolutionsOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -114,8 +116,47 @@ function Navbar() {
           <a href="#about" className="hover:text-primary transition-colors">About Us</a>
           <a href="#how-it-works" className="hover:text-primary transition-colors">How It Works</a>
           <a href="#impact" className="hover:text-primary transition-colors">Impact</a>
-          <a href="#farmers" className="hover:text-primary transition-colors">Farmers</a>
-          <a href="#buyers" className="hover:text-primary transition-colors">For Buyers</a>
+
+          {/* Solutions dropdown */}
+          <div
+            className="relative"
+            onMouseEnter={() => setSolutionsOpen(true)}
+            onMouseLeave={() => setSolutionsOpen(false)}
+          >
+            <button className="flex items-center gap-1 hover:text-primary transition-colors">
+              Solutions
+              <ChevronRight className={cn("w-4 h-4 transition-transform duration-200", solutionsOpen ? "rotate-90" : "rotate-0")} />
+            </button>
+            <AnimatePresence>
+              {solutionsOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute top-full left-0 mt-2 w-44 bg-background border border-border rounded-xl shadow-xl overflow-hidden"
+                >
+                  <a
+                    href="#farmers"
+                    className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors"
+                    onClick={() => setSolutionsOpen(false)}
+                  >
+                    <Sprout className="w-4 h-4 text-primary" />
+                    Farmers
+                  </a>
+                  <a
+                    href="#buyers"
+                    className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border"
+                    onClick={() => setSolutionsOpen(false)}
+                  >
+                    <Globe className="w-4 h-4 text-accent" />
+                    For Buyers
+                  </a>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           <a href="#resources" className="hover:text-primary transition-colors">Resources</a>
         </div>
 
@@ -144,13 +185,40 @@ function Navbar() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 w-full bg-background border-b border-border shadow-xl p-4 flex flex-col gap-4 md:hidden"
+            className="absolute top-full left-0 w-full bg-background border-b border-border shadow-xl p-4 flex flex-col gap-1 md:hidden"
           >
             <a href="#about" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>About Us</a>
             <a href="#how-it-works" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>How It Works</a>
             <a href="#impact" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>Impact</a>
-            <a href="#farmers" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>Farmers</a>
-            <a href="#buyers" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>For Buyers</a>
+
+            {/* Mobile Solutions toggle */}
+            <div>
+              <button
+                className="w-full flex items-center justify-between p-3 hover:bg-muted rounded-xl font-medium text-left"
+                onClick={() => setMobileSolutionsOpen(!mobileSolutionsOpen)}
+              >
+                Solutions
+                <ChevronRight className={cn("w-4 h-4 transition-transform duration-200", mobileSolutionsOpen ? "rotate-90" : "rotate-0")} />
+              </button>
+              <AnimatePresence>
+                {mobileSolutionsOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden pl-4"
+                  >
+                    <a href="#farmers" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={() => setMobileMenuOpen(false)}>
+                      <Sprout className="w-4 h-4 text-primary" /> Farmers
+                    </a>
+                    <a href="#buyers" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={() => setMobileMenuOpen(false)}>
+                      <Globe className="w-4 h-4 text-accent" /> For Buyers
+                    </a>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
             <a href="#resources" className="p-3 hover:bg-muted rounded-xl font-medium" onClick={() => setMobileMenuOpen(false)}>Resources</a>
             <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-border">
               <Button variant="outline" className="w-full">Log In</Button>
