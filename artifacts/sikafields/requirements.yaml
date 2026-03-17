@@ -1,0 +1,14 @@
+packages:
+  "framer-motion": "For smooth scroll reveals, page transitions, and floating element animations"
+  "lucide-react": "For beautiful, consistent UI icons"
+  "react-countup": "For animated live stats counters"
+  "react-simple-maps": "For the interactive impact map of Africa and India"
+  "clsx": "Utility for conditionally joining classNames"
+  "tailwind-merge": "Utility for merging tailwind classes safely"
+
+images: []
+
+notes:
+  - "The application uses wouter for routing as requested by the system constraints, keeping it consistent with the monorepo."
+  - "Map TopoJSON is loaded from a public CDN (unpkg) for react-simple-maps."
+  - "Animations heavily rely on Framer Motion's whileInView for scroll reveals."
