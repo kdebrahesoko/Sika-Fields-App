@@ -30,33 +30,111 @@ const FARMER_STORIES = [
   {
     id: 1,
     name: "Amara Diop",
-    location: "Senegal 🇸🇳",
+    location: "Senegal",
+    flag: "🇸🇳",
     age: 34,
-    quote: "I used to worry every harvest. Now with SikaFields, I earn carbon income even in dry seasons.",
+    crop: "Millet & Groundnuts",
+    farmSize: "3.2 hectares",
+    co2: "18 tonnes/yr",
+    pullQuote: "I earn carbon income even in dry seasons.",
+    quote: "Before SikaFields, every dry season felt like a gamble. Now I have a second income stream from the carbon credits on my land. I planted cover crops as they suggested, and not only has my soil improved — I earned more last year than my entire previous harvest combined. My children can stay in school.",
     earnings: "$420/yr extra",
     initials: "AD",
-    color: "bg-emerald-100 text-emerald-800"
+    gradient: "from-emerald-600 to-teal-700",
+    bg: "bg-emerald-50",
+    tag: "Soil Carbon",
+    image: "/farmer-amara.png",
   },
   {
     id: 2,
     name: "Priya Sharma",
-    location: "Maharashtra 🇮🇳",
+    location: "Maharashtra",
+    flag: "🇮🇳",
     age: 28,
-    quote: "The offline app works even in my village with no internet. My earnings tripled this year.",
+    crop: "Cotton & Soybean",
+    farmSize: "1.8 hectares",
+    co2: "11 tonnes/yr",
+    pullQuote: "My earnings tripled. The app works even without internet.",
+    quote: "The offline mode was the game-changer for me. I live 40 km from the nearest town and our signal is unreliable. The SikaFields app records everything locally and syncs when I reach town. I went from struggling to pay school fees to putting money aside every month. Other women in my village now want to join.",
     earnings: "$650/yr extra",
     initials: "PS",
-    color: "bg-amber-100 text-amber-800"
+    gradient: "from-amber-500 to-orange-600",
+    bg: "bg-amber-50",
+    tag: "Agroforestry",
+    image: "/farmer-priya.png",
   },
   {
     id: 3,
     name: "Kofi Mensah",
-    location: "Ghana 🇬🇭",
+    location: "Ashanti Region",
+    flag: "🇬🇭",
     age: 45,
-    quote: "My cooperative registered 200 farmers in one day. Simple, fast, works on any basic smartphone.",
+    crop: "Cocoa & Plantain",
+    farmSize: "Cooperative – 200 farms",
+    co2: "980 tonnes/yr",
+    pullQuote: "We registered 200 farmers in one day.",
+    quote: "As a co-op leader I had doubts — would this be too complicated for our members? But the SikaFields team came to us in person, spoke our language, and we onboarded 200 farmers in a single day. The collective credit revenue has funded a community borehole and a farm storage facility. This is what impact looks like.",
     earnings: "$3,200/yr (Co-op)",
     initials: "KM",
-    color: "bg-teal-100 text-teal-800"
-  }
+    gradient: "from-teal-600 to-cyan-700",
+    bg: "bg-teal-50",
+    tag: "Co-op Leader",
+    image: "/farmer-kofi.png",
+  },
+  {
+    id: 4,
+    name: "Aisha Bello",
+    location: "Kano State",
+    flag: "🇳🇬",
+    age: 31,
+    crop: "Sesame & Sorghum",
+    farmSize: "2.5 hectares",
+    co2: "14 tonnes/yr",
+    pullQuote: "For the first time, I own something that earns while I sleep.",
+    quote: "Carbon credits were completely new to me. But SikaFields explained everything in Hausa. I now understand that by protecting the trees on my land and using better farming methods, I'm creating value the whole world needs. For the first time, I feel like my small farm matters on a global stage.",
+    earnings: "$510/yr extra",
+    initials: "AB",
+    gradient: "from-violet-600 to-purple-700",
+    bg: "bg-violet-50",
+    tag: "REDD+ Project",
+    image: "/farmer-aisha.png",
+  },
+  {
+    id: 5,
+    name: "Grace Wanjiku",
+    location: "Nyeri County",
+    flag: "🇰🇪",
+    age: 39,
+    crop: "Tea & Vegetables",
+    farmSize: "1.2 hectares",
+    co2: "9 tonnes/yr",
+    pullQuote: "SikaFields turned my land into a living investment.",
+    quote: "I was always told small farms can't compete. SikaFields proved that wrong. My land is certified, my credits are traded on the international market, and I get a fair share of the revenue. My husband jokes that our tea farm is now also a carbon farm. I tell him — it's both, and it's the future.",
+    earnings: "$380/yr extra",
+    initials: "GW",
+    gradient: "from-rose-500 to-pink-600",
+    bg: "bg-rose-50",
+    tag: "Forest Carbon",
+    image: "/farmer-grace.png",
+  },
+  {
+    id: 6,
+    name: "Ravi Kumar",
+    location: "Rajasthan",
+    flag: "🇮🇳",
+    age: 52,
+    crop: "Wheat & Mustard",
+    farmSize: "4.1 hectares",
+    co2: "22 tonnes/yr",
+    pullQuote: "My dry land is now worth something to the whole world.",
+    quote: "Rajasthan is harsh land — drought is our companion. I never thought my farm could help fight climate change, but now I'm planting drought-resistant trees recommended by SikaFields' agronomists, sequestering carbon, and earning credits. My two sons who had moved to the city are thinking about coming back to farm.",
+    earnings: "$740/yr extra",
+    initials: "RK",
+    gradient: "from-sky-600 to-blue-700",
+    bg: "bg-sky-50",
+    tag: "Dryland Carbon",
+    image: "/farmer-ravi.png",
+  },
 ];
 
 const TRUST_LOGOS = [
@@ -1407,49 +1485,265 @@ function ImpactMapSection() {
   );
 }
 
-function FarmerStories() {
+function StoryCard({ story, index }: { story: typeof FARMER_STORIES[0]; index: number }) {
+  const [flipped, setFlipped] = useState(false);
+  const hasPhoto = ["/farmer-amara.png", "/farmer-priya.png", "/farmer-kofi.png"].includes(story.image);
+
   return (
-    <section id="farmers" className="py-24 bg-background overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-          <div className="max-w-2xl">
-            <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-4">Powered by community.</h2>
-            <p className="text-lg text-muted-foreground">Hear from the farmers who are transforming their land and livelihoods.</p>
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.6, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+      className="min-w-[320px] md:min-w-[360px] flex-shrink-0 snap-center cursor-pointer perspective-1000"
+      onClick={() => setFlipped(f => !f)}
+    >
+      <motion.div
+        className="relative w-full h-[460px] rounded-3xl"
+        animate={{ rotateY: flipped ? 180 : 0 }}
+        transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+        style={{ transformStyle: "preserve-3d" }}
+      >
+        {/* ── FRONT ── */}
+        <div className="absolute inset-0 rounded-3xl overflow-hidden bg-card border border-border shadow-lg shadow-black/5 backface-hidden flex flex-col">
+          {/* Image / Avatar header */}
+          <div className={cn("relative h-48 bg-gradient-to-br shrink-0", story.gradient)}>
+            {hasPhoto ? (
+              <img src={story.image} alt={story.name} className="w-full h-full object-cover object-top" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-6xl font-display font-black text-white/20 select-none">{story.initials}</span>
+              </div>
+            )}
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            {/* Tag */}
+            <span className="absolute top-4 right-4 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-bold border border-white/20">
+              {story.tag}
+            </span>
+            {/* Name overlay */}
+            <div className="absolute bottom-4 left-4 right-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{story.flag}</span>
+                <div>
+                  <p className="text-white font-bold text-base leading-none">{story.name}, {story.age}</p>
+                  <p className="text-white/60 text-xs mt-0.5">{story.location} · {story.crop}</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon" className="rounded-full hidden sm:flex"><ChevronRight className="w-5 h-5 rotate-180" /></Button>
-            <Button variant="outline" size="icon" className="rounded-full hidden sm:flex"><ChevronRight className="w-5 h-5" /></Button>
+
+          {/* Body */}
+          <div className="flex flex-col flex-1 p-6">
+            {/* Pull quote */}
+            <div className="flex-1">
+              <div className="text-4xl text-primary/20 font-serif leading-none mb-1 select-none">"</div>
+              <p className="text-foreground font-semibold text-base leading-snug italic">
+                {story.pullQuote}
+              </p>
+            </div>
+
+            {/* Stats row */}
+            <div className="grid grid-cols-3 gap-3 pt-4 mt-4 border-t border-border">
+              <div className="text-center">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-0.5">Earnings</p>
+                <p className="text-sm font-bold text-primary">{story.earnings}</p>
+              </div>
+              <div className="text-center border-x border-border">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-0.5">CO₂</p>
+                <p className="text-sm font-bold text-foreground">{story.co2}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold mb-0.5">Land</p>
+                <p className="text-sm font-bold text-foreground leading-none">{story.farmSize.split(" ")[0]}</p>
+              </div>
+            </div>
+
+            <p className="text-[10px] text-muted-foreground text-center mt-3 opacity-50">Tap to read full story →</p>
           </div>
         </div>
 
-        <div className="flex overflow-x-auto gap-6 pb-8 snap-x snap-mandatory no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-          {FARMER_STORIES.map((story) => (
-            <motion.div 
-              key={story.id}
-              whileHover={{ y: -5 }}
-              className="min-w-[300px] md:min-w-[380px] flex-shrink-0 snap-center bg-card border border-border p-8 rounded-3xl shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                  <div className={cn("w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg", story.color)}>
-                    {story.initials}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-foreground">{story.name}, {story.age}</h4>
-                    <p className="text-sm text-muted-foreground">{story.location}</p>
-                  </div>
+        {/* ── BACK (full quote) ── */}
+        <div
+          className="absolute inset-0 rounded-3xl overflow-hidden border border-border shadow-xl flex flex-col p-7 backface-hidden"
+          style={{ transform: "rotateY(180deg)", background: `linear-gradient(135deg, hsl(160 28% 6%), hsl(150 22% 12%))` }}
+        >
+          <div className="flex items-center gap-3 mb-5">
+            <div className={cn("w-12 h-12 rounded-2xl bg-gradient-to-br flex items-center justify-center shrink-0 text-white font-bold text-lg", story.gradient)}>
+              {story.initials}
+            </div>
+            <div>
+              <p className="text-white font-bold leading-none">{story.name}</p>
+              <p className="text-white/50 text-xs mt-0.5">{story.flag} {story.location}</p>
+            </div>
+            <span className="ml-auto px-2.5 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold border border-primary/20">{story.tag}</span>
+          </div>
+
+          <div className="flex-1 overflow-hidden">
+            <div className="text-5xl text-primary/30 font-serif leading-none mb-2 select-none">"</div>
+            <p className="text-white/80 text-sm leading-relaxed">{story.quote}</p>
+            <div className="text-5xl text-primary/30 font-serif leading-none text-right mt-2 select-none">"</div>
+          </div>
+
+          <div className="pt-4 border-t border-white/10 flex items-center justify-between mt-4">
+            <div>
+              <p className="text-xs text-white/30 uppercase tracking-widest font-semibold mb-0.5">Additional income</p>
+              <p className="text-primary font-bold text-lg">{story.earnings}</p>
+            </div>
+            <p className="text-[10px] text-white/30">Tap to flip back</p>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function FarmerStories() {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const featured = FARMER_STORIES[0];
+  const rest = FARMER_STORIES.slice(1);
+
+  const communityStats = [
+    { label: "Farmers Enrolled", value: "47,000+", icon: <Users className="w-5 h-5 text-primary" /> },
+    { label: "CO₂ Sequestered", value: "2.3M tonnes", icon: <Leaf className="w-5 h-5 text-emerald-400" /> },
+    { label: "Countries Active", value: "14 regions", icon: <Globe className="w-5 h-5 text-accent" /> },
+    { label: "Avg Extra Income", value: "$520 / yr", icon: <TrendingUp className="w-5 h-5 text-amber-400" /> },
+  ];
+
+  return (
+    <section id="farmers" className="relative py-28 overflow-hidden bg-gradient-to-b from-[hsl(160_20%_97%)] to-[hsl(160_28%_6%)]">
+
+      {/* Ambient background elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute bottom-0 left-[-10%] w-[700px] h-[700px] rounded-full bg-primary/10 blur-[160px]" />
+        <div className="absolute bottom-[20%] right-[-5%] w-[500px] h-[500px] rounded-full bg-accent/8 blur-[140px]" />
+        {/* Subtle grid overlay on the dark portion */}
+        <div className="absolute bottom-0 left-0 right-0 h-2/3"
+          style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)", backgroundSize: "40px 40px" }}
+        />
+      </div>
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* ── Section header ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-16"
+        >
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest mb-5">
+            <HeartHandshake className="w-3.5 h-3.5" /> Powered by Community
+          </span>
+          <h2 className="text-4xl md:text-6xl font-display font-black text-foreground mb-5 leading-tight">
+            Voices from<br />
+            <span className="text-primary">the Field</span>
+          </h2>
+          <p className="text-muted-foreground text-xl max-w-2xl mx-auto leading-relaxed">
+            Real farmers sharing their success stories and the impact SikaFields has made on their lives and communities.
+          </p>
+        </motion.div>
+
+        {/* ── Feature story ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="relative rounded-[2.5rem] overflow-hidden mb-12 shadow-2xl shadow-black/20"
+          style={{ minHeight: 420 }}
+        >
+          {/* Background image */}
+          <img src="/hero-farmers.jpg" alt="Farmers in the field" className="absolute inset-0 w-full h-full object-cover object-center" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+          {/* Content */}
+          <div className="relative p-10 md:p-14 flex flex-col md:flex-row items-end gap-10">
+            <div className="flex-1 max-w-2xl">
+              {/* Tag */}
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/20 border border-primary/30 text-primary text-xs font-bold uppercase tracking-widest mb-6">
+                <Sprout className="w-3 h-3" /> Featured Story
+              </span>
+              {/* Quote mark */}
+              <div className="text-7xl text-primary/40 font-serif leading-none -mb-3 select-none">"</div>
+              <blockquote className="text-white text-2xl md:text-3xl font-display font-bold leading-snug mb-6">
+                {featured.pullQuote}
+              </blockquote>
+              <p className="text-white/65 text-base leading-relaxed mb-8 max-w-lg">
+                {featured.quote}
+              </p>
+              {/* Farmer identity */}
+              <div className="flex items-center gap-4">
+                <div className={cn("w-14 h-14 rounded-2xl bg-gradient-to-br flex items-center justify-center text-white font-bold text-xl shadow-lg shrink-0", featured.gradient)}>
+                  {featured.initials}
+                </div>
+                <div>
+                  <p className="text-white font-bold text-lg">{featured.name}, {featured.age}</p>
+                  <p className="text-white/50 text-sm">{featured.flag} {featured.location} · {featured.crop}</p>
                 </div>
               </div>
-              
-              <p className="text-foreground/80 text-lg leading-relaxed mb-8 italic">"{story.quote}"</p>
-              
-              <div className="pt-6 border-t border-border flex items-center justify-between">
-                <span className="text-sm font-medium text-muted-foreground">Impact Earnings</span>
-                <span className="font-bold text-primary">{story.earnings}</span>
+            </div>
+
+            {/* Stats panel */}
+            <div className="grid grid-cols-2 gap-3 shrink-0 md:w-52">
+              {[
+                { label: "Extra income", value: featured.earnings, color: "text-primary" },
+                { label: "CO₂ / yr", value: featured.co2, color: "text-emerald-400" },
+                { label: "Farm size", value: featured.farmSize, color: "text-white" },
+                { label: "Specialty", value: featured.tag, color: "text-accent" },
+              ].map((s, i) => (
+                <div key={i} className="glass-dark rounded-2xl p-4 text-center">
+                  <p className="text-white/40 text-[10px] uppercase tracking-widest font-semibold mb-1">{s.label}</p>
+                  <p className={cn("text-sm font-bold leading-snug", s.color)}>{s.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── Story cards carousel ── */}
+        <div className="relative mb-16">
+          <div className="flex overflow-x-auto gap-5 pb-6 snap-x snap-mandatory"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {rest.map((story, i) => (
+              <StoryCard key={story.id} story={story} index={i} />
+            ))}
+          </div>
+          {/* Fade edges */}
+          <div className="absolute top-0 right-0 bottom-6 w-24 bg-gradient-to-l from-[hsl(160_28%_6%)] to-transparent pointer-events-none" />
+        </div>
+
+        {/* ── Community stats bar ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, delay: 0.2 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+        >
+          {communityStats.map((stat, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 + i * 0.08 }}
+              className="rounded-2xl bg-white/5 border border-white/10 p-5 flex items-center gap-3 hover:bg-white/8 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                {stat.icon}
+              </div>
+              <div>
+                <p className="text-white font-bold text-lg leading-none">{stat.value}</p>
+                <p className="text-white/40 text-xs mt-0.5">{stat.label}</p>
               </div>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
+
       </div>
     </section>
   );
