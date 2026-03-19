@@ -8,7 +8,7 @@ import {
   Newspaper, Radio, FileText, CalendarDays, Mic2,
   Target, TreePine, DollarSign, Building2, Smartphone,
   SatelliteDish, HeartHandshake, TrendingUp, AlertTriangle,
-  Lightbulb, Info, Phone, Mail, Clock, Send, Loader2
+  Lightbulb, Info, Phone, Mail, Clock, Send, Loader2, Linkedin
 } from "lucide-react";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { Button } from "@/components/ui/button";
@@ -991,6 +991,7 @@ type PersonCard = {
   domains?: string[];
   quote?: string;
   flipColor?: string;
+  linkedin?: string;
 };
 
 function LeaderFlipCard({ person, delay = 0 }: { person: PersonCard; delay?: number }) {
@@ -1085,7 +1086,19 @@ function LeaderFlipCard({ person, delay = 0 }: { person: PersonCard; delay?: num
                 <p className="text-white/40 text-[11px] italic mb-2 leading-relaxed">"{person.quote}"</p>
               )}
               <p className="text-white font-semibold text-sm">{person.name}</p>
-              <p className="text-white/50 text-xs">{person.role}</p>
+              <p className="text-white/50 text-xs mb-3">{person.role}</p>
+              {person.linkedin && (
+                <a
+                  href={person.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={e => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 transition-colors text-white text-[11px] font-semibold"
+                >
+                  <Linkedin className="w-3 h-3" />
+                  LinkedIn
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -1149,6 +1162,7 @@ function LeadershipSection() {
       domains: ["Carbon Markets", "Climate Policy", "AgriTech"],
       quote: "Building the bridge between African land and global climate capital.",
       flipColor: "#166534",
+      linkedin: "https://www.linkedin.com/in/dasarekyeiprofile/",
     },
     {
       name: "William Osei Agyemang",
@@ -1163,6 +1177,7 @@ function LeadershipSection() {
       domains: ["Finance", "African Markets", "Investment"],
       quote: "Sound capital structure is what turns climate missions into durable businesses.",
       flipColor: "#0f766e",
+      linkedin: "https://www.linkedin.com/in/william-osei-agyemang-35b79a22",
     },
     {
       name: "Valentijn Venus",
@@ -1177,6 +1192,7 @@ function LeadershipSection() {
       domains: ["Product Strategy", "Research", "MRV Design"],
       quote: "Data integrity is the bedrock of every credit we issue.",
       flipColor: "#b45309",
+      linkedin: "https://www.linkedin.com/in/valentijn-venus/",
     },
     {
       name: "Charlotte Owusu-Ansah",
@@ -1191,6 +1207,7 @@ function LeadershipSection() {
       domains: ["Talent", "Operations", "Culture"],
       quote: "Our people are the soil from which our impact grows.",
       flipColor: "#166534",
+      linkedin: "https://www.linkedin.com/in/charlotte-owusu-ansah-a292391a6",
     },
     {
       name: "Vijay Palat",
@@ -1207,11 +1224,19 @@ function LeadershipSection() {
       flipColor: "#0f766e",
     },
     {
-      name: "Join Our Team",
-      role: "Open Positions Available",
-      initials: "+",
-      color: "from-muted to-muted",
-      placeholder: true,
+      name: "Dr. Kwame Ofosu Debrah",
+      role: "Chief Technology Officer",
+      initials: "KD",
+      color: "from-primary to-teal-700",
+      bgImage: "/dr-kwame.jpeg",
+      bgSize: "cover",
+      bgPos: "center 10%",
+      credential: "PhD Technology & Innovation",
+      credentialSub: "Mobile-First Platform · Manchester, UK",
+      domains: ["Mobile Tech", "Platform Architecture", "AgriTech"],
+      quote: "Architect of our mobile-first platform, bridging technology gaps for smallholder farmers across emerging markets.",
+      flipColor: "#0f766e",
+      linkedin: "https://www.linkedin.com/in/kwamefosu",
     },
   ];
 

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowLeft, Linkedin, Building2, Globe, Users } from "lucide-react";
+import { ArrowLeft, Linkedin, Building2, Globe, Users, MapPin } from "lucide-react";
 import { Link } from "wouter";
 
 const CSUITE = [
@@ -15,6 +15,7 @@ const CSUITE = [
     img: "leadership-team",
     color: "#16a34a",
     territory: "Ghana",
+    linkedin: "https://www.linkedin.com/in/dasarekyeiprofile/",
   },
   {
     name: "William Osei Agyemang",
@@ -28,6 +29,7 @@ const CSUITE = [
     img: "leadership-team",
     color: "#0f766e",
     territory: "Ghana · UAE/DIFC",
+    linkedin: "https://www.linkedin.com/in/william-osei-agyemang-35b79a22",
   },
   {
     name: "Valentijn Venus",
@@ -41,6 +43,7 @@ const CSUITE = [
     img: "leadership-team",
     color: "#b45309",
     territory: "Netherlands",
+    linkedin: "https://www.linkedin.com/in/valentijn-venus/",
   },
   {
     name: "Charlotte Owusu-Ansah",
@@ -54,6 +57,7 @@ const CSUITE = [
     img: "leadership-team",
     color: "#16a34a",
     territory: "Ghana",
+    linkedin: "https://www.linkedin.com/in/charlotte-owusu-ansah-a292391a6",
   },
   {
     name: "Vijay Palat",
@@ -67,6 +71,21 @@ const CSUITE = [
     img: "leadership-team",
     color: "#0f766e",
     territory: "India",
+    linkedin: "",
+  },
+  {
+    name: "Dr. Kwame Ofosu Debrah",
+    suffix: "PhD",
+    role: "Chief Technology Officer",
+    credential: "PhD Technology & Innovation · Mobile-First Platform Architecture",
+    domains: ["Mobile Tech", "Platform Architecture", "AgriTech"],
+    quote: "Architect of our mobile-first platform, bridging technology gaps for smallholder farmers across emerging markets.",
+    bgPos: "center 10%",
+    bgSize: "cover",
+    img: "dr-kwame",
+    color: "#0f766e",
+    territory: "Manchester, UK",
+    linkedin: "https://www.linkedin.com/in/kwamefosu",
   },
 ];
 
@@ -83,6 +102,7 @@ const ADVISORS = [
     img: "advisory-board",
     color: "#166534",
     focus: "Capital markets guidance",
+    linkedin: "https://www.linkedin.com/in/derick-adu-gyamfi-esq-7011901b4/",
   },
   {
     name: "Dr. Cheryl Sterling",
@@ -96,6 +116,7 @@ const ADVISORS = [
     img: "advisory-board",
     color: "#0f766e",
     focus: "Policy research & ESG",
+    linkedin: "https://www.linkedin.com/in/cheryl-sterling-a33890aa/",
   },
   {
     name: "Festus William Amoyaw",
@@ -109,6 +130,7 @@ const ADVISORS = [
     img: "advisory-board",
     color: "#b45309",
     focus: "Agribusiness & rural dev.",
+    linkedin: "https://www.linkedin.com/in/festus-william-amoyaw-13152b7/",
   },
   {
     name: "Nana Ama Boateng-Kagyah",
@@ -122,6 +144,7 @@ const ADVISORS = [
     img: "advisory-board",
     color: "#166534",
     focus: "Legal & compliance",
+    linkedin: "https://www.linkedin.com/in/nana-ama-boateng-b7b1915/",
   },
   {
     name: "Valentijn Venus",
@@ -135,6 +158,7 @@ const ADVISORS = [
     img: "advisory-board",
     color: "#0f766e",
     focus: "MRV methodology",
+    linkedin: "https://www.linkedin.com/in/valentijn-venus/",
   },
   {
     name: "Olubgenga Olanrewaju Awe",
@@ -148,6 +172,7 @@ const ADVISORS = [
     img: "advisory-board",
     color: "#166534",
     focus: "Structured trade finance",
+    linkedin: "",
   },
 ];
 
@@ -173,7 +198,7 @@ function PersonCard({
           <div
             className="w-20 h-20 rounded-2xl shrink-0"
             style={{
-              backgroundImage: `url('/${person.img}.png')`,
+              backgroundImage: `url('/${person.img}${person.img === "dr-kwame" ? ".jpeg" : ".png"}')`,
               backgroundSize: person.bgSize,
               backgroundPosition: person.bgPos,
               backgroundRepeat: "no-repeat",
@@ -195,7 +220,7 @@ function PersonCard({
             </p>
             {"territory" in person && person.territory && (
               <div className="flex items-center gap-1 mt-1.5">
-                <Globe className="w-3 h-3 text-muted-foreground" />
+                <MapPin className="w-3 h-3 text-muted-foreground" />
                 <span className="text-[11px] text-muted-foreground">{person.territory}</span>
               </div>
             )}
@@ -225,6 +250,23 @@ function PersonCard({
             </span>
           ))}
         </div>
+
+        {person.linkedin && (
+          <a
+            href={person.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-sm font-semibold transition-all hover:shadow-sm"
+            style={{
+              color: person.color,
+              borderColor: `${person.color}40`,
+              backgroundColor: `${person.color}08`,
+            }}
+          >
+            <Linkedin className="w-4 h-4" />
+            View LinkedIn
+          </a>
+        )}
       </div>
     </motion.div>
   );
@@ -262,7 +304,7 @@ export default function AdvisoryPage() {
               <span className="text-[#4ade80]">Advisory Board</span>
             </h1>
             <p className="text-white/75 text-lg max-w-2xl mx-auto leading-relaxed">
-              Five C-Suite leaders and six domain advisors — every one of them named, reachable, and accountable for the outcomes we claim.
+              Six C-Suite leaders and six domain advisors — every one of them named, reachable, and accountable for the outcomes we claim.
             </p>
           </motion.div>
 
@@ -274,7 +316,7 @@ export default function AdvisoryPage() {
             className="mt-12 flex flex-wrap items-center justify-center gap-8"
           >
             {[
-              { label: "C-Suite Leaders", value: "5" },
+              { label: "C-Suite Leaders", value: "6" },
               { label: "Advisors", value: "6" },
               { label: "Countries Represented", value: "4" },
               { label: "Combined Domain Experience", value: "80+ yrs" },
@@ -304,7 +346,7 @@ export default function AdvisoryPage() {
               </h2>
             </div>
             <p className="text-muted-foreground max-w-2xl">
-              Five domain specialists leading operations across Ghana, India, the Netherlands, and UAE/DIFC.
+              Six domain specialists leading operations across Ghana, India, the Netherlands, UAE/DIFC, and Manchester, UK.
             </p>
           </motion.div>
 
