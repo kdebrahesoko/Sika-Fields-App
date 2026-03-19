@@ -986,7 +986,113 @@ type PersonCard = {
   bgPos?: string;
   bgSize?: string;
   placeholder?: boolean;
+  credential?: string;
+  credentialSub?: string;
+  domains?: string[];
+  quote?: string;
+  flipColor?: string;
 };
+
+function LeaderFlipCard({ person, delay = 0 }: { person: PersonCard; delay?: number }) {
+  const [flipped, setFlipped] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay }}
+      className="cursor-pointer select-none"
+      style={{ perspective: "1000px" }}
+      onMouseEnter={() => setFlipped(true)}
+      onMouseLeave={() => setFlipped(false)}
+      onTouchStart={() => setFlipped(f => !f)}
+    >
+      <div
+        style={{
+          position: "relative",
+          transformStyle: "preserve-3d",
+          transition: "transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)",
+          transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+          height: "320px",
+        }}
+      >
+        {/* Front face */}
+        <div
+          className="absolute inset-0 rounded-3xl overflow-hidden shadow-md"
+          style={{ backfaceVisibility: "hidden", WebkitBackfaceVisibility: "hidden" } as React.CSSProperties}
+        >
+          {person.bgImage ? (
+            <div
+              className="w-full h-full"
+              style={{
+                backgroundImage: `url('${person.bgImage}')`,
+                backgroundSize: person.bgSize ?? "320% 265%",
+                backgroundPosition: person.bgPos ?? "50% 50%",
+                backgroundRepeat: "no-repeat",
+              }}
+            />
+          ) : (
+            <div className={cn("w-full h-full bg-gradient-to-br flex flex-col items-center justify-center gap-3", person.color)}>
+              <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center">
+                <span className="text-3xl font-display font-bold text-white">{person.initials}</span>
+              </div>
+              {person.placeholder && (
+                <span className="text-xs text-white/60 font-medium tracking-wide uppercase">Open Position</span>
+              )}
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-5">
+            <p className="font-bold text-white text-base leading-snug">{person.name}</p>
+            <p className="text-white/60 text-sm mt-0.5">{person.role}</p>
+          </div>
+          {person.credential && (
+            <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/15 backdrop-blur-sm rounded-full px-2.5 py-1">
+              <TrendingUp className="w-3 h-3 text-white/70" />
+              <span className="text-white/70 text-[10px] font-semibold tracking-wide">flip</span>
+            </div>
+          )}
+        </div>
+
+        {/* Back face */}
+        <div
+          className="absolute inset-0 rounded-3xl overflow-hidden"
+          style={{
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+            background: person.flipColor
+              ? `linear-gradient(135deg, ${person.flipColor} 0%, #052e16 100%)`
+              : "linear-gradient(135deg, #166534 0%, #052e16 100%)",
+          } as React.CSSProperties}
+        >
+          <div className="absolute inset-0 p-5 flex flex-col justify-between">
+            <div>
+              <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest mb-1">Credential</p>
+              <p className="text-white font-bold text-lg leading-tight">{person.credential}</p>
+              <p className="text-white/60 text-xs mt-0.5">{person.credentialSub}</p>
+              <div className="flex flex-wrap gap-1.5 mt-4">
+                {person.domains?.map(d => (
+                  <span key={d} className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/15 text-white/90">
+                    {d}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div>
+              {person.quote && (
+                <p className="text-white/40 text-[11px] italic mb-2 leading-relaxed">"{person.quote}"</p>
+              )}
+              <p className="text-white font-semibold text-sm">{person.name}</p>
+              <p className="text-white/50 text-xs">{person.role}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 function ProfileCard({ person, delay = 0 }: { person: PersonCard; delay?: number }) {
   return (
@@ -1038,6 +1144,11 @@ function LeadershipSection() {
       bgImage: "/leadership-team.png",
       bgSize: "320% 265%",
       bgPos: "0% 6%",
+      credential: "PhD Environmental Science",
+      credentialSub: "10+ yrs in Carbon Markets",
+      domains: ["Carbon Markets", "Climate Policy", "AgriTech"],
+      quote: "Building the bridge between African land and global climate capital.",
+      flipColor: "#166534",
     },
     {
       name: "William Osei Agyemang",
@@ -1047,6 +1158,11 @@ function LeadershipSection() {
       bgImage: "/leadership-team.png",
       bgSize: "320% 265%",
       bgPos: "50% 6%",
+      credential: "ACCA Certified",
+      credentialSub: "Structured Finance & Investment",
+      domains: ["Finance", "African Markets", "Investment"],
+      quote: "Sound capital structure is what turns climate missions into durable businesses.",
+      flipColor: "#0f766e",
     },
     {
       name: "Valentijn Venus",
@@ -1056,6 +1172,11 @@ function LeadershipSection() {
       bgImage: "/leadership-team.png",
       bgSize: "320% 265%",
       bgPos: "100% 6%",
+      credential: "MSc Environmental Economics",
+      credentialSub: "Research & Product Strategy",
+      domains: ["Product Strategy", "Research", "MRV Design"],
+      quote: "Data integrity is the bedrock of every credit we issue.",
+      flipColor: "#b45309",
     },
     {
       name: "Charlotte Owusu-Ansah",
@@ -1065,6 +1186,11 @@ function LeadershipSection() {
       bgImage: "/leadership-team.png",
       bgSize: "320% 265%",
       bgPos: "0% 82%",
+      credential: "HR Leadership",
+      credentialSub: "Organisational Development",
+      domains: ["Talent", "Operations", "Culture"],
+      quote: "Our people are the soil from which our impact grows.",
+      flipColor: "#166534",
     },
     {
       name: "Vijay Palat",
@@ -1074,6 +1200,11 @@ function LeadershipSection() {
       bgImage: "/leadership-team.png",
       bgSize: "320% 265%",
       bgPos: "47% 82%",
+      credential: "ESG Strategy Expert",
+      credentialSub: "Policy & Sustainability Frameworks",
+      domains: ["ESG Strategy", "Sustainability", "Policy"],
+      quote: "True sustainability means being here for the next generation of farmers.",
+      flipColor: "#0f766e",
     },
     {
       name: "Join Our Team",
@@ -1157,14 +1288,14 @@ function LeadershipSection() {
           </div>
           <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-4">Our Leadership</h2>
           <p className="text-muted-foreground text-lg leading-relaxed">
-            Each member plays a pivotal role in guiding our organisation towards achieving our mission and vision. With diverse backgrounds and expertise, our leaders are united by a shared passion for driving success and fostering a collaborative culture.
+            Five domain specialists, one mission. Hover any card to reveal the credential and expertise behind the title.
           </p>
         </motion.div>
 
-        {/* Leadership grid — 3 cols desktop */}
+        {/* Leadership grid — 3 cols desktop, flip reveal on hover */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
           {leaders.map((person, i) => (
-            <ProfileCard key={i} person={person} delay={i * 0.07} />
+            <LeaderFlipCard key={i} person={person} delay={i * 0.07} />
           ))}
         </div>
 
