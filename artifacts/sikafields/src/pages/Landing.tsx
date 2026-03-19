@@ -875,16 +875,31 @@ function AboutSection() {
             <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
               For farmers and rural communities across Africa, we bridge the gap between the fields and global carbon markets — bringing science-backed impact where it matters most.
             </p>
-            <div className="p-5 bg-muted/60 rounded-2xl border border-border mb-8">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <Lightbulb className="w-5 h-5 text-accent" />
+            <div className="space-y-4 mb-8">
+              <div className="p-5 bg-muted/60 rounded-2xl border border-border">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Lightbulb className="w-5 h-5 text-accent" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground mb-1">A spin-off from Esoko</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      As a spin-off from Esoko — a pioneer in leveraging mobile and web technologies for agricultural innovation — SikaFields brings a decade of expertise and impact in the AgriTech sector to the forefront of climate action.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-foreground mb-1">A spin-off from Esoko</p>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    As a spin-off from Esoko — a pioneer in leveraging mobile and web technologies for agricultural innovation — SikaFields brings a decade of expertise and impact in the AgriTech sector to the forefront of climate action.
-                  </p>
+              </div>
+              <div className="p-5 bg-primary/5 rounded-2xl border border-primary/15">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <Building2 className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground mb-1">DIFC Registered · Ghana-Based</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      SikaFields, a proud member of the Esoko family, is registered under the prestigious <strong className="text-foreground">Dubai International Financial Centre (DIFC)</strong> as a holding company with subsidiaries across Africa. Our journey begins in <strong className="text-foreground">Ghana</strong>, home to our first Africa country office, where we are developing pioneering carbon farms.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -901,41 +916,80 @@ function AboutSection() {
             </div>
           </motion.div>
 
-          {/* Visual: map placeholder + floating stat cards */}
+          {/* Visual: real farming photo + floating stat cards */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="relative h-[420px]"
+            className="relative h-[480px]"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-secondary/20 rounded-3xl border border-border overflow-hidden">
-              {/* CSS landscape art */}
-              <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-primary/40 to-transparent rounded-b-3xl" />
-              <div className="absolute bottom-0 left-[-10%] w-[60%] h-40 bg-gradient-to-t from-primary to-emerald-500 rounded-[100%] opacity-70" />
-              <div className="absolute bottom-0 right-[-5%] w-[55%] h-32 bg-gradient-to-t from-emerald-800 to-primary/60 rounded-[100%] opacity-80" />
-              <div className="absolute top-8 right-8 w-20 h-20 bg-gradient-to-br from-secondary to-amber-300 rounded-full opacity-90 blur-[1px]" />
-              {/* Floating indicators */}
-              <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }}
-                className="absolute top-8 left-8 bg-white/95 backdrop-blur p-3 rounded-2xl shadow-xl flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Active Regions</p>
-                  <p className="font-bold text-gray-900 text-sm">14 Countries</p>
-                </div>
-              </motion.div>
-              <motion.div animate={{ y: [0, 12, 0] }} transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-                className="absolute bottom-16 right-8 bg-white/95 backdrop-blur p-3 rounded-2xl shadow-xl flex items-center gap-3">
-                <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-secondary" />
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Avg Farmer Earn</p>
-                  <p className="font-bold text-gray-900 text-sm">+$520/year</p>
-                </div>
-              </motion.div>
+            {/* Photo */}
+            <div className="absolute inset-0 rounded-3xl overflow-hidden shadow-2xl">
+              <img
+                src="/about-farming.jpg"
+                alt="Farmer planting a seedling in Ghana"
+                className="w-full h-full object-cover"
+              />
+              {/* Soft dark gradient at top and bottom for card readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10 rounded-3xl" />
             </div>
+
+            {/* Bottom caption strip */}
+            <div className="absolute bottom-0 left-0 right-0 px-6 py-4 flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-semibold text-sm leading-tight">Smallholder farmer, Ghana</p>
+                <p className="text-white/60 text-xs">Planting carbon-sequestering trees on enrolled land</p>
+              </div>
+              <div className="shrink-0 flex items-center gap-1.5 bg-white/15 backdrop-blur rounded-full px-3 py-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                <span className="text-white text-xs font-semibold">Live Program</span>
+              </div>
+            </div>
+
+            {/* Floating stat — top-left */}
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 4, repeat: Infinity }}
+              className="absolute top-5 left-5 bg-white/95 backdrop-blur p-3 rounded-2xl shadow-xl flex items-center gap-3"
+            >
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Active Operations</p>
+                <p className="font-bold text-gray-900 text-sm">4 Countries</p>
+              </div>
+            </motion.div>
+
+            {/* Floating stat — top-right */}
+            <motion.div
+              animate={{ y: [0, 10, 0] }}
+              transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+              className="absolute top-5 right-5 bg-white/95 backdrop-blur p-3 rounded-2xl shadow-xl flex items-center gap-3"
+            >
+              <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center">
+                <Building2 className="w-5 h-5 text-secondary" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Registered Under</p>
+                <p className="font-bold text-gray-900 text-sm">DIFC · Dubai</p>
+              </div>
+            </motion.div>
+
+            {/* Floating stat — mid-right */}
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 4.5, repeat: Infinity, delay: 0.7 }}
+              className="absolute top-1/2 -translate-y-1/2 right-5 bg-white/95 backdrop-blur p-3 rounded-2xl shadow-xl flex items-center gap-3"
+            >
+              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Avg Farmer Earn</p>
+                <p className="font-bold text-gray-900 text-sm">+$520/year</p>
+              </div>
+            </motion.div>
           </motion.div>
         </div>
 
