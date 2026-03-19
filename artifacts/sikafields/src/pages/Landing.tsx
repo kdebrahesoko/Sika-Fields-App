@@ -365,100 +365,185 @@ function Navbar() {
 }
 
 function HeroSection() {
+  const floatingBadges = [
+    { icon: <Leaf className="w-5 h-5 text-primary" />, label: "Credits Minted", value: "+12.5k Tonnes", bg: "bg-emerald-50", delay: 0, pos: "top-[18%] left-[-5%]" },
+    { icon: <Globe className="w-5 h-5 text-amber-500" />, label: "Active Countries", value: "14 Regions", bg: "bg-amber-50", delay: 1.2, pos: "bottom-[22%] right-[-4%]" },
+    { icon: <ShieldCheck className="w-5 h-5 text-accent" />, label: "Verified Credits", value: "98% Accuracy", bg: "bg-teal-50", delay: 2, pos: "top-[55%] left-[-8%]" },
+  ];
+
   return (
-    <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 -z-10 w-full h-full overflow-hidden opacity-30 dark:opacity-10 pointer-events-none">
-        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary blur-[120px]" />
-        <div className="absolute top-[20%] right-[10%] w-[400px] h-[400px] rounded-full bg-secondary blur-[100px]" />
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-[hsl(160_28%_6%)] via-[hsl(150_25%_9%)] to-[hsl(145_30%_12%)]">
+      {/* Ambient glow orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-20%] left-[-10%] w-[700px] h-[700px] rounded-full bg-primary/20 blur-[130px]" />
+        <div className="absolute bottom-[-15%] right-[-5%] w-[600px] h-[600px] rounded-full bg-accent/15 blur-[120px]" />
+        <div className="absolute top-[40%] left-[35%] w-[400px] h-[400px] rounded-full bg-secondary/10 blur-[100px]" />
+        {/* Subtle grid overlay */}
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: `linear-gradient(hsl(0 0% 100% / 0.6) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 100% / 0.6) 1px, transparent 1px)`,
+            backgroundSize: "60px 60px"
+          }}
+        />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-16 items-center">
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="max-w-2xl"
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary font-semibold text-sm mb-6 border border-primary/20">
-            <CheckCircle2 className="w-4 h-4" />
-            <span>Trusted by 47,000+ Farmers</span>
-          </div>
-          <h1 className="text-5xl lg:text-7xl font-display font-extrabold leading-[1.1] mb-6 text-foreground">
-            Go from carbon goal to <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">climate impact.</span>
-          </h1>
-          <p className="text-lg lg:text-xl text-muted-foreground mb-8 leading-relaxed max-w-xl">
-            Connect smallholder farmers across Africa and India to global carbon markets. Science-backed, community-powered, and strictly verified.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button size="lg" className="group">
-              Get Started
-              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button size="lg" variant="outline" className="bg-background/50 backdrop-blur-sm">
-              <MapPin className="mr-2 w-5 h-5" />
-              Explore Impact Map
-            </Button>
-          </div>
-          
-          <div className="mt-12 flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex -space-x-3">
-              {[1,2,3,4].map((i) => (
-                <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center overflow-hidden">
-                  <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="User" className="w-full h-full object-cover" />
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-0 w-full">
+        <div className="grid lg:grid-cols-2 gap-12 xl:gap-20 items-center min-h-screen lg:min-h-0 lg:py-28">
+
+          {/* ── Left: Copy ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-col"
+          >
+            {/* Eyebrow */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.15, duration: 0.5 }}
+              className="inline-flex items-center gap-2.5 self-start px-4 py-2 rounded-full border border-primary/30 bg-primary/10 text-primary text-sm font-semibold mb-8 backdrop-blur-sm"
+            >
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              Growing Carbon, Growing Communities
+            </motion.div>
+
+            {/* Headline */}
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.6 }}
+              className="text-4xl sm:text-5xl xl:text-6xl 2xl:text-7xl font-display font-black leading-[1.05] text-white mb-6"
+            >
+              Transform Farming
+              <br />
+              Into{" "}
+              <span className="text-gradient-green">Climate Action.</span>
+            </motion.h1>
+
+            {/* Sub-headline */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, duration: 0.6 }}
+              className="text-base sm:text-lg text-white/65 leading-relaxed mb-10 max-w-lg"
+            >
+              Join <strong className="text-white/90 font-semibold">10,000+ African and Indian farmers</strong> earning income through verified carbon removal while regenerating their land.
+            </motion.p>
+
+            {/* CTAs */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, duration: 0.5 }}
+              className="flex flex-col sm:flex-row gap-3 mb-12"
+            >
+              <Button size="lg" className="group bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/30 border-0 px-7 py-3.5 text-base font-semibold rounded-xl">
+                <Sprout className="mr-2.5 w-5 h-5" />
+                Start Farming Carbon
+                <ArrowRight className="ml-2.5 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <Button size="lg" variant="outline"
+                className="border-white/20 text-white bg-white/8 hover:bg-white/15 backdrop-blur-sm px-7 py-3.5 text-base font-semibold rounded-xl"
+              >
+                <DollarSign className="mr-2 w-5 h-5 text-secondary" />
+                Buy Verified Credits
+              </Button>
+            </motion.div>
+
+            {/* Social proof */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.55, duration: 0.6 }}
+              className="flex flex-wrap items-center gap-6"
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2.5">
+                  {[11,12,13,14,15].map((i) => (
+                    <div key={i} className="w-9 h-9 rounded-full border-2 border-white/20 overflow-hidden shadow-md">
+                      <img src={`https://i.pravatar.cc/80?img=${i}`} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div>
-              <div className="flex text-amber-500 mb-1">
-                {[1,2,3,4,5].map(i => <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>)}
+                <div className="text-sm text-white/60">
+                  <span className="font-bold text-white">47,000+</span> farmers enrolled
+                </div>
               </div>
-              <p>Rated <span className="font-bold text-foreground">4.9/5</span> by farmers</p>
-            </div>
-          </div>
-        </motion.div>
 
-        {/* CSS Art Hero Visual */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative h-[500px] w-full hidden lg:block perspective-1000"
-        >
-          <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-accent/20 rounded-[3rem] transform rotate-3 shadow-2xl shadow-primary/10 border border-white/20 backdrop-blur-3xl overflow-hidden">
-            
-            {/* Sun */}
-            <div className="absolute top-12 right-12 w-24 h-24 bg-gradient-to-br from-secondary to-amber-300 rounded-full blur-[2px] shadow-lg shadow-amber-500/50" />
-            
-            {/* Hills/Landscape using CSS shapes */}
-            <div className="absolute -bottom-20 -left-10 w-[120%] h-64 bg-gradient-to-t from-primary to-green-500 rounded-[100%] opacity-90 transform -rotate-6" />
-            <div className="absolute -bottom-10 -right-10 w-[110%] h-56 bg-gradient-to-t from-emerald-800 to-primary rounded-[100%] transform rotate-3" />
-            
-            {/* Floating Elements */}
-            <motion.div className="absolute top-1/4 left-1/4 bg-white/90 backdrop-blur p-4 rounded-2xl shadow-xl flex items-center gap-3"
-              animate={{ y: [0, -15, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}>
-              <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
-                <Leaf className="w-6 h-6" />
+              <div className="h-8 w-px bg-white/15 hidden sm:block" />
+
+              <div className="flex items-center gap-2">
+                <div className="flex">
+                  {[1,2,3,4,5].map(i => (
+                    <svg key={i} className="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <span className="text-sm text-white/60"><strong className="text-white">4.9</strong> / 5 rating</span>
               </div>
-              <div>
-                <p className="text-xs text-gray-500 font-medium">Credits Minted</p>
-                <p className="text-lg font-bold text-gray-900">+12.5k Tonnes</p>
+
+              <div className="h-8 w-px bg-white/15 hidden sm:block" />
+
+              <div className="flex items-center gap-2 text-sm text-white/60">
+                <CheckCircle2 className="w-4 h-4 text-primary" />
+                <span>Open Forest Protocol certified</span>
               </div>
             </motion.div>
+          </motion.div>
 
-            <motion.div className="absolute bottom-1/3 right-1/4 bg-white/90 backdrop-blur p-4 rounded-2xl shadow-xl flex items-center gap-3"
-              animate={{ y: [0, 15, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}>
-              <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center">
-                <Globe className="w-6 h-6" />
+          {/* ── Right: Image panel ── */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92, x: 30 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            className="relative hidden lg:block"
+          >
+            {/* Glow ring behind the card */}
+            <div className="absolute inset-4 rounded-[2.5rem] bg-primary/20 blur-3xl animate-glow" />
+
+            {/* Main image card */}
+            <div className="relative rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl shadow-black/40">
+              <img
+                src="/hero-carbon.png"
+                alt="Carbon credit farming impact"
+                className="w-full h-auto object-cover"
+                style={{ aspectRatio: "1 / 1" }}
+              />
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-black/30" />
+              {/* Corner label */}
+              <div className="absolute bottom-5 left-5 glass-dark px-4 py-2.5 rounded-2xl">
+                <p className="text-white/50 text-xs font-medium uppercase tracking-widest mb-0.5">Impact</p>
+                <p className="text-white font-bold text-sm">2.3M tonnes CO₂ sequestered</p>
               </div>
-              <div>
-                <p className="text-xs text-gray-500 font-medium">New Region</p>
-                <p className="text-lg font-bold text-gray-900">Kenya Active</p>
-              </div>
-            </motion.div>
-          </div>
-        </motion.div>
+            </div>
+
+            {/* Floating badges */}
+            {floatingBadges.map((badge, i) => (
+              <motion.div
+                key={i}
+                className={cn("absolute glass rounded-2xl px-4 py-3 flex items-center gap-3 shadow-xl shadow-black/10 min-w-[170px]", badge.pos)}
+                animate={{ y: [0, i % 2 === 0 ? -10 : 10, 0] }}
+                transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut", delay: badge.delay }}
+              >
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", badge.bg)}>
+                  {badge.icon}
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 font-medium leading-none mb-1">{badge.label}</p>
+                  <p className="text-sm font-bold text-gray-900">{badge.value}</p>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+        </div>
       </div>
+
+      {/* Bottom fade to next section */}
+      <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-background to-transparent pointer-events-none" />
     </section>
   );
 }
