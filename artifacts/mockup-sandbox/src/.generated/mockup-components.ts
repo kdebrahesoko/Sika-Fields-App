@@ -2,16 +2,19 @@
 type ModuleMap = Record<string, () => Promise<Record<string, unknown>>>;
 export const modules: ModuleMap = {
   "./components/mockups/leadership/CapabilityMatrix.tsx": () => import("../components/mockups/leadership/CapabilityMatrix.tsx"),
+  "./components/mockups/leadership/ClockBoard.tsx": () => import("../components/mockups/leadership/ClockBoard.tsx"),
   "./components/mockups/leadership/CommandRoom.tsx": () => import("../components/mockups/leadership/CommandRoom.tsx"),
   "./components/mockups/leadership/CredibilityTimeline.tsx": () => import("../components/mockups/leadership/CredibilityTimeline.tsx"),
   "./components/mockups/leadership/ExpertiseScorecard.tsx": () => import("../components/mockups/leadership/ExpertiseScorecard.tsx"),
   "./components/mockups/leadership/FieldDispatches.tsx": () => import("../components/mockups/leadership/FieldDispatches.tsx"),
   "./components/mockups/leadership/FlipReveal.tsx": () => import("../components/mockups/leadership/FlipReveal.tsx"),
+  "./components/mockups/leadership/GroundReports.tsx": () => import("../components/mockups/leadership/GroundReports.tsx"),
   "./components/mockups/leadership/ImpactAttribution.tsx": () => import("../components/mockups/leadership/ImpactAttribution.tsx"),
   "./components/mockups/leadership/MasterDetail.tsx": () => import("../components/mockups/leadership/MasterDetail.tsx"),
   "./components/mockups/leadership/MastheadSatellites.tsx": () => import("../components/mockups/leadership/MastheadSatellites.tsx"),
   "./components/mockups/leadership/OrgConstellation.tsx": () => import("../components/mockups/leadership/OrgConstellation.tsx"),
   "./components/mockups/leadership/SpotlightStage.tsx": () => import("../components/mockups/leadership/SpotlightStage.tsx"),
   "./components/mockups/leadership/SwimLanes.tsx": () => import("../components/mockups/leadership/SwimLanes.tsx"),
+  "./components/mockups/leadership/TerritoryMap.tsx": () => import("../components/mockups/leadership/TerritoryMap.tsx"),
   "./components/mockups/leadership/TrustWall.tsx": () => import("../components/mockups/leadership/TrustWall.tsx")
 };
