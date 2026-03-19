@@ -1,0 +1,250 @@
+SikaFields – Corporate Buyer FAQ (ESG & Investor Focused)
+🏢 Overview
+1. What is SikaFields?
+
+SikaFields is a climate technology platform that enables organizations to invest in high-quality, nature-based carbon removal projects while delivering measurable environmental and social impact in emerging markets.
+
+2. What problem does SikaFields solve?
+
+Many carbon offset solutions lack:
+
+Transparency
+
+Traceability
+
+Real community impact
+
+SikaFields addresses this by connecting buyers directly to verified, farmer-led projects, ensuring credible carbon removal and measurable ESG outcomes.
+
+🌱 Carbon Credits & ESG Alignment
+3. What types of carbon credits does SikaFields offer?
+
+We primarily offer nature-based carbon removal credits, including:
+
+Agroforestry
+
+Reforestation and afforestation
+
+Regenerative agriculture
+
+Soil carbon sequestration
+
+We also support energy transition projects, such as energy-efficient cookstoves.
+
+4. How do SikaFields credits align with ESG frameworks?
+
+SikaFields supports:
+
+Environmental (E): Verified CO₂ removal and biodiversity restoration
+
+Social (S): Increased farmer income, job creation, community development
+
+Governance (G): Transparent MRV processes, audit trails, and reporting
+
+5. Can SikaFields credits support net-zero commitments?
+
+Yes. Our credits are suitable for:
+
+Voluntary carbon offsetting
+
+Scope 3 emissions reduction strategies
+
+Net-zero transition plans (as a complementary measure, not a substitute for reduction)
+
+🔍 Verification, Quality & Risk
+6. How are carbon credits verified?
+
+SikaFields applies a rigorous MRV (Monitoring, Reporting, Verification) framework:
+
+Scientific carbon estimation models
+
+Field data collection and validation
+
+Remote sensing (where applicable)
+
+Independent third-party verification (where required)
+
+7. How do you ensure credit quality?
+
+All credits are designed to meet key integrity principles:
+
+Additionality: Projects would not occur without carbon financing
+
+Permanence: Long-term carbon storage (e.g., 30-year commitments)
+
+No double-counting: Unique registry and retirement system
+
+Leakage control: Monitoring to prevent emissions shifting elsewhere
+
+8. What risks should buyers be aware of?
+
+Like all nature-based solutions:
+
+Carbon sequestration takes time
+
+Environmental risks (e.g., drought, fire) may impact outcomes
+
+Verification timelines can be long
+
+SikaFields mitigates these through:
+
+Conservative estimation models
+
+Ongoing monitoring
+
+Diversified project portfolios
+
+💰 Pricing & Commercial Model
+9. How is pricing determined?
+
+Pricing is based on:
+
+Project type and methodology
+
+Geographic location
+
+Verification level
+
+Market demand
+
+Nature-based credits often carry premium value due to co-benefits.
+
+10. Are long-term purchase agreements available?
+
+Yes. We support:
+
+Forward contracts
+
+Multi-year offtake agreements
+
+Custom corporate sustainability partnerships
+
+11. What payment options are available?
+
+We support:
+
+Bank transfers
+
+Corporate invoicing
+
+Secure digital payments
+
+📊 Impact & Reporting
+12. What reporting do buyers receive?
+
+Buyers receive:
+
+Carbon offset certificates (upon retirement)
+
+Project-level data (location, methodology)
+
+ESG impact reports
+
+Community impact metrics (e.g., farmer income, trees planted)
+
+13. Can we integrate this into our ESG reporting?
+
+Yes. Our reporting is structured to support:
+
+Sustainability reports
+
+ESG disclosures
+
+Corporate responsibility reporting
+
+14. Can we track impact in real time?
+
+Yes. The SikaFields dashboard provides:
+
+CO₂ offset tracking
+
+Portfolio-level insights
+
+Project performance updates
+
+🌍 Social Impact & Differentiation
+15. What makes SikaFields different from other carbon platforms?
+
+Direct engagement with smallholder farmers
+
+Focus on Africa and emerging markets
+
+Strong social impact co-benefits
+
+Transparent, data-driven credit lifecycle
+
+16. What social impact do these projects deliver?
+
+Increased farmer income
+
+Job creation in rural communities
+
+Food security improvements
+
+Gender and youth inclusion
+
+🔐 Governance & Compliance
+17. How does SikaFields ensure governance and transparency?
+
+Centralized registry with audit trails
+
+Clear credit lifecycle tracking (issuance → sale → retirement)
+
+Data integrity controls and access management
+
+18. Are credits retired after purchase?
+
+Yes. All purchased credits are retired immediately or on request, ensuring they cannot be reused or resold.
+
+🤝 Partnerships & Custom Solutions
+19. Can SikaFields support enterprise-scale programs?
+
+Yes. We offer:
+
+Custom project development
+
+White-labeled sustainability programs
+
+Regional or sector-specific carbon portfolios
+
+20. Can we co-develop projects with SikaFields?
+
+Yes. We partner with organizations to:
+
+Design tailored carbon projects
+
+Align with corporate sustainability goals
+
+Deliver long-term ESG impact
+
+⚠️ Critical Transparency (Investor-Level Clarity)
+21. Are carbon credits a substitute for emission reductions?
+
+No.
+
+Carbon credits should be used to:
+
+Complement emissions reduction strategies
+
+Offset unavoidable emissions
+
+👉 Over-reliance on offsets without reduction exposes companies to reputational and regulatory risk.
+
+22. What is the timeline for impact realization?
+
+Short-term: Project onboarding and initial estimates
+
+Medium-term: Verification and issuance (months to years)
+
+Long-term: Sustained carbon removal and community benefits
+
+🚀 Future Outlook
+23. How is SikaFields evolving?
+
+We are expanding into:
+
+Advanced MRV technologies (AI + satellite data)
+
+Scalable project pipelines across Africa
+
+Enhanced transparency layers (potential blockchain integration)

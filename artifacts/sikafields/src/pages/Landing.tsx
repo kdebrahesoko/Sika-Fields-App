@@ -176,11 +176,16 @@ const IMPACT_LINKS = [
 ];
 
 const RESOURCES_LINKS = [
-  { label: "News & Insights", href: "#resources", icon: <Newspaper className="w-4 h-4 text-primary" /> },
-  { label: "Events & Webinars", href: "#resources", icon: <CalendarDays className="w-4 h-4 text-accent" /> },
-  { label: "Regulations & Standards", href: "#resources", icon: <FileText className="w-4 h-4 text-secondary" /> },
-  { label: "Podcasts", href: "#resources", icon: <Mic2 className="w-4 h-4 text-primary" /> },
-  { label: "Newsletters", href: "#resources", icon: <Radio className="w-4 h-4 text-accent" /> },
+  { label: "News & Insights", href: "#resources", icon: <Newspaper className="w-4 h-4 text-primary" />, desc: "Latest news from the carbon markets" },
+  { label: "Events & Webinars", href: "#resources", icon: <CalendarDays className="w-4 h-4 text-accent" />, desc: "Join live sessions and workshops" },
+  { label: "Regulations & Standards", href: "#resources", icon: <FileText className="w-4 h-4 text-secondary" />, desc: "MRV frameworks and compliance guides" },
+  { label: "Podcasts", href: "#resources", icon: <Mic2 className="w-4 h-4 text-primary" />, desc: "Stories from the field" },
+  { label: "Newsletters", href: "#resources", icon: <Radio className="w-4 h-4 text-accent" />, desc: "Monthly market insights to your inbox" },
+];
+
+const RESOURCES_FAQ_LINKS = [
+  { label: "FAQ — Farmers & Landowners", href: "/faq?tab=farmers", icon: <Sprout className="w-4 h-4 text-primary" />, desc: "Carbon credits, joining, payments & more" },
+  { label: "FAQ — Corporate Buyers", href: "/faq?tab=buyers", icon: <Building2 className="w-4 h-4 text-accent" />, desc: "ESG alignment, verification & pricing" },
 ];
 
 const ABOUT_COMPANY_LINKS = [
@@ -400,18 +405,36 @@ function Navbar() {
           </DesktopDropdown>
 
           {/* Resources dropdown */}
-          <DesktopDropdown label="Resources" isOpen={resourcesOpen} setOpen={setResourcesOpen}>
+          <DesktopDropdown label="Resources" isOpen={resourcesOpen} setOpen={setResourcesOpen} wide>
             <div className="px-4 py-3 border-b border-border bg-muted/40">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Explore</p>
               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Latest news, insights and industry developments.</p>
             </div>
             {RESOURCES_LINKS.map((item, i) => (
               <a key={i} href={item.href}
-                className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border/50 first:border-t-0"
+                className="flex items-start gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border/50 first:border-t-0"
                 onClick={() => setResourcesOpen(false)}
               >
-                {item.icon}
-                <span className="font-medium">{item.label}</span>
+                <span className="mt-0.5">{item.icon}</span>
+                <span>
+                  <span className="font-medium block">{item.label}</span>
+                  {item.desc && <span className="text-xs text-muted-foreground">{item.desc}</span>}
+                </span>
+              </a>
+            ))}
+            <div className="px-4 py-2 border-t border-border bg-primary/5">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary">FAQs</p>
+            </div>
+            {RESOURCES_FAQ_LINKS.map((item, i) => (
+              <a key={i} href={item.href}
+                className="flex items-start gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border/50 first:border-t-0"
+                onClick={() => setResourcesOpen(false)}
+              >
+                <span className="mt-0.5">{item.icon}</span>
+                <span>
+                  <span className="font-medium block">{item.label}</span>
+                  {item.desc && <span className="text-xs text-muted-foreground">{item.desc}</span>}
+                </span>
               </a>
             ))}
           </DesktopDropdown>
@@ -479,6 +502,17 @@ function Navbar() {
             {/* Resources accordion */}
             <MobileAccordion label="Resources" isOpen={mobileResourcesOpen} setOpen={setMobileResourcesOpen}>
               {RESOURCES_LINKS.map((item, i) => (
+                <a key={i} href={item.href}
+                  className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary"
+                  onClick={closeAll}
+                >
+                  {item.icon} {item.label}
+                </a>
+              ))}
+              <div className="px-3 pt-2 pb-1">
+                <p className="text-xs font-bold uppercase tracking-widest text-primary">FAQs</p>
+              </div>
+              {RESOURCES_FAQ_LINKS.map((item, i) => (
                 <a key={i} href={item.href}
                   className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary"
                   onClick={closeAll}
