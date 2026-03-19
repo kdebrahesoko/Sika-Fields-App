@@ -197,7 +197,7 @@ const ABOUT_COMPANY_LINKS = [
 
 const ABOUT_TEAM_LINKS = [
   { label: "Our Leadership", href: "#leadership", icon: <Users className="w-4 h-4 text-accent" />, desc: "Meet the team driving our mission" },
-  { label: "Advisory Board", href: "#leadership", icon: <Building2 className="w-4 h-4 text-secondary" />, desc: "DIFC-registered, Ghana-based" },
+  { label: "Advisory Board", href: "/advisory", icon: <Building2 className="w-4 h-4 text-secondary" />, desc: "Meet our full leadership & advisory board" },
   { label: "Contact Us", href: "#contact", icon: <Mail className="w-4 h-4 text-primary" />, desc: "Get in touch — we'd love to hear from you" },
 ];
 
