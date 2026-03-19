@@ -91,6 +91,35 @@ Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used b
 
 Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHealthCheck`, `healthCheck`).
 
+### `artifacts/sikafields` (`@workspace/sikafields`)
+
+React 19 + Vite landing page for SikaFields — a climate-tech carbon credit platform. Tailwind CSS, Framer Motion, Lucide React, react-simple-maps, react-countup, Wouter (client-side routing).
+
+**Pages:**
+- `/` — Landing page (all sections)
+- `/advisory` — Advisory Board page
+- `/faq` — FAQ page
+- `/contact` — Contact page
+- `/articles` — Articles & Updates list page (search, tag/type filtering, featured post)
+- `/articles/:slug` — Single article/news detail page (author bio, share, related posts)
+
+**Articles Content System** (`src/data/articles.ts`):
+- Flat-file CMS — all content lives in `ARTICLES` array in `src/data/articles.ts`
+- To add a post: copy an object, assign a unique `id`/`slug`, set `kind: "article" | "news"`, fill content blocks
+- Content blocks: `{ type: "p" | "h2" | "quote" | "list", text?, items? }`
+- Helper exports: `getArticleBySlug`, `getRelatedArticles`, `getAllTags`
+
+**Key files:**
+- `src/pages/Landing.tsx` — main landing page, all sections including nav
+- `src/pages/Advisory.tsx` — executive team + advisory board
+- `src/pages/Articles.tsx` — articles list
+- `src/pages/ArticleDetail.tsx` — article detail
+- `src/data/articles.ts` — all article/news content
+- `public/leadership-team.png` — sprite sheet for executive photos
+- `public/advisory-board.png` — sprite sheet for advisor photos
+- `public/dr-kwame.jpeg` — standalone CTO photo
+- `public/about-farming.jpg` — farming photo for About section
+
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.

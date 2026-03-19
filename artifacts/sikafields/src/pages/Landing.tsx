@@ -176,7 +176,7 @@ const IMPACT_LINKS = [
 ];
 
 const RESOURCES_LINKS = [
-  { label: "News & Insights", href: "#resources", icon: <Newspaper className="w-4 h-4 text-primary" />, desc: "Latest news from the carbon markets" },
+  { label: "Articles & Updates", href: "/articles", icon: <Newspaper className="w-4 h-4 text-primary" />, desc: "Guides, insights and platform announcements" },
   { label: "Events & Webinars", href: "#resources", icon: <CalendarDays className="w-4 h-4 text-accent" />, desc: "Join live sessions and workshops" },
   { label: "Regulations & Standards", href: "#resources", icon: <FileText className="w-4 h-4 text-secondary" />, desc: "MRV frameworks and compliance guides" },
   { label: "Podcasts", href: "#resources", icon: <Mic2 className="w-4 h-4 text-primary" />, desc: "Stories from the field" },

@@ -6,6 +6,8 @@ import LandingPage from "@/pages/Landing";
 import FAQPage from "@/pages/FAQ";
 import ContactPage from "@/pages/Contact";
 import AdvisoryPage from "@/pages/Advisory";
+import ArticlesPage from "@/pages/Articles";
+import ArticleDetailPage from "@/pages/ArticleDetail";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -17,6 +19,8 @@ function Router() {
       <Route path="/faq" component={FAQPage} />
       <Route path="/contact" component={ContactPage} />
       <Route path="/advisory" component={AdvisoryPage} />
+      <Route path="/articles" component={ArticlesPage} />
+      <Route path="/articles/:slug" component={ArticleDetailPage} />
       <Route component={NotFound} />
     </Switch>
   );

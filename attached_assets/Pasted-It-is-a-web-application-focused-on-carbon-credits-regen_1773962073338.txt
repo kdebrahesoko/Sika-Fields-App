@@ -1,0 +1,101 @@
+It is a web application focused on carbon credits, regenerative agriculture, and ESG buyers.
+
+I need you to implement a production-ready Blog and News system integrated into my existing React application.
+
+TECH STACK:
+- Frontend: React (Vite or Next.js preferred if upgrading improves SEO)
+- Styling: Tailwind CSS
+- Backend: Headless CMS (use Sanity or Strapi)
+- Data fetching: REST or GraphQL
+- Hosting: Optimised for performance (static generation if possible)
+
+REQUIREMENTS:
+
+1. CREATE TWO DISTINCT SECTIONS:
+   - Blog (educational, evergreen content)
+   - News (platform updates, carbon market updates, announcements)
+
+2. CMS SETUP:
+   - Define schemas/models:
+
+   Blog:
+   - title
+   - slug
+   - excerpt
+   - content (rich text)
+   - coverImage
+   - author
+   - tags
+   - publishedAt
+   - SEO metadata (metaTitle, metaDescription)
+
+   News:
+   - title
+   - slug
+   - summary
+   - content
+   - category (press, updates, regulation)
+   - publishedAt
+   - featured (boolean)
+
+3. FRONTEND PAGES:
+
+   /blog
+   - Featured article (hero section)
+   - Grid of posts
+   - Category/tag filtering
+   - Search functionality
+
+   /blog/[slug]
+   - Full article page
+   - Author, read time, related posts
+
+   /news
+   - Timeline or feed-style layout
+   - Highlight latest and featured updates
+
+   /news/[slug]
+   - Full news article page
+
+4. UI/UX DESIGN:
+   - Clean, modern, climate-tech aesthetic
+   - Use large imagery and whitespace
+   - Mobile responsive
+   - Reusable components (cards, tags, badges)
+
+5. INTEGRATION:
+   - Add Blog and News links to main navigation
+   - Add “Related Articles” sections
+   - Connect content to platform context (e.g., carbon credits education)
+
+6. SEO OPTIMISATION:
+   - Dynamic meta tags per page
+   - Clean URLs (slug-based)
+   - Sitemap generation
+   - Structured data (Article schema)
+
+7. PERFORMANCE:
+   - Use static generation (SSG) or caching where possible
+   - Lazy load images
+   - Optimise API calls
+
+8. CODE QUALITY:
+   - Modular component structure
+   - Clear folder organisation
+   - Use hooks for data fetching
+   - Add loading and error states
+
+9. BONUS FEATURES:
+   - Newsletter signup component
+   - Featured posts section on homepage
+   - Author profile component
+
+OUTPUT:
+- Full working code structure
+- CMS schema definitions
+- Example API queries
+- Example dummy content
+- Clear instructions to run locally
+
+IMPORTANT:
+Do NOT generate placeholder-level code. This must be scalable and production-ready.
