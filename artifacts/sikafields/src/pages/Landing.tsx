@@ -199,7 +199,7 @@ function Navbar() {
       "fixed w-full z-40 transition-all duration-300",
       scrolled ? "bg-background/80 backdrop-blur-lg shadow-sm border-b border-border/50 py-3" : "bg-transparent py-5"
     )}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-justify bg-[#f1f0ee]">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white shadow-lg shadow-primary/20">
             <Sprout className="w-6 h-6" />
@@ -295,7 +295,6 @@ function Navbar() {
           {mobileMenuOpen ? <X /> : <Menu />}
         </button>
       </div>
-
       {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
