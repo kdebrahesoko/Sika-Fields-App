@@ -199,16 +199,22 @@ function Navbar() {
       "fixed w-full z-40 transition-all duration-300",
       scrolled ? "bg-background/80 backdrop-blur-lg shadow-sm border-b border-border/50 py-3" : "bg-transparent py-5"
     )}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between text-justify bg-[#f1f0ee]">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white shadow-lg shadow-primary/20">
-            <Sprout className="w-6 h-6" />
-          </div>
-          <span className="font-display font-bold text-xl tracking-tight text-foreground">SikaFields</span>
-        </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <a href="/" className="flex items-center">
+          <img
+            src="/sikafields-logo.png"
+            alt="SikaFields"
+            className="h-9 w-auto object-contain transition-all duration-300"
+            style={{
+              filter: scrolled
+                ? "drop-shadow(0 1px 2px rgba(0,0,0,0.5)) brightness(0.9)"
+                : "drop-shadow(0 2px 8px rgba(0,0,0,0.3))"
+            }}
+          />
+        </a>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8 font-medium text-sm text-foreground/80">
+        <div className={cn("hidden md:flex items-center gap-8 font-medium text-sm transition-colors duration-300", scrolled ? "text-foreground/80" : "text-white/80")}>
           {/* About Us dropdown */}
           <DesktopDropdown label="About Us" isOpen={aboutOpen} setOpen={setAboutOpen}>
             <div className="px-4 py-3 border-b border-border bg-muted/40">
@@ -282,16 +288,16 @@ function Navbar() {
         </div>
 
         <div className="hidden md:flex items-center gap-4">
-          <div className="flex items-center gap-1 text-sm text-foreground/60 hover:text-foreground cursor-pointer transition-colors px-2">
+          <div className={cn("flex items-center gap-1 text-sm cursor-pointer transition-colors px-2", scrolled ? "text-foreground/60 hover:text-foreground" : "text-white/60 hover:text-white")}>
             <Languages className="w-4 h-4" />
             <span className="font-medium">EN</span>
           </div>
-          <Button variant="ghost" className="font-semibold">Log In</Button>
-          <Button className="font-bold">Get Started</Button>
+          <Button variant="ghost" className={cn("font-semibold", !scrolled && "text-white hover:text-white hover:bg-white/10")}>Log In</Button>
+          <Button className="font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30">Get Started</Button>
         </div>
 
         {/* Mobile Toggle */}
-        <button className="md:hidden p-2 text-foreground" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        <button className={cn("md:hidden p-2 transition-colors", scrolled ? "text-foreground" : "text-white")} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
           {mobileMenuOpen ? <X /> : <Menu />}
         </button>
       </div>
