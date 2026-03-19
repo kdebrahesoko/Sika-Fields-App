@@ -1224,6 +1224,11 @@ function LeadershipSection() {
       bgImage: "/advisory-board.png",
       bgSize: "320% 340%",
       bgPos: "0% 42%",
+      credential: "Capital Markets & Finance",
+      credentialSub: "Advisory & Investment Strategy",
+      domains: ["Capital Markets", "Advisory", "Governance"],
+      quote: "Strong governance is the foundation of credible climate finance.",
+      flipColor: "#166534",
     },
     {
       name: "Dr. Cheryl Sterling",
@@ -1233,6 +1238,11 @@ function LeadershipSection() {
       bgImage: "/advisory-board.png",
       bgSize: "320% 340%",
       bgPos: "50% 42%",
+      credential: "Doctorate — Policy Research",
+      credentialSub: "Sustainability & ESG Frameworks",
+      domains: ["Policy Research", "Sustainability", "ESG"],
+      quote: "Evidence-based policy is how we scale real impact.",
+      flipColor: "#0f766e",
     },
     {
       name: "Festus William Amoyaw",
@@ -1242,6 +1252,11 @@ function LeadershipSection() {
       bgImage: "/advisory-board.png",
       bgSize: "320% 340%",
       bgPos: "100% 42%",
+      credential: "Agribusiness Development",
+      credentialSub: "Agriculture & Rural Partnerships",
+      domains: ["Agribusiness", "Rural Dev.", "Partnerships"],
+      quote: "Farming communities are the backbone of every carbon project we build.",
+      flipColor: "#b45309",
     },
     {
       name: "Nana Ama Boateng-Kagyah",
@@ -1251,6 +1266,11 @@ function LeadershipSection() {
       bgImage: "/advisory-board.png",
       bgSize: "320% 340%",
       bgPos: "0% 90%",
+      credential: "Legal & Compliance",
+      credentialSub: "Corporate Law & Governance",
+      domains: ["Legal", "Compliance", "Governance"],
+      quote: "Clear legal frameworks protect both farmers and investors.",
+      flipColor: "#166534",
     },
     {
       name: "Valentijn Venus",
@@ -1260,6 +1280,11 @@ function LeadershipSection() {
       bgImage: "/advisory-board.png",
       bgSize: "320% 340%",
       bgPos: "50% 90%",
+      credential: "MSc Environmental Economics",
+      credentialSub: "Research & Product Strategy",
+      domains: ["Product Strategy", "Research", "MRV Design"],
+      quote: "Data integrity is the bedrock of every credit we issue.",
+      flipColor: "#0f766e",
     },
     {
       name: "Olubgenga Olanrewaju Awe",
@@ -1269,6 +1294,11 @@ function LeadershipSection() {
       bgImage: "/advisory-board.png",
       bgSize: "320% 340%",
       bgPos: "100% 90%",
+      credential: "Structured Trade Finance",
+      credentialSub: "Commodities Finance — The Alternative Bank",
+      domains: ["Trade Finance", "Commodities", "Banking"],
+      quote: "Structured finance is the engine that connects climate projects to global capital.",
+      flipColor: "#166534",
     },
   ];
 
@@ -1324,10 +1354,10 @@ function LeadershipSection() {
           </div>
         </motion.div>
 
-        {/* Advisory board grid — 3 cols desktop */}
+        {/* Advisory board grid — 3 cols desktop, flip reveal on hover */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {advisors.map((person, i) => (
-            <ProfileCard key={i} person={person} delay={i * 0.07} />
+            <LeaderFlipCard key={i} person={person} delay={i * 0.07} />
           ))}
         </div>
 
