@@ -8,7 +8,7 @@ import {
   Newspaper, Radio, FileText, CalendarDays, Mic2,
   Target, TreePine, DollarSign, Building2, Smartphone,
   SatelliteDish, HeartHandshake, TrendingUp, AlertTriangle,
-  Lightbulb, Info
+  Lightbulb, Info, Phone, Mail, Clock, Send, Loader2
 } from "lucide-react";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { Button } from "@/components/ui/button";
@@ -236,6 +236,7 @@ function Navbar() {
           </DesktopDropdown>
 
           <a href="#how-it-works" className="hover:text-primary transition-colors">How It Works</a>
+          <a href="#contact" className="hover:text-primary transition-colors">Contact</a>
 
           {/* Impact dropdown */}
           <DesktopDropdown label="Impact" isOpen={impactOpen} setOpen={setImpactOpen}>
@@ -1535,67 +1536,338 @@ function Newsletter() {
   );
 }
 
+const SOCIAL_LINKS = [
+  {
+    label: "LinkedIn",
+    href: "https://linkedin.com/company/sikafields",
+    icon: <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>,
+  },
+  {
+    label: "X / Twitter",
+    href: "https://twitter.com/sikafields",
+    icon: <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>,
+  },
+  {
+    label: "Facebook",
+    href: "https://facebook.com/sikafields",
+    icon: <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>,
+  },
+  {
+    label: "Instagram",
+    href: "https://instagram.com/sikafields",
+    icon: <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>,
+  },
+  {
+    label: "YouTube",
+    href: "https://youtube.com/@sikafields",
+    icon: <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>,
+  },
+  {
+    label: "WhatsApp",
+    href: "https://wa.me/233302211611",
+    icon: <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>,
+  },
+];
+
+const ENQUIRY_SUBJECTS = [
+  "General Enquiry",
+  "Farmer Onboarding",
+  "Carbon Credit Purchase",
+  "Partnership / Investment",
+  "Press & Media",
+  "Technical Support",
+  "Other",
+];
+
 function Footer() {
+  const [contactForm, setContactForm] = useState({ name: "", email: "", subject: ENQUIRY_SUBJECTS[0], message: "" });
+  const [contactStatus, setContactStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const [contactErrors, setContactErrors] = useState<Record<string, string>>({});
+
+  const validateContact = () => {
+    const e: Record<string, string> = {};
+    if (!contactForm.name.trim()) e.name = "Name is required.";
+    if (!contactForm.email.trim() || !/\S+@\S+\.\S+/.test(contactForm.email)) e.email = "Valid email required.";
+    if (!contactForm.message.trim() || contactForm.message.trim().length < 10) e.message = "Please write at least 10 characters.";
+    return e;
+  };
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs = validateContact();
+    if (Object.keys(errs).length) { setContactErrors(errs); return; }
+    setContactErrors({});
+    setContactStatus("sending");
+    setTimeout(() => setContactStatus("sent"), 1600);
+  };
+
+  const fInputCls = "w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/60 transition-all";
+  const fErrorCls = "border-red-400/60 focus:ring-red-400/30";
+
   return (
-    <footer className="bg-background pt-20 pb-10 border-t border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-16">
-          <div className="col-span-2 lg:col-span-2">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
-                <Sprout className="w-5 h-5" />
+    <footer id="contact" className="bg-gradient-to-b from-[hsl(160_28%_6%)] to-[hsl(150_30%_4%)] text-white">
+
+      {/* ── Contact Us Section ── */}
+      <div className="border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+
+          {/* Header */}
+          <div className="text-center mb-14">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-semibold uppercase tracking-widest mb-4">
+              <Mail className="w-3.5 h-3.5" /> Contact Us
+            </span>
+            <h2 className="text-4xl md:text-5xl font-display font-black text-white mb-3">We want to hear from you!</h2>
+            <p className="text-white/50 text-lg max-w-xl mx-auto">Write us a message. We will get back to you within <span className="text-white/80 font-medium">3–5 business days</span>.</p>
+          </div>
+
+          <div className="grid lg:grid-cols-5 gap-10 lg:gap-14">
+
+            {/* ── Left: Info columns ── */}
+            <div className="lg:col-span-2 space-y-8">
+
+              {/* Reach us */}
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-primary/80 mb-4">Reach Us</h3>
+                <div className="space-y-3">
+                  {[
+                    { icon: <Phone className="w-4 h-4" />, label: "Phone", value: "+233 302 211 611", href: "tel:+233302211611" },
+                    { icon: <Mail className="w-4 h-4" />, label: "Email", value: "info@sikafield.net", href: "mailto:info@sikafield.net" },
+                    { icon: <Clock className="w-4 h-4" />, label: "Response", value: "3–5 business days", href: null },
+                  ].map((c, i) => (
+                    <div key={i} className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/5 border border-white/8">
+                      <div className="w-9 h-9 rounded-xl bg-primary/20 text-primary flex items-center justify-center shrink-0">{c.icon}</div>
+                      <div>
+                        <p className="text-[10px] text-white/40 uppercase tracking-widest font-semibold">{c.label}</p>
+                        {c.href
+                          ? <a href={c.href} className="text-sm font-semibold text-white/90 hover:text-primary transition-colors">{c.value}</a>
+                          : <p className="text-sm font-semibold text-white/90">{c.value}</p>
+                        }
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <span className="font-display font-bold text-xl tracking-tight">SikaFields</span>
+
+              {/* Visit us */}
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-widest text-primary/80 mb-4">Visit Us</h3>
+                <div className="space-y-3">
+
+                  {/* Ghana */}
+                  <div className="rounded-2xl bg-white/5 border border-white/8 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-lg">🇬🇭</span>
+                      <span className="font-display font-bold text-white text-sm">Ghana Office</span>
+                    </div>
+                    <div className="space-y-2.5 text-sm text-white/60">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest text-white/30 font-semibold mb-0.5">Head Office</p>
+                        <p className="text-white/80 font-medium leading-snug">11 Potato Avenue, East Legon<br />Accra, Ghana</p>
+                      </div>
+                      <div className="border-t border-white/8 pt-2.5">
+                        <p className="text-[10px] uppercase tracking-widest text-white/30 font-semibold mb-1">Field Offices</p>
+                        <p className="text-white/70">Ejusu, Kumasi</p>
+                        <p className="text-white/70">Jema, Bono East</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* India */}
+                  <div className="rounded-2xl bg-white/5 border border-white/8 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-lg">🇮🇳</span>
+                      <span className="font-display font-bold text-white text-sm">India</span>
+                    </div>
+                    <p className="text-sm text-white/60">South Asia Expansion</p>
+                  </div>
+
+                  {/* Dubai */}
+                  <div className="rounded-2xl bg-white/5 border border-white/8 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-lg">🇦🇪</span>
+                      <span className="font-display font-bold text-white text-sm">Dubai</span>
+                    </div>
+                    <div className="text-sm text-white/60 space-y-1">
+                      <p className="text-white/80 font-medium">Dubai International Financial Centre (DIFC)</p>
+                      <p>Holding company with subsidiaries across Africa</p>
+                      <p className="text-white/40 text-xs">DIFC Registered — Growing presence</p>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
             </div>
-            <p className="text-muted-foreground text-sm max-w-sm mb-8 leading-relaxed">
+
+            {/* ── Right: Enquiry form ── */}
+            <div className="lg:col-span-3">
+              <div className="rounded-3xl border border-white/10 bg-white/4 backdrop-blur-sm p-8 sm:p-10">
+                {contactStatus === "sent" ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.92 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="text-center py-14"
+                  >
+                    <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-5">
+                      <CheckCircle2 className="w-10 h-10 text-primary" />
+                    </div>
+                    <h3 className="text-2xl font-display font-bold text-white mb-2">Message Sent!</h3>
+                    <p className="text-white/50 text-sm max-w-xs mx-auto mb-7">
+                      Thank you for reaching out. Our team will be in touch within 3–5 business days.
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="border-white/20 text-white hover:bg-white/10"
+                      onClick={() => { setContactStatus("idle"); setContactForm({ name: "", email: "", subject: ENQUIRY_SUBJECTS[0], message: "" }); }}
+                    >
+                      Send Another Message
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <>
+                    <h3 className="text-xl font-display font-bold text-white mb-1">Send us a message</h3>
+                    <p className="text-white/40 text-sm mb-7">Fields marked <span className="text-red-400">*</span> are required.</p>
+
+                    <form onSubmit={handleContactSubmit} className="space-y-5">
+                      <div className="grid sm:grid-cols-2 gap-5">
+                        {/* Name */}
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-white/60 uppercase tracking-widest">Full Name <span className="text-red-400">*</span></label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Kwame Mensah"
+                            value={contactForm.name}
+                            onChange={e => setContactForm(f => ({ ...f, name: e.target.value }))}
+                            className={cn(fInputCls, contactErrors.name && fErrorCls)}
+                          />
+                          {contactErrors.name && <p className="text-xs text-red-400">{contactErrors.name}</p>}
+                        </div>
+                        {/* Email */}
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-semibold text-white/60 uppercase tracking-widest">Email Address <span className="text-red-400">*</span></label>
+                          <input
+                            type="email"
+                            placeholder="you@example.com"
+                            value={contactForm.email}
+                            onChange={e => setContactForm(f => ({ ...f, email: e.target.value }))}
+                            className={cn(fInputCls, contactErrors.email && fErrorCls)}
+                          />
+                          {contactErrors.email && <p className="text-xs text-red-400">{contactErrors.email}</p>}
+                        </div>
+                      </div>
+
+                      {/* Subject */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-white/60 uppercase tracking-widest">Subject</label>
+                        <select
+                          value={contactForm.subject}
+                          onChange={e => setContactForm(f => ({ ...f, subject: e.target.value }))}
+                          className={cn(fInputCls, "cursor-pointer")}
+                        >
+                          {ENQUIRY_SUBJECTS.map(s => <option key={s} value={s} className="bg-[#0d1f16] text-white">{s}</option>)}
+                        </select>
+                      </div>
+
+                      {/* Message */}
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-white/60 uppercase tracking-widest">Message <span className="text-red-400">*</span></label>
+                        <textarea
+                          rows={5}
+                          placeholder="Tell us how we can help you…"
+                          value={contactForm.message}
+                          onChange={e => setContactForm(f => ({ ...f, message: e.target.value }))}
+                          className={cn(fInputCls, "resize-none", contactErrors.message && fErrorCls)}
+                        />
+                        {contactErrors.message && <p className="text-xs text-red-400">{contactErrors.message}</p>}
+                      </div>
+
+                      <p className="text-xs text-white/25">By submitting, you agree to SikaFields' privacy policy. We never share your data.</p>
+
+                      <Button
+                        type="submit"
+                        size="lg"
+                        disabled={contactStatus === "sending"}
+                        className="w-full font-bold text-base bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 rounded-2xl h-13"
+                      >
+                        {contactStatus === "sending"
+                          ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Sending…</>
+                          : <><Send className="w-5 h-5 mr-2" /> Send Message</>
+                        }
+                      </Button>
+                    </form>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Footer links + social ── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 mb-12">
+
+          {/* Brand + social */}
+          <div className="col-span-2 lg:col-span-2">
+            <img src="/sikafields-logo.png" alt="SikaFields" className="h-10 w-auto mb-5" />
+            <p className="text-white/40 text-sm max-w-xs mb-7 leading-relaxed">
               Empowering smallholder farmers to participate in global carbon markets. Science-backed, community-powered.
             </p>
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground hover:bg-primary hover:text-white transition-colors cursor-pointer">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
-              </div>
-              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-foreground hover:bg-primary hover:text-white transition-colors cursor-pointer">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+            {/* Social icons */}
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-white/30 mb-3">Follow Us</p>
+              <div className="flex items-center flex-wrap gap-2">
+                {SOCIAL_LINKS.map((s, i) => (
+                  <a
+                    key={i}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.label}
+                    title={s.label}
+                    className="w-9 h-9 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center text-white/50 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200"
+                  >
+                    {s.icon}
+                  </a>
+                ))}
               </div>
             </div>
           </div>
-          
+
           <div>
-            <h4 className="font-bold text-foreground mb-6">Platform</h4>
-            <ul className="space-y-4 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Impact Map</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Methodology</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Registry</a></li>
+            <h4 className="font-bold text-white/80 mb-5 text-sm">Platform</h4>
+            <ul className="space-y-3 text-sm text-white/40">
+              {["Impact Map","Methodology","Pricing","Registry"].map(l => (
+                <li key={l}><a href="#" className="hover:text-primary transition-colors">{l}</a></li>
+              ))}
             </ul>
           </div>
-          
+
           <div>
-            <h4 className="font-bold text-foreground mb-6">Solutions</h4>
-            <ul className="space-y-4 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">For Farmers</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">For Co-ops</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">For Corporate Buyers</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">For Governments</a></li>
+            <h4 className="font-bold text-white/80 mb-5 text-sm">Solutions</h4>
+            <ul className="space-y-3 text-sm text-white/40">
+              {["For Farmers","For Co-ops","For Corporate Buyers","For Governments"].map(l => (
+                <li key={l}><a href="#" className="hover:text-primary transition-colors">{l}</a></li>
+              ))}
             </ul>
           </div>
-          
+
           <div>
-            <h4 className="font-bold text-foreground mb-6">Company</h4>
-            <ul className="space-y-4 text-sm text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">About Us</a></li>
+            <h4 className="font-bold text-white/80 mb-5 text-sm">Company</h4>
+            <ul className="space-y-3 text-sm text-white/40">
+              <li><a href="#about" className="hover:text-primary transition-colors">About Us</a></li>
+              <li><a href="#leadership" className="hover:text-primary transition-colors">Leadership</a></li>
               <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
+              <li><a href="#contact" className="hover:text-primary transition-colors">Contact</a></li>
             </ul>
           </div>
         </div>
-        
-        <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <p>© 2026 SikaFields. Helping farmers. Healing the planet.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
+
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/25">
+          <p>© {new Date().getFullYear()} SikaFields. Helping farmers. Healing the planet.</p>
+          <div className="flex gap-5">
+            <a href="#" className="hover:text-white/60 transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-white/60 transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-white/60 transition-colors">Cookie Policy</a>
           </div>
         </div>
       </div>
