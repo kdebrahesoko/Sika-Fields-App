@@ -105,20 +105,27 @@ const RESOURCES_LINKS = [
   { label: "Newsletters", href: "#resources", icon: <Radio className="w-4 h-4 text-accent" /> },
 ];
 
-const ABOUT_LINKS = [
+const ABOUT_COMPANY_LINKS = [
   { label: "Our Mission", href: "#about", icon: <Target className="w-4 h-4 text-primary" />, desc: "Reducing emissions, empowering farmers" },
   { label: "Our Story", href: "#about", icon: <BookOpen className="w-4 h-4 text-accent" />, desc: "A spin-off from Esoko AgriTech" },
   { label: "Impact Stats", href: "#about", icon: <BarChart2 className="w-4 h-4 text-secondary" />, desc: "2.5M+ trees, 10K+ farmers" },
-  { label: "Our Leadership", href: "#leadership", icon: <Users className="w-4 h-4 text-accent" />, desc: "Meet the team driving our mission" },
-  { label: "Advisory Board", href: "#leadership", icon: <Building2 className="w-4 h-4 text-secondary" />, desc: "DIFC-registered, Ghana-based" },
   { label: "Partners & Certifications", href: "#about", icon: <HeartHandshake className="w-4 h-4 text-primary" />, desc: "Open Forest Protocol & more" },
 ];
 
-function DesktopDropdown({ label, children, isOpen, setOpen }: {
+const ABOUT_TEAM_LINKS = [
+  { label: "Our Leadership", href: "#leadership", icon: <Users className="w-4 h-4 text-accent" />, desc: "Meet the team driving our mission" },
+  { label: "Advisory Board", href: "#leadership", icon: <Building2 className="w-4 h-4 text-secondary" />, desc: "DIFC-registered, Ghana-based" },
+  { label: "Contact Us", href: "#contact", icon: <Mail className="w-4 h-4 text-primary" />, desc: "Get in touch — we'd love to hear from you" },
+];
+
+const ABOUT_LINKS = [...ABOUT_COMPANY_LINKS, ...ABOUT_TEAM_LINKS];
+
+function DesktopDropdown({ label, children, isOpen, setOpen, wide = false }: {
   label: string;
   children: React.ReactNode;
   isOpen: boolean;
   setOpen: (v: boolean) => void;
+  wide?: boolean;
 }) {
   return (
     <div className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
@@ -129,11 +136,14 @@ function DesktopDropdown({ label, children, isOpen, setOpen }: {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-2 bg-background border border-border rounded-xl shadow-xl overflow-hidden min-w-[220px]"
+            initial={{ opacity: 0, y: 8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.97 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className={cn(
+              "absolute top-full left-0 mt-2 bg-background border border-border rounded-2xl shadow-2xl shadow-black/10 overflow-hidden",
+              wide ? "w-[480px]" : "min-w-[230px]"
+            )}
           >
             {children}
           </motion.div>
@@ -215,28 +225,69 @@ function Navbar() {
 
         {/* Desktop Nav */}
         <div className={cn("hidden md:flex items-center gap-8 font-medium text-sm transition-colors duration-300", scrolled ? "text-foreground/80" : "text-white/80")}>
-          {/* About Us dropdown */}
-          <DesktopDropdown label="About Us" isOpen={aboutOpen} setOpen={setAboutOpen}>
-            <div className="px-4 py-3 border-b border-border bg-muted/40">
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">SikaFields</p>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Reducing emissions while empowering farmers across Africa.</p>
+          {/* About Us — two-column mega dropdown */}
+          <DesktopDropdown label="About Us" isOpen={aboutOpen} setOpen={setAboutOpen} wide>
+            {/* Header strip */}
+            <div className="px-5 py-4 border-b border-border bg-gradient-to-r from-primary/5 to-accent/5 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Sprout className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-foreground">SikaFields</p>
+                <p className="text-xs text-muted-foreground leading-snug mt-0.5">Empowering farmers. Healing the planet.</p>
+              </div>
             </div>
-            {ABOUT_LINKS.map((item, i) => (
-              <a key={i} href={item.href}
-                className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border/50 first:border-t-0"
-                onClick={() => setAboutOpen(false)}
-              >
-                {item.icon}
-                <div>
-                  <div className="font-medium">{item.label}</div>
-                  <div className="text-xs text-muted-foreground">{item.desc}</div>
-                </div>
+
+            {/* Two-column grid */}
+            <div className="grid grid-cols-2 divide-x divide-border">
+              {/* Left: Company */}
+              <div className="py-2">
+                <p className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">Company</p>
+                {ABOUT_COMPANY_LINKS.map((item, i) => (
+                  <a key={i} href={item.href}
+                    className="flex items-start gap-3 px-4 py-2.5 text-sm hover:bg-muted hover:text-primary transition-colors group"
+                    onClick={() => setAboutOpen(false)}
+                  >
+                    <span className="mt-0.5 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity">{item.icon}</span>
+                    <div>
+                      <div className="font-medium leading-none mb-0.5">{item.label}</div>
+                      <div className="text-xs text-muted-foreground leading-snug">{item.desc}</div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+
+              {/* Right: Team & Contact */}
+              <div className="py-2">
+                <p className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">Team & Contact</p>
+                {ABOUT_TEAM_LINKS.map((item, i) => (
+                  <a key={i} href={item.href}
+                    className={cn(
+                      "flex items-start gap-3 px-4 py-2.5 text-sm hover:bg-muted hover:text-primary transition-colors group",
+                      item.label === "Contact Us" && "mt-1 border-t border-border"
+                    )}
+                    onClick={() => setAboutOpen(false)}
+                  >
+                    <span className="mt-0.5 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity">{item.icon}</span>
+                    <div>
+                      <div className="font-medium leading-none mb-0.5">{item.label}</div>
+                      <div className="text-xs text-muted-foreground leading-snug">{item.desc}</div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer CTA */}
+            <div className="px-5 py-3 border-t border-border bg-muted/30 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">DIFC-registered · Ghana-based · India operations</span>
+              <a href="#about" onClick={() => setAboutOpen(false)} className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                Learn more <ChevronRight className="w-3 h-3" />
               </a>
-            ))}
+            </div>
           </DesktopDropdown>
 
           <a href="#how-it-works" className="hover:text-primary transition-colors">How It Works</a>
-          <a href="#contact" className="hover:text-primary transition-colors">Contact</a>
 
           {/* Impact dropdown */}
           <DesktopDropdown label="Impact" isOpen={impactOpen} setOpen={setImpactOpen}>
