@@ -1215,90 +1215,81 @@ function LeadershipSection() {
     },
   ];
 
-  const advisors: PersonCard[] = [
+  const groundReports = [
     {
-      name: "Derrick Adu Gyamfi",
-      role: "Advisory Board Member",
-      initials: "DG",
-      color: "from-primary to-accent",
-      bgImage: "/advisory-board.png",
-      bgSize: "320% 340%",
-      bgPos: "0% 42%",
-      credential: "Capital Markets & Finance",
-      credentialSub: "Advisory & Investment Strategy",
-      domains: ["Capital Markets", "Advisory", "Governance"],
-      quote: "Strong governance is the foundation of credible climate finance.",
-      flipColor: "#166534",
+      territory: "Ghana",
+      flag: "🇬🇭",
+      region: "West Africa — Primary Hub",
+      color: "#16a34a",
+      bg: "#f0faf4",
+      border: "#bbf7d0",
+      headline: "The engine room. Where every carbon farm starts.",
+      updates: [
+        "47,000+ farmers enrolled across the Western, Northern, and Volta regions",
+        "127 community field coordinators trained in Q1 2026",
+        "Farm-level MRV audits running every 90 days with satellite + ground-truth checks",
+      ],
+      team: [
+        { name: "Daniel Asare-Kyei", suffix: "PhD", role: "CEO", bgPos: "0% 6%", bgSize: "320% 265%", img: "leadership", focus: "Farmer policy & carbon markets" },
+        { name: "William Osei Agyemang", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", img: "leadership", focus: "Capital & financial reporting" },
+        { name: "Charlotte Owusu-Ansah", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", img: "leadership", focus: "Field operations & talent" },
+        { name: "Derrick Adu Gyamfi", role: "Advisor", bgPos: "0% 42%", bgSize: "320% 340%", img: "advisory", focus: "Capital markets guidance" },
+        { name: "Festus W. Amoyaw", role: "Advisor", bgPos: "100% 42%", bgSize: "320% 340%", img: "advisory", focus: "Agribusiness & rural dev." },
+        { name: "Nana Ama Boateng-Kagyah", role: "Advisor", bgPos: "0% 90%", bgSize: "320% 340%", img: "advisory", focus: "Legal & compliance" },
+      ],
     },
     {
-      name: "Dr. Cheryl Sterling",
-      role: "Advisory Board Member",
-      initials: "CS",
-      color: "from-accent to-teal-600",
-      bgImage: "/advisory-board.png",
-      bgSize: "320% 340%",
-      bgPos: "50% 42%",
-      credential: "Doctorate — Policy Research",
-      credentialSub: "Sustainability & ESG Frameworks",
-      domains: ["Policy Research", "Sustainability", "ESG"],
-      quote: "Evidence-based policy is how we scale real impact.",
-      flipColor: "#0f766e",
+      territory: "India",
+      flag: "🇮🇳",
+      region: "South Asia — Growth Market",
+      color: "#ca8a04",
+      bg: "#fffbeb",
+      border: "#fde68a",
+      headline: "Expanding into South Asia's 100M+ smallholder farmer base.",
+      updates: [
+        "8,000+ farmers enrolled across Rajasthan and Maharashtra",
+        "3 state-level carbon programs in active enrollment phase",
+        "Partnering with FPOs (Farmer Producer Organisations) for bulk onboarding",
+      ],
+      team: [
+        { name: "Vijay Palat", role: "CSSO", bgPos: "47% 82%", bgSize: "320% 265%", img: "leadership", focus: "Strategy & ESG framework" },
+      ],
     },
     {
-      name: "Festus William Amoyaw",
-      role: "Advisory Board Member",
-      initials: "FA",
-      color: "from-secondary to-amber-600",
-      bgImage: "/advisory-board.png",
-      bgSize: "320% 340%",
-      bgPos: "100% 42%",
-      credential: "Agribusiness Development",
-      credentialSub: "Agriculture & Rural Partnerships",
-      domains: ["Agribusiness", "Rural Dev.", "Partnerships"],
-      quote: "Farming communities are the backbone of every carbon project we build.",
-      flipColor: "#b45309",
+      territory: "UAE — DIFC",
+      flag: "🇦🇪",
+      region: "Gulf — Holding & Finance",
+      color: "#0891b2",
+      bg: "#f0f9ff",
+      border: "#bae6fd",
+      headline: "The DIFC entity that opens institutional investor doors globally.",
+      updates: [
+        "DIFC holding company incorporated 2021 — full regulatory compliance",
+        "Series A investor due diligence completed Q1 2026 — no material issues",
+        "Blended finance structure combining grants, equity, and carbon receivables",
+      ],
+      team: [
+        { name: "William Osei Agyemang", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", img: "leadership", focus: "DIFC entity management" },
+        { name: "Olubgenga O. Awe", role: "Trade Advisor", bgPos: "100% 90%", bgSize: "320% 340%", img: "advisory", focus: "Structured trade finance" },
+      ],
     },
     {
-      name: "Nana Ama Boateng-Kagyah",
-      role: "Advisory Board Member",
-      initials: "NB",
-      color: "from-primary to-emerald-800",
-      bgImage: "/advisory-board.png",
-      bgSize: "320% 340%",
-      bgPos: "0% 90%",
-      credential: "Legal & Compliance",
-      credentialSub: "Corporate Law & Governance",
-      domains: ["Legal", "Compliance", "Governance"],
-      quote: "Clear legal frameworks protect both farmers and investors.",
-      flipColor: "#166534",
-    },
-    {
-      name: "Valentijn Venus",
-      role: "Advisory Board Member",
-      initials: "VV",
-      color: "from-teal-700 to-primary",
-      bgImage: "/advisory-board.png",
-      bgSize: "320% 340%",
-      bgPos: "50% 90%",
-      credential: "MSc Environmental Economics",
-      credentialSub: "Research & Product Strategy",
-      domains: ["Product Strategy", "Research", "MRV Design"],
-      quote: "Data integrity is the bedrock of every credit we issue.",
-      flipColor: "#0f766e",
-    },
-    {
-      name: "Olubgenga Olanrewaju Awe",
-      role: "Group Head, Structured Trade & Commodities Finance — The Alternative Bank",
-      initials: "OA",
-      color: "from-primary to-accent",
-      bgImage: "/advisory-board.png",
-      bgSize: "320% 340%",
-      bgPos: "100% 90%",
-      credential: "Structured Trade Finance",
-      credentialSub: "Commodities Finance — The Alternative Bank",
-      domains: ["Trade Finance", "Commodities", "Banking"],
-      quote: "Structured finance is the engine that connects climate projects to global capital.",
-      flipColor: "#166534",
+      territory: "Netherlands",
+      flag: "🇳🇱",
+      region: "Europe — Science & Product",
+      color: "#7c3aed",
+      bg: "#faf5ff",
+      border: "#e9d5ff",
+      headline: "Where the science gets done and every credit gets verified.",
+      updates: [
+        "MRV algorithm v3.1 deployed — ±2.3% of direct measurement",
+        "Verra PDD review scheduled for updated methodology",
+        "Satellite validation pass Q1: 98.7% accuracy across all plots",
+      ],
+      team: [
+        { name: "Valentijn Venus", role: "CPRO", bgPos: "100% 6%", bgSize: "320% 265%", img: "leadership", focus: "MRV & product strategy" },
+        { name: "Dr. Cheryl Sterling", role: "Advisor", bgPos: "50% 42%", bgSize: "320% 340%", img: "advisory", focus: "Policy research & ESG" },
+      ],
     },
   ];
 
@@ -1329,38 +1320,257 @@ function LeadershipSection() {
           ))}
         </div>
 
-        {/* Advisory Board divider */}
+        {/* Ground Reports — Advisory Board by Territory */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-12"
+          className="mb-4"
         >
-          <div className="flex items-center gap-4 mb-8">
+          <div className="flex items-center gap-4 mb-10">
             <div className="flex-1 h-px bg-border" />
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/20">
               <Building2 className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-primary">Our Advisory Board</span>
+              <span className="text-sm font-semibold text-primary">Ground Reports — Operations by Territory</span>
             </div>
             <div className="flex-1 h-px bg-border" />
           </div>
-
-          <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-3xl border border-primary/10 p-8 mb-10 text-center">
-            <p className="text-muted-foreground leading-relaxed text-lg max-w-4xl mx-auto">
-              SikaFields, a proud member of the <strong className="text-foreground">Esoko family</strong>, is registered under the prestigious{" "}
-              <strong className="text-foreground">Dubai International Financial Centre (DIFC)</strong> as a holding company with subsidiaries across Africa. Our journey begins in{" "}
-              <strong className="text-foreground">Ghana</strong>, home to our first Africa country office, where we are developing pioneering carbon farms.
-            </p>
-          </div>
+          <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
+            Operations across 4 countries. Named team members accountable for each territory.
+          </p>
         </motion.div>
 
-        {/* Advisory board grid — 3 cols desktop, flip reveal on hover */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {advisors.map((person, i) => (
-            <LeaderFlipCard key={i} person={person} delay={i * 0.07} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {groundReports.map((r, ri) => (
+            <motion.div
+              key={r.territory}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: ri * 0.08 }}
+              className={`rounded-2xl border bg-white overflow-hidden flex flex-col ${ri === 0 ? "md:row-span-2" : ""}`}
+              style={{ borderColor: r.border }}
+            >
+              {/* Territory header */}
+              <div className="p-6 pb-4 border-b" style={{ borderColor: r.border, backgroundColor: r.bg }}>
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{r.flag}</span>
+                    <div>
+                      <p className="font-bold text-foreground text-base font-display">{r.territory}</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: r.color }}>{r.region}</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold rounded-full px-2.5 py-1" style={{ backgroundColor: `${r.color}20`, color: r.color }}>
+                    {r.team.length} {r.team.length === 1 ? "person" : "people"}
+                  </span>
+                </div>
+                <p className="text-foreground font-medium text-sm leading-snug">{r.headline}</p>
+              </div>
+
+              {/* On the ground updates */}
+              <div className="px-6 pt-4 pb-3 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">On the Ground</p>
+                <ul className="space-y-2">
+                  {r.updates.map((u, i) => (
+                    <li key={i} className="flex gap-2 text-sm text-muted-foreground leading-relaxed">
+                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: r.color }} />
+                      {u}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Team present */}
+              <div className="px-6 pb-6 pt-4 border-t" style={{ borderColor: r.border }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Team Present</p>
+                <div className="space-y-3">
+                  {r.team.map((m, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div
+                        className="w-9 h-9 rounded-xl shrink-0"
+                        style={{
+                          backgroundImage: `url('/${m.img === "advisory" ? "advisory-board" : "leadership-team"}.png')`,
+                          backgroundSize: m.bgSize,
+                          backgroundPosition: m.bgPos,
+                          backgroundRepeat: "no-repeat",
+                          outline: `2px solid ${r.color}40`,
+                          outlineOffset: "1px",
+                        }}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-foreground text-sm font-semibold leading-tight truncate">
+                          {m.name.split(" ").slice(0, 2).join(" ")}
+                          {(m as any).suffix && <sup className="text-[10px] ml-0.5" style={{ color: r.color }}>{(m as any).suffix}</sup>}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">{m.role} · {m.focus}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
           ))}
         </div>
 
+      </div>
+    </section>
+  );
+}
+
+function TrustWallSection() {
+  const proofs = [
+    { type: "stat", category: "Farmer Impact", headline: "47,000+", sub: "Smallholder farmers enrolled across Africa & India", color: "#16a34a", bg: "#f0faf4", border: "#bbf7d0", owners: [{ name: "Daniel Asare-Kyei", role: "CEO", bgPos: "0% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Charlotte Owusu-Ansah", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", img: "leadership" }] },
+    { type: "stat", category: "Climate Outcome", headline: "2.3M tCO₂", sub: "Verified carbon credits sequestered to date", color: "#0f766e", bg: "#f0fdfa", border: "#99f6e4", owners: [{ name: "Valentijn Venus", role: "CPRO", bgPos: "100% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Vijay Palat", role: "CSSO", bgPos: "47% 82%", bgSize: "320% 265%", img: "leadership" }] },
+    { type: "cert", category: "Regulatory", headline: "DIFC Registered", sub: "Dubai International Financial Centre entity — global institutional access", color: "#0891b2", bg: "#f0f9ff", border: "#bae6fd", owners: [{ name: "William Osei Agyemang", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Vijay Palat", role: "CSSO", bgPos: "47% 82%", bgSize: "320% 265%", img: "leadership" }] },
+    { type: "stat", category: "Geographical Reach", headline: "4 Countries", sub: "Active operations in Ghana, Kenya, India, and Nigeria", color: "#b45309", bg: "#fffbeb", border: "#fde68a", owners: [{ name: "Charlotte Owusu-Ansah", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", img: "leadership" }, { name: "Daniel Asare-Kyei", role: "CEO", bgPos: "0% 6%", bgSize: "320% 265%", img: "leadership" }] },
+    { type: "cert", category: "Scientific Integrity", headline: "VCS + CCB Standards", sub: "Verra Verified Carbon Standard with Climate, Community & Biodiversity co-benefits", color: "#7c3aed", bg: "#faf5ff", border: "#e9d5ff", owners: [{ name: "Valentijn Venus", role: "CPRO", bgPos: "100% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Dr. Cheryl Sterling", role: "Policy Advisor", bgPos: "50% 42%", bgSize: "320% 340%", img: "advisory" }] },
+    { type: "stat", category: "Financial Structure", headline: "$12M+", sub: "Capital raised across development finance and climate impact investors", color: "#ca8a04", bg: "#fefce8", border: "#fde68a", owners: [{ name: "William Osei Agyemang", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Derrick Adu Gyamfi", role: "Capital Advisor", bgPos: "0% 42%", bgSize: "320% 340%", img: "advisory" }] },
+    { type: "cert", category: "Farmer Retention", headline: "94%", sub: "Annual farmer re-enrollment rate — the highest in-class retention signal", color: "#16a34a", bg: "#f0faf4", border: "#bbf7d0", owners: [{ name: "Charlotte Owusu-Ansah", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", img: "leadership" }, { name: "Festus W. Amoyaw", role: "Agribiz Advisor", bgPos: "100% 42%", bgSize: "320% 340%", img: "advisory" }] },
+    { type: "cert", category: "Legal Framework", headline: "Multi-Jurisdiction", sub: "Legal framework covering Ghana, India, Nigeria, and UAE/DIFC", color: "#dc2626", bg: "#fff5f5", border: "#fecaca", owners: [{ name: "Nana Ama Boateng-Kagyah", role: "Legal Advisor", bgPos: "0% 90%", bgSize: "320% 340%", img: "advisory" }, { name: "William Osei Agyemang", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", img: "leadership" }] },
+  ];
+
+  return (
+    <section className="py-20 bg-[#f8faf8]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-10"
+        >
+          <p className="text-primary text-xs font-bold uppercase tracking-widest mb-2">Evidence of Impact</p>
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">The Proof Behind Every Claim</h2>
+          <p className="text-muted-foreground text-lg max-w-2xl">Each metric and certification is backed by a named accountable team member.</p>
+        </motion.div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {proofs.map((proof, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              className="rounded-2xl border p-4 flex flex-col hover:shadow-lg transition-all"
+              style={{ backgroundColor: proof.bg, borderColor: proof.border }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full" style={{ color: proof.color, backgroundColor: `${proof.color}18` }}>
+                  {proof.category}
+                </span>
+                {proof.type === "cert" && (
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 16 16" fill="none">
+                    <circle cx="8" cy="8" r="7" stroke={proof.color} strokeWidth="1.5" />
+                    <path d="M5 8l2 2 4-4" stroke={proof.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+              <p className="font-black text-foreground text-2xl font-display leading-tight mb-1.5">{proof.headline}</p>
+              <p className="text-muted-foreground text-xs leading-relaxed flex-1">{proof.sub}</p>
+              <div className="mt-3 mb-3 h-px" style={{ backgroundColor: proof.border }} />
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2">Accountable</p>
+              <div className="space-y-1.5">
+                {proof.owners.map((owner, oi) => (
+                  <div key={oi} className="flex items-center gap-1.5">
+                    <div
+                      className="w-6 h-6 rounded-full shrink-0"
+                      style={{
+                        backgroundImage: `url('/${owner.img === "advisory" ? "advisory-board" : "leadership-team"}.png')`,
+                        backgroundSize: owner.bgSize,
+                        backgroundPosition: owner.bgPos,
+                        backgroundRepeat: "no-repeat",
+                        outline: "1.5px solid white",
+                      }}
+                    />
+                    <span className="text-[10px] font-semibold text-muted-foreground whitespace-nowrap truncate">
+                      {owner.name.split(" ")[0]} · {owner.role}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FieldDispatchesSection() {
+  const dispatches = [
+    { from: "Daniel Asare-Kyei", suffix: "PhD", role: "CEO", bgPos: "0% 6%", bgSize: "320% 265%", color: "#16a34a", date: "Mar 19, 2026", subject: "Carbon Market Update — Q1 2026", body: "REDD+ pricing moved up 14% this quarter on renewed demand from European compliance buyers. Our Ghana farm pilots are now generating verified offsets at $24/tonne ex-farm — above our underwriting assumption of $18. The pipeline for additional 12,000 hectares in the Northern Region is on track for Q3 enrollment. DIFC registration is opening institutional conversations we couldn't have 18 months ago.", tag: "Market Intel" },
+    { from: "William Osei Agyemang", suffix: "", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", color: "#ca8a04", date: "Mar 17, 2026", subject: "Capital Structure Note — Series A Progress", body: "The Series A close is progressing well. Lead investor due diligence on our DIFC structure completed last week — no material issues raised. We're carrying a 2.1x coverage ratio on our current carbon receivables. Working capital is fully funded through Q4. I've engaged two development finance institutions for the blended finance tranche; term sheets expected by end of April.", tag: "Finance" },
+    { from: "Valentijn Venus", suffix: "", role: "CPRO", bgPos: "100% 6%", bgSize: "320% 265%", color: "#7c3aed", date: "Mar 15, 2026", subject: "MRV Field Report — Q1 Satellite Validation", body: "Latest satellite validation pass confirms 98.7% accuracy across all 47,000 enrolled plots. We identified 340 plots with anomalous NDVI readings — field teams have been dispatched. Our new soil carbon algorithm (v3.1) is performing within ±2.3% of direct measurement in the Ghana pilot. This is the tightest variance we've achieved. Verra review of our updated PDD is scheduled for April 8.", tag: "Science" },
+    { from: "Charlotte Owusu-Ansah", suffix: "", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", color: "#db2777", date: "Mar 14, 2026", subject: "Ops Dispatch — Q1 Field Coordinator Training Complete", body: "127 community field coordinators across Ghana and India completed the updated enrollment protocol training. Completion rate: 94%. We've promoted 12 coordinators to senior field agent roles — all internal promotions. The WhatsApp-based farmer communication system now covers 89% of enrolled farmers with weekly carbon balance updates in local languages. Farmer satisfaction scores sit at 4.6/5.", tag: "Operations" },
+    { from: "Vijay Palat", suffix: "", role: "CSSO", bgPos: "47% 82%", bgSize: "320% 265%", color: "#0f766e", date: "Mar 12, 2026", subject: "ESG Briefing — Paris Alignment Confirmed", body: "Third-party assessment of our portfolio confirms full alignment with Paris Agreement 1.5°C pathway. We've completed our first TCFD disclosure — no material climate risks identified in the operating model. GRI 305-1 and 305-2 reporting is filed. SDG alignment mapping covers SDGs 1, 2, 13, 15, and 17. I'm presenting our impact thesis at the IFC Climate Finance Summit in April.", tag: "ESG" },
+  ];
+
+  return (
+    <section className="py-20 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="flex items-end justify-between mb-10"
+        >
+          <div>
+            <p className="text-primary text-xs font-bold uppercase tracking-widest mb-2">Field Dispatches</p>
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">Straight From the People Doing the Work</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl">Our leaders speak in specifics. Expertise proves itself through detail, not job titles.</p>
+          </div>
+          <div className="shrink-0 text-right hidden md:block">
+            <p className="text-muted-foreground text-xs">Last updated</p>
+            <p className="text-foreground font-bold text-sm">Mar 19, 2026</p>
+          </div>
+        </motion.div>
+
+        <div className="space-y-4">
+          {dispatches.map((d, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -16 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.07 }}
+              className="bg-white rounded-2xl border border-border p-6 hover:border-primary/30 hover:shadow-md transition-all"
+            >
+              <div className="flex items-start gap-4">
+                <div
+                  className="w-11 h-11 rounded-xl shrink-0 mt-0.5"
+                  style={{
+                    backgroundImage: "url('/leadership-team.png')",
+                    backgroundSize: d.bgSize,
+                    backgroundPosition: d.bgPos,
+                    backgroundRepeat: "no-repeat",
+                    outline: `2px solid ${d.color}50`,
+                    outlineOffset: "2px",
+                  }}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className="font-bold text-foreground text-sm">
+                      {d.from}{d.suffix && <sup className="text-[10px] ml-0.5" style={{ color: d.color }}>{d.suffix}</sup>}
+                    </span>
+                    <span className="text-muted-foreground text-xs">·</span>
+                    <span className="text-xs font-semibold" style={{ color: d.color }}>{d.role}</span>
+                    <span className="text-muted-foreground text-xs">·</span>
+                    <span className="text-muted-foreground text-xs">{d.date}</span>
+                    <span
+                      className="ml-auto text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full"
+                      style={{ color: d.color, backgroundColor: `${d.color}15` }}
+                    >
+                      {d.tag}
+                    </span>
+                  </div>
+                  <p className="font-semibold text-foreground text-sm mb-2">{d.subject}</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{d.body}</p>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -2425,6 +2635,8 @@ export default function LandingPage() {
         <LiveStats />
         <AboutSection />
         <LeadershipSection />
+        <TrustWallSection />
+        <FieldDispatchesSection />
         <ProblemSection />
         <HowItWorks />
         <ImpactMapSection />
