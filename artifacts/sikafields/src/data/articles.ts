@@ -442,6 +442,336 @@ export const ARTICLES: Article[] = [
       },
     ],
   },
+  // ── Dr. Kwame Ofosu Debrah articles ─────────────────────────────────────────
+  {
+    id: "8",
+    slug: "why-africa-is-the-future-of-carbon-removal",
+    kind: "article",
+    title: "Why Africa Is the Future of Carbon Removal",
+    excerpt:
+      "Africa is uniquely positioned to lead the next generation of carbon removal — but unlocking that potential requires infrastructure, access, and trust.",
+    coverImage: "/hero-farmers.jpg",
+    coverColor: "#16a34a",
+    author: {
+      name: "Dr. Kwame Ofosu Debrah",
+      role: "Chief Technology Officer",
+      bgPos: "center 10%",
+      bgSize: "cover",
+      imgFile: "dr-kwame",
+    },
+    tags: ["Africa", "Carbon Markets", "Impact"],
+    publishedAt: "Mar 19, 2026",
+    readTime: 5,
+    featured: false,
+    content: [
+      {
+        type: "p",
+        text: "Africa holds more than 60% of the world's uncultivated arable land — an untapped resource with the potential to become one of the most powerful carbon sinks on the planet. From large-scale reforestation to regenerative agriculture, the continent offers natural, scalable solutions to remove carbon while restoring ecosystems.",
+      },
+      {
+        type: "p",
+        text: "Yet despite this potential, Africa remains significantly underrepresented in global carbon markets. Most carbon finance flows to projects in developed regions, leaving smallholder farmers — who are already practising low-impact, nature-based farming — excluded from the economic upside.",
+      },
+      {
+        type: "quote",
+        text: "This is not a resource problem. It is an access and infrastructure problem.",
+        attribution: "— Dr. Kwame Ofosu Debrah, CTO",
+      },
+      {
+        type: "h2",
+        text: "How SikaFields Closes the Gap",
+      },
+      {
+        type: "list",
+        items: [
+          "Enabling smallholder farmers to participate in carbon markets with zero upfront capital.",
+          "Connecting projects directly to global ESG buyers through our DIFC-registered holding structure.",
+          "Providing transparent, traceable carbon credit generation powered by satellite MRV and blockchain anchoring.",
+        ],
+      },
+      {
+        type: "p",
+        text: "By aligning climate finance with local communities, SikaFields transforms carbon removal into a scalable economic opportunity. This is more than climate action. It is a shift toward inclusive climate economics — where those restoring the planet are directly rewarded for their contribution.",
+      },
+    ],
+  },
+  {
+    id: "9",
+    slug: "regenerative-agriculture-more-than-just-farming",
+    kind: "article",
+    title: "Regenerative Agriculture: More Than Just Farming",
+    excerpt:
+      "Regenerative agriculture is not just sustainable — it is one of the most effective and scalable tools for carbon removal available today.",
+    coverImage: "/about-farming.jpg",
+    coverColor: "#15803d",
+    author: {
+      name: "Dr. Kwame Ofosu Debrah",
+      role: "Chief Technology Officer",
+      bgPos: "center 10%",
+      bgSize: "cover",
+      imgFile: "dr-kwame",
+    },
+    tags: ["Regenerative Agriculture", "Technology", "Farmers"],
+    publishedAt: "Mar 18, 2026",
+    readTime: 5,
+    content: [
+      {
+        type: "p",
+        text: "Modern agriculture has degraded soil, reduced biodiversity, and contributed significantly to global emissions. Regenerative agriculture offers a fundamentally different model — one that restores rather than extracts. It focuses on rebuilding soil health, improving water retention, and increasing ecosystem resilience.",
+      },
+      {
+        type: "h2",
+        text: "Core Practices",
+      },
+      {
+        type: "list",
+        items: [
+          "Cover cropping to protect and enrich soil between planting cycles.",
+          "Reduced or zero tillage to preserve existing soil carbon stores.",
+          "Agroforestry to integrate productive trees into farming systems, increasing carbon storage per hectare.",
+        ],
+      },
+      {
+        type: "p",
+        text: "These practices do more than improve yields. They turn farmland into active carbon sinks — capturing and storing atmospheric carbon in soil and biomass over multi-decade timescales. A single hectare of well-managed agroforestry can sequester between 2 and 9 tonnes of CO₂ per year, depending on species mix and climate zone.",
+      },
+      {
+        type: "h2",
+        text: "From Necessity to Opportunity",
+      },
+      {
+        type: "p",
+        text: "The challenge is not adoption — it's incentivisation and monetisation. Farmers who already practise low-input farming have little financial reason to invest in the additional steps needed to generate verifiable carbon. SikaFields bridges this gap by enabling farmers to measure and track their carbon impact, convert sustainable practices into verified carbon credits, and access new income streams through global markets. Regenerative agriculture becomes not just environmentally necessary — but economically viable.",
+      },
+      {
+        type: "quote",
+        text: "The farmer who plants a tree today is funding a carbon credit that will be sold three years from now. That time gap is the problem we solve.",
+        attribution: "— Dr. Kwame Ofosu Debrah, CTO",
+      },
+    ],
+  },
+  {
+    id: "10",
+    slug: "blockchain-carbon-credit-transparency",
+    kind: "article",
+    title: "The Role of Blockchain in Carbon Credit Transparency",
+    excerpt:
+      "Trust is the biggest challenge in carbon markets. Blockchain is how you solve it — turning unverifiable claims into immutable, auditable proof.",
+    coverImage: "/hero-carbon.png",
+    coverColor: "#7c3aed",
+    author: {
+      name: "Dr. Kwame Ofosu Debrah",
+      role: "Chief Technology Officer",
+      bgPos: "center 10%",
+      bgSize: "cover",
+      imgFile: "dr-kwame",
+    },
+    tags: ["Technology", "Blockchain", "MRV"],
+    publishedAt: "Mar 16, 2026",
+    readTime: 5,
+    content: [
+      {
+        type: "p",
+        text: "Carbon markets have long struggled with credibility. Issues such as double-counting, unverifiable claims, and lack of traceability have undermined confidence among buyers and regulators alike. Without trust, the market cannot scale. And without scale, it cannot deliver the climate impact the world requires.",
+      },
+      {
+        type: "h2",
+        text: "What Blockchain Changes",
+      },
+      {
+        type: "p",
+        text: "Blockchain technology introduces a new standard of accountability by enabling immutable records that cannot be altered after creation, end-to-end traceability of each individual credit from farm to buyer, and transparent transactions visible to all authorised stakeholders — including regulators and auditors.",
+      },
+      {
+        type: "h2",
+        text: "SikaFields' Implementation",
+      },
+      {
+        type: "p",
+        text: "At SikaFields, blockchain is not a buzzword — it is core infrastructure. We anchor each credit issuance to a verifiable on-chain record, ensuring that each carbon credit is uniquely issued and cannot be duplicated or retired twice. Buyers can trace credits back to specific farms and specific plots. Farmers receive a transparent payment record they can verify independently.",
+      },
+      {
+        type: "list",
+        items: [
+          "Each credit carries a unique hash tied to its MRV dataset — satellite images, soil samples, field-agent timestamps.",
+          "Credit retirement is recorded on-chain, eliminating double-counting across registries.",
+          "Buyers receive a verifiable chain of custody — from field to credit certificate.",
+        ],
+      },
+      {
+        type: "quote",
+        text: "The result is a system where trust is not assumed — it is verifiable by design.",
+        attribution: "— Dr. Kwame Ofosu Debrah, CTO",
+      },
+    ],
+  },
+  {
+    id: "11",
+    slug: "empowering-farmers-through-carbon-markets",
+    kind: "article",
+    title: "Empowering Farmers Through Carbon Markets",
+    excerpt:
+      "Carbon markets can become one of the most powerful financial tools for rural communities — if farmers are genuinely included, not just used as a data source.",
+    coverImage: "/hero-farmers.jpg",
+    coverColor: "#ca8a04",
+    author: {
+      name: "Dr. Kwame Ofosu Debrah",
+      role: "Chief Technology Officer",
+      bgPos: "center 10%",
+      bgSize: "cover",
+      imgFile: "dr-kwame",
+    },
+    tags: ["Farmers", "Impact", "Africa"],
+    publishedAt: "Mar 14, 2026",
+    readTime: 4,
+    content: [
+      {
+        type: "p",
+        text: "For smallholder farmers, climate change is not theoretical. It directly affects crop yields, water availability, and long-term livelihoods. Increasingly unpredictable rainfall patterns, prolonged droughts, and soil degradation are tangible daily realities for the 47,000+ farmers enrolled in the SikaFields programme.",
+      },
+      {
+        type: "p",
+        text: "Yet these same farmers are among the most important contributors to climate solutions. Their land, their practices, and their stewardship of ecosystems represent some of the highest-potential carbon sinks on earth. The question is whether the global carbon economy is designed to include them.",
+      },
+      {
+        type: "h2",
+        text: "How SikaFields Includes Farmers",
+      },
+      {
+        type: "list",
+        items: [
+          "Registering land and farming activities through a mobile-first enrollment process accessible without a smartphone.",
+          "Tracking environmental impact through measurable satellite and ground-truth data — without requiring farmers to manage the process themselves.",
+          "Generating and distributing carbon credit revenue directly to farmers via mobile money, within 60 days of credit issuance.",
+        ],
+      },
+      {
+        type: "p",
+        text: "This creates a new, sustainable income stream — one that rewards climate-positive practices rather than extractive ones. More importantly, it shifts farmers from being passive subjects of climate policy to active participants in climate solutions. They are not data points. They are partners.",
+      },
+      {
+        type: "quote",
+        text: "When a farmer in Ghana's Northern Region earns $400 from carbon credits, that is not a statistic. It is a child's school year, a new seed variety, a water pump. That is what climate finance is supposed to do.",
+        attribution: "— Dr. Kwame Ofosu Debrah, CTO",
+      },
+    ],
+  },
+  {
+    id: "12",
+    slug: "what-esg-buyers-should-look-for-carbon-credits",
+    kind: "article",
+    title: "What ESG Buyers Should Look for in Carbon Credits",
+    excerpt:
+      "High-quality carbon credits are defined by integrity, not volume. Here is how institutional buyers can distinguish meaningful impact from greenwashing.",
+    coverImage: "/hero-invest.png",
+    coverColor: "#0f766e",
+    author: {
+      name: "Dr. Kwame Ofosu Debrah",
+      role: "Chief Technology Officer",
+      bgPos: "center 10%",
+      bgSize: "cover",
+      imgFile: "dr-kwame",
+    },
+    tags: ["ESG", "Buyers", "Investment"],
+    publishedAt: "Mar 11, 2026",
+    readTime: 5,
+    content: [
+      {
+        type: "p",
+        text: "As demand for carbon offsets grows, so does the risk of low-quality or misleading credits entering the market. For ESG buyers, the challenge is not access — it's selection. The voluntary carbon market is not uniformly reliable. Buyers who fail to apply rigorous selection criteria expose their organisations to reputational risk, regulatory scrutiny, and potential TCFD disclosure failures.",
+      },
+      {
+        type: "h2",
+        text: "Key Factors to Prioritise",
+      },
+      {
+        type: "list",
+        items: [
+          "Verified impact: is the carbon removal backed by credible, third-party-audited data and methodologies?",
+          "Transparency: can you trace exactly how each credit was generated, from which farm, using which practice?",
+          "Community co-benefits: does the project deliver verified economic and social impact beyond carbon tonnage?",
+          "Long-term sustainability: is there a permanence and risk buffer mechanism that protects against reversal events?",
+        ],
+      },
+      {
+        type: "h2",
+        text: "The SikaFields Standard",
+      },
+      {
+        type: "p",
+        text: "SikaFields focuses on delivering high-integrity carbon credits by combining on-the-ground project validation by 127 active field coordinators, transparent satellite-based tracking updated every five days, and direct engagement with farming communities that creates genuine additionality. Every credit we issue is verifiable down to a specific GPS plot and a specific date. That is the standard institutional buyers should demand from any provider.",
+      },
+      {
+        type: "quote",
+        text: "High-quality carbon credits are defined by integrity, not volume. Ask your provider to show you the farm.",
+        attribution: "— Dr. Kwame Ofosu Debrah, CTO",
+      },
+    ],
+  },
+  {
+    id: "13",
+    slug: "nature-based-vs-tech-based-carbon-removal",
+    kind: "article",
+    title: "Nature-Based vs Tech-Based Carbon Removal",
+    excerpt:
+      "The future of carbon removal is not a single solution — it is a balance. But today, nature leads. Here is why, and what it means for the market.",
+    coverImage: "/hero-carbon.png",
+    coverColor: "#0891b2",
+    author: {
+      name: "Dr. Kwame Ofosu Debrah",
+      role: "Chief Technology Officer",
+      bgPos: "center 10%",
+      bgSize: "cover",
+      imgFile: "dr-kwame",
+    },
+    tags: ["Carbon Markets", "Technology", "Science"],
+    publishedAt: "Mar 8, 2026",
+    readTime: 6,
+    content: [
+      {
+        type: "p",
+        text: "Carbon removal technologies fall into two broad categories: nature-based solutions — reforestation, soil carbon sequestration, wetland restoration — and technology-based solutions such as Direct Air Capture (DAC) and industrial carbon capture and storage. Both have a role. But they are not equivalent, and treating them as such leads to poor policy and poor investment decisions.",
+      },
+      {
+        type: "h2",
+        text: "The Technology Argument",
+      },
+      {
+        type: "p",
+        text: "Proponents of DAC and industrial CCS point to their permanence and scalability at high volumes. A tonne of CO₂ injected into geological storage is, by most assessments, more permanent than a tonne sequestered in a tree. The challenge is cost and energy. Current DAC costs range from $300 to $1,000 per tonne — compared to $20–$50 for high-quality nature-based credits. At that price differential, tech-based removal cannot lead the near-term market.",
+      },
+      {
+        type: "h2",
+        text: "The Nature Case — Today",
+      },
+      {
+        type: "list",
+        items: [
+          "Immediately deployable at scale — no new technology required.",
+          "Cost-effective: $20–$50 per tonne for verified, high-quality credits.",
+          "Rich in co-benefits: biodiversity, watershed protection, community economic development.",
+          "Broadly verifiable using existing satellite MRV infrastructure.",
+        ],
+      },
+      {
+        type: "p",
+        text: "SikaFields prioritises nature-based approaches because they deliver impact at scale today, not decades from now. Our agroforestry and cover-cropping methodology is deployable across millions of hectares of African and Indian farmland using existing farming knowledge and practice.",
+      },
+      {
+        type: "h2",
+        text: "The Future Is Both",
+      },
+      {
+        type: "p",
+        text: "The most effective carbon removal portfolio will combine nature-based projects for immediate, high-volume, cost-effective impact with technology-based projects for long-term, high-permanence removal. But in the present, nature remains the most practical and scalable path forward. Buyers who wait for tech to become affordable risk missing a decade of cost-effective, high-integrity nature-based opportunity.",
+      },
+      {
+        type: "quote",
+        text: "We do not have the luxury of waiting for technology to catch up. Nature is ready now.",
+        attribution: "— Dr. Kwame Ofosu Debrah, CTO",
+      },
+    ],
+  },
 ];
 
 export function getArticleBySlug(slug: string): Article | undefined {

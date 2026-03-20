@@ -7,23 +7,26 @@ import {
 import { getArticleBySlug, getRelatedArticles, type Article, type ArticleBlock } from "@/data/articles";
 
 const TAG_COLORS: Record<string, { text: string; bg: string }> = {
-  Education:        { text: "#16a34a", bg: "#f0faf4" },
-  "Carbon Markets": { text: "#16a34a", bg: "#f0faf4" },
-  Farmers:          { text: "#16a34a", bg: "#f0faf4" },
-  Science:          { text: "#7c3aed", bg: "#faf5ff" },
-  Technology:       { text: "#7c3aed", bg: "#faf5ff" },
-  MRV:              { text: "#7c3aed", bg: "#faf5ff" },
-  ESG:              { text: "#0f766e", bg: "#f0fdfa" },
-  Buyers:           { text: "#0f766e", bg: "#f0fdfa" },
-  Investment:       { text: "#0f766e", bg: "#f0fdfa" },
-  Finance:          { text: "#ca8a04", bg: "#fffbeb" },
-  Ghana:            { text: "#ca8a04", bg: "#fffbeb" },
-  Impact:           { text: "#ca8a04", bg: "#fffbeb" },
-  "Carbon Prices":  { text: "#b45309", bg: "#fff7ed" },
-  Market:           { text: "#b45309", bg: "#fff7ed" },
-  Regulatory:       { text: "#0891b2", bg: "#f0f9ff" },
-  Announcement:     { text: "#db2777", bg: "#fdf2f8" },
-  Growth:           { text: "#db2777", bg: "#fdf2f8" },
+  Education:               { text: "#16a34a", bg: "#f0faf4" },
+  "Carbon Markets":        { text: "#16a34a", bg: "#f0faf4" },
+  Farmers:                 { text: "#16a34a", bg: "#f0faf4" },
+  Africa:                  { text: "#16a34a", bg: "#f0faf4" },
+  Science:                 { text: "#7c3aed", bg: "#faf5ff" },
+  Technology:              { text: "#7c3aed", bg: "#faf5ff" },
+  MRV:                     { text: "#7c3aed", bg: "#faf5ff" },
+  Blockchain:              { text: "#7c3aed", bg: "#faf5ff" },
+  "Regenerative Agriculture": { text: "#15803d", bg: "#f0fdf4" },
+  ESG:                     { text: "#0f766e", bg: "#f0fdfa" },
+  Buyers:                  { text: "#0f766e", bg: "#f0fdfa" },
+  Investment:              { text: "#0f766e", bg: "#f0fdfa" },
+  Finance:                 { text: "#ca8a04", bg: "#fffbeb" },
+  Ghana:                   { text: "#ca8a04", bg: "#fffbeb" },
+  Impact:                  { text: "#ca8a04", bg: "#fffbeb" },
+  "Carbon Prices":         { text: "#b45309", bg: "#fff7ed" },
+  Market:                  { text: "#b45309", bg: "#fff7ed" },
+  Regulatory:              { text: "#0891b2", bg: "#f0f9ff" },
+  Announcement:            { text: "#db2777", bg: "#fdf2f8" },
+  Growth:                  { text: "#db2777", bg: "#fdf2f8" },
 };
 
 function tagStyle(tag: string) {
@@ -153,24 +156,33 @@ export default function ArticleDetailPage() {
         </div>
       </div>
 
-      {/* Article header */}
+      {/* Article header — full hero when coverImage present, colour gradient otherwise */}
       <div
-        className="py-16 relative"
-        style={{
-          background: `linear-gradient(135deg, ${article.coverColor}22 0%, ${article.coverColor}08 100%)`,
-          borderBottom: `3px solid ${article.coverColor}33`,
-        }}
+        className={`relative ${article.coverImage ? "min-h-[420px] flex flex-col justify-end" : "py-16"}`}
+        style={
+          article.coverImage
+            ? {}
+            : {
+                background: `linear-gradient(135deg, ${article.coverColor}22 0%, ${article.coverColor}08 100%)`,
+                borderBottom: `3px solid ${article.coverColor}33`,
+              }
+        }
       >
+        {/* Hero photo */}
         {article.coverImage && (
-          <div className="absolute inset-0 overflow-hidden">
-            <img
-              src={article.coverImage}
-              alt={article.title}
-              className="w-full h-full object-cover opacity-10"
-            />
-          </div>
+          <>
+            <div className="absolute inset-0 overflow-hidden">
+              <img
+                src={article.coverImage}
+                alt={article.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+          </>
         )}
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 relative">
+
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 relative w-full pb-12 pt-24">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             {/* Kind + tags */}
             <div className="flex items-center gap-2 flex-wrap mb-5">
@@ -185,8 +197,8 @@ export default function ArticleDetailPage() {
                 return (
                   <span
                     key={t}
-                    className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
-                    style={{ color: s.text, backgroundColor: s.bg }}
+                    className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full ${article.coverImage ? "bg-white/20 text-white border border-white/30" : ""}`}
+                    style={article.coverImage ? {} : { color: s.text, backgroundColor: s.bg }}
                   >
                     {t}
                   </span>
@@ -195,12 +207,20 @@ export default function ArticleDetailPage() {
             </div>
 
             {/* Title */}
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-foreground leading-tight mb-5">
+            <h1
+              className={`text-2xl sm:text-3xl md:text-4xl font-display font-bold leading-tight mb-5 ${
+                article.coverImage ? "text-white" : "text-foreground"
+              }`}
+            >
               {article.title}
             </h1>
 
             {/* Meta row */}
-            <div className="flex items-center gap-4 flex-wrap text-sm text-muted-foreground mb-6">
+            <div
+              className={`flex items-center gap-4 flex-wrap text-sm mb-6 ${
+                article.coverImage ? "text-white/70" : "text-muted-foreground"
+              }`}
+            >
               <span className="flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5" /> {article.publishedAt}
               </span>
