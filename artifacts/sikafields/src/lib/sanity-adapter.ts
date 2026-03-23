@@ -28,6 +28,7 @@ interface SanityDocument {
   tags?: string[];
   category?: string;
   featured?: boolean;
+  template?: "standard" | "hero" | "visual";
   publishedAt?: string;
   content?: SanityContentBlock[];
 }
@@ -68,6 +69,7 @@ export function sanityDocToArticle(doc: SanityDocument): Article {
   return {
     id: doc._id,
     kind: doc._type === "news" ? "news" : "article",
+    template: doc.template ?? "standard",
     title: doc.title,
     slug: doc.slug,
     excerpt: doc.excerpt ?? "",

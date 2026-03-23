@@ -91,6 +91,21 @@ export const blog = defineType({
       description: "Featured articles appear prominently at the top of the listing.",
     }),
     defineField({
+      name: "template",
+      title: "Article Template",
+      type: "string",
+      initialValue: "standard",
+      description: "Controls the visual layout of the article page.",
+      options: {
+        list: [
+          { title: "Standard — default two-column layout", value: "standard" },
+          { title: "Hero — full-viewport cinematic cover image", value: "hero" },
+          { title: "Visual Story — magazine-style with oversized pull quotes", value: "visual" },
+        ],
+        layout: "radio",
+      },
+    }),
+    defineField({
       name: "content",
       title: "Content",
       type: "array",

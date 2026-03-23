@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import {
   Search, ArrowLeft, Clock, Calendar, ChevronRight,
   BookOpen, Newspaper, ArrowRight, Filter, Loader2,
+  Image as ImageIcon, LayoutGrid,
 } from "lucide-react";
 import { type Article } from "@/data/articles";
 import { useAllArticles } from "@/hooks/useArticles";
@@ -119,6 +120,16 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
           {article.tags.slice(0, 1).map((t) => (
             <TagBadge key={t} tag={t} small />
           ))}
+          {article.template && article.template !== "standard" && (
+            <span className="ml-auto absolute right-0 top-0 m-2 flex items-center gap-0.5 bg-black/40 backdrop-blur text-white/90 text-[8px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md">
+              {article.template === "hero" ? (
+                <ImageIcon className="w-2.5 h-2.5" />
+              ) : (
+                <LayoutGrid className="w-2.5 h-2.5" />
+              )}
+              {article.template}
+            </span>
+          )}
         </div>
       </div>
 

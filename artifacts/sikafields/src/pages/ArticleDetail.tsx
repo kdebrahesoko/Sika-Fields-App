@@ -1,49 +1,64 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Link, useParams } from "wouter";
 import {
-  ArrowLeft, Clock, Calendar, Twitter, Linkedin,
-  ChevronRight, BookOpen, Share2, Loader2,
+  ArrowLeft, Clock, Calendar, Twitter, Linkedin, Facebook,
+  ChevronRight, BookOpen, Share2, Loader2, Copy, Check,
+  ExternalLink, Edit3,
 } from "lucide-react";
 import { type Article, type ArticleBlock } from "@/data/articles";
 import { useArticle, useRelatedArticles } from "@/hooks/useArticles";
+import { isSanityConfigured } from "@/lib/sanity";
 
+// ─── Tag colours ─────────────────────────────────────────────────────────────
 const TAG_COLORS: Record<string, { text: string; bg: string }> = {
-  Education:               { text: "#16a34a", bg: "#f0faf4" },
-  "Carbon Markets":        { text: "#16a34a", bg: "#f0faf4" },
-  Farmers:                 { text: "#16a34a", bg: "#f0faf4" },
-  Africa:                  { text: "#16a34a", bg: "#f0faf4" },
-  Science:                 { text: "#7c3aed", bg: "#faf5ff" },
-  Technology:              { text: "#7c3aed", bg: "#faf5ff" },
-  MRV:                     { text: "#7c3aed", bg: "#faf5ff" },
-  Blockchain:              { text: "#7c3aed", bg: "#faf5ff" },
+  Education:                  { text: "#16a34a", bg: "#f0faf4" },
+  "Carbon Markets":           { text: "#16a34a", bg: "#f0faf4" },
+  Farmers:                    { text: "#16a34a", bg: "#f0faf4" },
+  Africa:                     { text: "#16a34a", bg: "#f0faf4" },
+  Science:                    { text: "#7c3aed", bg: "#faf5ff" },
+  Technology:                 { text: "#7c3aed", bg: "#faf5ff" },
+  MRV:                        { text: "#7c3aed", bg: "#faf5ff" },
+  Blockchain:                 { text: "#7c3aed", bg: "#faf5ff" },
   "Regenerative Agriculture": { text: "#15803d", bg: "#f0fdf4" },
-  ESG:                     { text: "#0f766e", bg: "#f0fdfa" },
-  Buyers:                  { text: "#0f766e", bg: "#f0fdfa" },
-  Investment:              { text: "#0f766e", bg: "#f0fdfa" },
-  Finance:                 { text: "#ca8a04", bg: "#fffbeb" },
-  Ghana:                   { text: "#ca8a04", bg: "#fffbeb" },
-  Impact:                  { text: "#ca8a04", bg: "#fffbeb" },
-  "Carbon Prices":         { text: "#b45309", bg: "#fff7ed" },
-  Market:                  { text: "#b45309", bg: "#fff7ed" },
-  Regulatory:              { text: "#0891b2", bg: "#f0f9ff" },
-  Announcement:            { text: "#db2777", bg: "#fdf2f8" },
-  Growth:                  { text: "#db2777", bg: "#fdf2f8" },
+  ESG:                        { text: "#0f766e", bg: "#f0fdfa" },
+  Buyers:                     { text: "#0f766e", bg: "#f0fdfa" },
+  Investment:                 { text: "#0f766e", bg: "#f0fdfa" },
+  Finance:                    { text: "#ca8a04", bg: "#fffbeb" },
+  Ghana:                      { text: "#ca8a04", bg: "#fffbeb" },
+  Impact:                     { text: "#ca8a04", bg: "#fffbeb" },
+  "Carbon Prices":            { text: "#b45309", bg: "#fff7ed" },
+  Market:                     { text: "#b45309", bg: "#fff7ed" },
+  Regulatory:                 { text: "#0891b2", bg: "#f0f9ff" },
+  Announcement:               { text: "#db2777", bg: "#fdf2f8" },
+  Growth:                     { text: "#db2777", bg: "#fdf2f8" },
 };
 
 function tagStyle(tag: string) {
   return TAG_COLORS[tag] ?? { text: "#5a7a65", bg: "#f0faf4" };
 }
 
-function AuthorAvatar({ author, size = 12 }: { author: Article["author"]; size?: number }) {
+// ─── Author avatar ────────────────────────────────────────────────────────────
+function AuthorAvatar({
+  author,
+  size = 12,
+  rounded = "rounded-2xl",
+}: {
+  author: Article["author"];
+  size?: number;
+  rounded?: string;
+}) {
   const wh = `w-${size} h-${size}`;
-  const outline: React.CSSProperties = { outline: "2px solid rgba(22,163,74,0.15)", outlineOffset: "2px" };
+  const outline: React.CSSProperties = {
+    outline: "2px solid rgba(22,163,74,0.15)",
+    outlineOffset: "2px",
+  };
   if (author.photo) {
     return (
       <img
         src={author.photo}
         alt={author.name}
-        className={`${wh} rounded-2xl shrink-0 object-cover`}
+        className={`${wh} ${rounded} shrink-0 object-cover`}
         style={outline}
       />
     );
@@ -52,7 +67,7 @@ function AuthorAvatar({ author, size = 12 }: { author: Article["author"]; size?:
     const ext = author.imgFile === "dr-kwame" ? "jpeg" : "png";
     return (
       <div
-        className={`${wh} rounded-2xl shrink-0`}
+        className={`${wh} ${rounded} shrink-0`}
         style={{
           backgroundImage: `url('/${author.imgFile}.${ext}')`,
           backgroundSize: author.bgSize ?? "cover",
@@ -65,7 +80,7 @@ function AuthorAvatar({ author, size = 12 }: { author: Article["author"]; size?:
   }
   return (
     <div
-      className={`${wh} rounded-2xl shrink-0 bg-primary/10 flex items-center justify-center text-primary font-bold text-xl`}
+      className={`${wh} ${rounded} shrink-0 bg-primary/10 flex items-center justify-center text-primary font-bold text-xl`}
       style={outline}
     >
       {author.name.charAt(0)}
@@ -73,37 +88,84 @@ function AuthorAvatar({ author, size = 12 }: { author: Article["author"]; size?:
   );
 }
 
-function ContentBlock({ block }: { block: ArticleBlock }) {
+// ─── Content blocks ───────────────────────────────────────────────────────────
+function ContentBlock({
+  block,
+  visual = false,
+}: {
+  block: ArticleBlock;
+  visual?: boolean;
+}) {
   switch (block.type) {
     case "h2":
       return (
-        <h2 className="text-xl md:text-2xl font-display font-bold text-foreground mt-10 mb-4 leading-snug">
+        <h2
+          className={`font-display font-bold text-foreground mt-10 mb-4 leading-snug ${
+            visual ? "text-2xl md:text-3xl" : "text-xl md:text-2xl"
+          }`}
+        >
           {block.text}
         </h2>
       );
     case "p":
       return (
-        <p className="text-base text-foreground/80 leading-[1.85] mb-5">
+        <p
+          className={`text-foreground/80 leading-[1.9] mb-5 ${
+            visual ? "text-[17px]" : "text-base"
+          }`}
+        >
           {block.text}
         </p>
       );
     case "quote":
+      if (visual) {
+        return (
+          <div className="my-10 relative">
+            <span className="absolute -top-6 -left-2 text-8xl font-serif text-primary/20 leading-none select-none">
+              &#8220;
+            </span>
+            <blockquote className="pl-6 border-l-4 border-primary py-2">
+              <p className="text-2xl md:text-3xl font-display font-semibold italic text-foreground/80 leading-snug mb-4">
+                {block.text}
+              </p>
+              {block.attribution && (
+                <p className="text-sm font-bold text-primary tracking-wide">
+                  {block.attribution}
+                </p>
+              )}
+            </blockquote>
+          </div>
+        );
+      }
       return (
         <blockquote className="my-8 pl-5 border-l-4 border-primary">
           <p className="text-lg italic text-foreground/70 leading-relaxed mb-2">
             {block.text}
           </p>
           {block.attribution && (
-            <p className="text-sm font-semibold text-primary">{block.attribution}</p>
+            <p className="text-sm font-semibold text-primary">
+              {block.attribution}
+            </p>
           )}
         </blockquote>
       );
     case "list":
       return (
-        <ul className="mb-6 space-y-2.5">
+        <ul className="mb-6 space-y-3">
           {block.items.map((item, i) => (
-            <li key={i} className="flex gap-3 text-foreground/80 leading-relaxed">
-              <span className="mt-2 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+            <li
+              key={i}
+              className={`flex gap-3 text-foreground/80 leading-relaxed ${
+                visual ? "text-[17px]" : "text-base"
+              }`}
+            >
+              {visual ? (
+                <span className="mt-1.5 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">
+                  {i + 1}
+                </span>
+              ) : (
+                <span className="mt-2 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+              )}
               <span>{item}</span>
             </li>
           ))}
@@ -114,6 +176,7 @@ function ContentBlock({ block }: { block: ArticleBlock }) {
   }
 }
 
+// ─── Related article card ─────────────────────────────────────────────────────
 function RelatedCard({ article }: { article: Article }) {
   const cc = article.coverColor ?? "#16a34a";
   return (
@@ -123,9 +186,7 @@ function RelatedCard({ article }: { article: Article }) {
     >
       <div
         className="h-24 relative"
-        style={{
-          background: `linear-gradient(135deg, ${cc}44 0%, ${cc}11 100%)`,
-        }}
+        style={{ background: `linear-gradient(135deg, ${cc}44 0%, ${cc}11 100%)` }}
       >
         {article.coverImage && (
           <img
@@ -155,6 +216,657 @@ function RelatedCard({ article }: { article: Article }) {
   );
 }
 
+// ─── Reading progress bar ─────────────────────────────────────────────────────
+function ReadingProgress() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const el = document.documentElement;
+      const scrolled = el.scrollTop;
+      const total = el.scrollHeight - el.clientHeight;
+      setProgress(total > 0 ? (scrolled / total) * 100 : 0);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  return (
+    <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-transparent pointer-events-none">
+      <div
+        className="h-full bg-primary transition-all duration-100"
+        style={{ width: `${progress}%` }}
+      />
+    </div>
+  );
+}
+
+// ─── Floating share panel ─────────────────────────────────────────────────────
+function SharePanel({ url, title }: { url: string; title: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const copyLink = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      const el = document.createElement("textarea");
+      el.value = url;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [url]);
+
+  const encoded = encodeURIComponent(url);
+  const encodedTitle = encodeURIComponent(title);
+
+  const links = [
+    {
+      label: "Twitter / X",
+      href: `https://twitter.com/intent/tweet?url=${encoded}&text=${encodedTitle}`,
+      icon: <Twitter className="w-4 h-4" />,
+      color: "#1d9bf0",
+    },
+    {
+      label: "LinkedIn",
+      href: `https://www.linkedin.com/shareArticle?mini=true&url=${encoded}&title=${encodedTitle}`,
+      icon: <Linkedin className="w-4 h-4" />,
+      color: "#0a66c2",
+    },
+    {
+      label: "Facebook",
+      href: `https://www.facebook.com/sharer/sharer.php?u=${encoded}`,
+      icon: <Facebook className="w-4 h-4" />,
+      color: "#1877f2",
+    },
+    {
+      label: "WhatsApp",
+      href: `https://wa.me/?text=${encodeURIComponent(title + " " + url)}`,
+      icon: (
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+        </svg>
+      ),
+      color: "#25d366",
+    },
+  ];
+
+  return (
+    <>
+      {/* Desktop: fixed left sidebar */}
+      <div className="hidden lg:flex fixed left-5 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 rotate-0 writing-mode-vertical">
+          <Share2 className="w-3.5 h-3.5 text-muted-foreground" />
+        </span>
+        {links.map((l) => (
+          <a
+            key={l.label}
+            href={l.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={l.label}
+            className="w-9 h-9 rounded-full border border-border bg-white hover:scale-110 transition-all flex items-center justify-center shadow-sm hover:shadow-md"
+            style={{ color: l.color }}
+          >
+            {l.icon}
+          </a>
+        ))}
+        <button
+          onClick={copyLink}
+          title="Copy link"
+          className="w-9 h-9 rounded-full border border-border bg-white hover:scale-110 transition-all flex items-center justify-center shadow-sm hover:shadow-md text-muted-foreground hover:text-primary"
+        >
+          {copied ? (
+            <Check className="w-4 h-4 text-primary" />
+          ) : (
+            <Copy className="w-4 h-4" />
+          )}
+        </button>
+      </div>
+
+      {/* Mobile: sticky bottom bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur border-t border-border px-4 py-2.5 flex items-center justify-around">
+        {links.map((l) => (
+          <a
+            key={l.label}
+            href={l.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={l.label}
+            className="flex flex-col items-center gap-0.5"
+            style={{ color: l.color }}
+          >
+            {l.icon}
+            <span className="text-[9px] font-semibold text-muted-foreground">
+              {l.label.split(" / ")[0]}
+            </span>
+          </a>
+        ))}
+        <button
+          onClick={copyLink}
+          title="Copy link"
+          className="flex flex-col items-center gap-0.5 text-muted-foreground"
+        >
+          {copied ? (
+            <>
+              <Check className="w-4 h-4 text-primary" />
+              <span className="text-[9px] font-semibold text-primary">Copied!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-4 h-4" />
+              <span className="text-[9px] font-semibold">Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+    </>
+  );
+}
+
+// ─── Author bio section ───────────────────────────────────────────────────────
+function AuthorBio({ author }: { author: Article["author"] }) {
+  return (
+    <div className="mt-8 p-6 bg-card rounded-2xl border border-border">
+      <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
+        About the Author
+      </p>
+      <div className="flex gap-4">
+        <AuthorAvatar author={author} size={16} />
+        <div>
+          <p className="font-bold text-foreground text-base mb-0.5">
+            {author.name}
+          </p>
+          <p className="text-sm font-semibold text-primary mb-2">
+            {author.role} · SikaFields
+          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            {author.bio ??
+              "A member of the SikaFields executive team writing from direct operational experience across our carbon farming programs in Ghana, India, and beyond."}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Related articles section ─────────────────────────────────────────────────
+function RelatedSection({ related }: { related: Article[] }) {
+  if (related.length === 0) return null;
+  return (
+    <div className="bg-card border-t border-border py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-display font-bold text-foreground">
+            Related Articles
+          </h2>
+          <Link
+            href="/articles"
+            className="text-sm text-primary font-semibold hover:underline flex items-center gap-1"
+          >
+            View all <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {related.map((a) => (
+            <RelatedCard key={a.id} article={a} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Shared footer ────────────────────────────────────────────────────────────
+function ArticleFooter() {
+  return (
+    <div className="border-t border-border py-8 bg-background">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
+        <p>© 2026 SikaFields. All rights reserved.</p>
+        <Link
+          href="/"
+          className="hover:text-primary transition-colors font-semibold"
+        >
+          ← Back to homepage
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+// ─── Shared top nav bar ───────────────────────────────────────────────────────
+function TopBar({ article }: { article: Article }) {
+  const projectId = import.meta.env.VITE_SANITY_PROJECT_ID as string | undefined;
+  const cmsUrl =
+    isSanityConfigured && projectId
+      ? `https://${projectId}.sanity.studio/structure/blog;${article.id}`
+      : null;
+
+  return (
+    <div className="border-b border-border bg-background/95 backdrop-blur sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        <Link
+          href="/articles"
+          className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Articles & Updates</span>
+          <span className="sm:hidden">Back</span>
+        </Link>
+        <img
+          src="/sikafields-logo.png"
+          alt="SikaFields"
+          className="h-7 object-contain"
+        />
+        <div className="flex items-center gap-2">
+          {cmsUrl && (
+            <a
+              href={cmsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary border border-border rounded-lg px-3 py-1.5 hover:border-primary/40 transition-all"
+            >
+              <Edit3 className="w-3 h-3" />
+              Edit in CMS
+              <ExternalLink className="w-2.5 h-2.5" />
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── STANDARD TEMPLATE ────────────────────────────────────────────────────────
+function StandardTemplate({
+  article,
+  shareUrl,
+  related,
+}: {
+  article: Article;
+  shareUrl: string;
+  related: Article[];
+}) {
+  const cc = article.coverColor ?? "#16a34a";
+
+  return (
+    <div className="min-h-screen bg-background font-sans">
+      <TopBar article={article} />
+
+      {/* Header */}
+      <div
+        className={`relative ${
+          article.coverImage
+            ? "min-h-[420px] flex flex-col justify-end"
+            : "py-16"
+        }`}
+        style={
+          article.coverImage
+            ? {}
+            : {
+                background: `linear-gradient(135deg, ${cc}22 0%, ${cc}08 100%)`,
+                borderBottom: `3px solid ${cc}33`,
+              }
+        }
+      >
+        {article.coverImage && (
+          <>
+            <div className="absolute inset-0 overflow-hidden">
+              <img
+                src={article.coverImage}
+                alt={article.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+          </>
+        )}
+
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 relative w-full pb-12 pt-24">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="flex items-center gap-2 flex-wrap mb-5">
+              <span
+                className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
+                style={{ backgroundColor: cc }}
+              >
+                {article.kind === "news" ? "News Update" : "Article"}
+              </span>
+              {article.tags.map((t) => {
+                const s = tagStyle(t);
+                return (
+                  <span
+                    key={t}
+                    className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full ${
+                      article.coverImage
+                        ? "bg-white/20 text-white border border-white/30"
+                        : ""
+                    }`}
+                    style={
+                      article.coverImage
+                        ? {}
+                        : { color: s.text, backgroundColor: s.bg }
+                    }
+                  >
+                    {t}
+                  </span>
+                );
+              })}
+            </div>
+
+            <h1
+              className={`text-2xl sm:text-3xl md:text-4xl font-display font-bold leading-tight mb-5 ${
+                article.coverImage ? "text-white" : "text-foreground"
+              }`}
+            >
+              {article.title}
+            </h1>
+
+            <div
+              className={`flex items-center gap-4 flex-wrap text-sm mb-6 ${
+                article.coverImage ? "text-white/70" : "text-muted-foreground"
+              }`}
+            >
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5" /> {article.publishedAt}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" /> {article.readTime} min read
+              </span>
+            </div>
+
+            <div className="flex items-center gap-4 p-4 bg-white/70 backdrop-blur rounded-2xl border border-border inline-flex w-auto">
+              <AuthorAvatar author={article.author} size={12} />
+              <div>
+                <p className="font-bold text-foreground text-sm">
+                  {article.author.name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {article.author.role}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 pb-24 lg:pb-12">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <p className="text-lg text-muted-foreground leading-relaxed mb-8 pb-8 border-b border-border font-medium">
+            {article.excerpt}
+          </p>
+          {article.content.map((block, i) => (
+            <ContentBlock key={i} block={block} />
+          ))}
+        </motion.div>
+
+        <AuthorBio author={article.author} />
+      </div>
+
+      <SharePanel url={shareUrl} title={article.title} />
+      <RelatedSection related={related} />
+      <ArticleFooter />
+    </div>
+  );
+}
+
+// ─── HERO TEMPLATE ────────────────────────────────────────────────────────────
+function HeroTemplate({
+  article,
+  shareUrl,
+  related,
+}: {
+  article: Article;
+  shareUrl: string;
+  related: Article[];
+}) {
+  const cc = article.coverColor ?? "#16a34a";
+
+  return (
+    <div className="min-h-screen bg-background font-sans">
+      <ReadingProgress />
+      <TopBar article={article} />
+
+      {/* Full-viewport hero */}
+      <div
+        className="relative min-h-[90vh] flex flex-col justify-end"
+        style={
+          !article.coverImage
+            ? { background: `linear-gradient(160deg, ${cc} 0%, #0d2418 100%)` }
+            : {}
+        }
+      >
+        {article.coverImage && (
+          <>
+            <div className="absolute inset-0 overflow-hidden">
+              <img
+                src={article.coverImage}
+                alt={article.title}
+                className="w-full h-full object-cover scale-105"
+                style={{ transformOrigin: "center 40%" }}
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
+          </>
+        )}
+
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-8 pb-16 pt-32 w-full">
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {/* Pill badges */}
+            <div className="flex items-center gap-2 flex-wrap mb-6">
+              <span
+                className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
+                style={{ backgroundColor: cc }}
+              >
+                {article.kind === "news" ? "News Update" : "Article"}
+              </span>
+              {article.tags.map((t) => (
+                <span
+                  key={t}
+                  className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/15 text-white border border-white/25"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+
+            {/* Giant title */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-white leading-[1.05] mb-8 max-w-3xl">
+              {article.title}
+            </h1>
+
+            {/* Author card + meta */}
+            <div className="flex flex-wrap items-center gap-5">
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur border border-white/20 rounded-2xl px-4 py-3">
+                <AuthorAvatar
+                  author={article.author}
+                  size={10}
+                  rounded="rounded-xl"
+                />
+                <div>
+                  <p className="font-bold text-white text-sm leading-tight">
+                    {article.author.name}
+                  </p>
+                  <p className="text-white/60 text-xs">{article.author.role}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-white/60 text-sm">
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" /> {article.publishedAt}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" /> {article.readTime} min read
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-14 pb-24 lg:pb-14">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <p className="text-xl text-muted-foreground leading-relaxed mb-10 pb-10 border-b border-border font-medium">
+            {article.excerpt}
+          </p>
+          {article.content.map((block, i) => (
+            <ContentBlock key={i} block={block} />
+          ))}
+        </motion.div>
+
+        <AuthorBio author={article.author} />
+      </div>
+
+      <SharePanel url={shareUrl} title={article.title} />
+      <RelatedSection related={related} />
+      <ArticleFooter />
+    </div>
+  );
+}
+
+// ─── VISUAL STORY TEMPLATE ────────────────────────────────────────────────────
+function VisualTemplate({
+  article,
+  shareUrl,
+  related,
+}: {
+  article: Article;
+  shareUrl: string;
+  related: Article[];
+}) {
+  const cc = article.coverColor ?? "#16a34a";
+
+  return (
+    <div className="min-h-screen bg-background font-sans">
+      <ReadingProgress />
+      <TopBar article={article} />
+
+      {/* Magazine-style header */}
+      <div
+        className="border-b border-border"
+        style={{ borderTop: `4px solid ${cc}` }}
+      >
+        {/* Cover strip */}
+        {article.coverImage && (
+          <div className="relative h-56 md:h-72 overflow-hidden">
+            <img
+              src={article.coverImage}
+              alt={article.title}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
+          </div>
+        )}
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-8 py-12">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            {/* Category + tags */}
+            <div className="flex items-center gap-2 flex-wrap mb-6">
+              <span
+                className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
+                style={{ backgroundColor: cc }}
+              >
+                Visual Story
+              </span>
+              {article.tags.map((t) => {
+                const s = tagStyle(t);
+                return (
+                  <span
+                    key={t}
+                    className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
+                    style={{ color: s.text, backgroundColor: s.bg }}
+                  >
+                    {t}
+                  </span>
+                );
+              })}
+            </div>
+
+            {/* Large left-accented title */}
+            <div
+              className="pl-6 mb-8"
+              style={{ borderLeft: `5px solid ${cc}` }}
+            >
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-foreground leading-[1.1] mb-5">
+                {article.title}
+              </h1>
+              <p className="text-xl text-muted-foreground leading-relaxed font-medium">
+                {article.excerpt}
+              </p>
+            </div>
+
+            {/* Author + meta row */}
+            <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-border">
+              <div className="flex items-center gap-3">
+                <AuthorAvatar
+                  author={article.author}
+                  size={11}
+                  rounded="rounded-xl"
+                />
+                <div>
+                  <p className="font-bold text-foreground text-sm leading-tight">
+                    {article.author.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {article.author.role}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-muted-foreground text-sm ml-auto">
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" /> {article.publishedAt}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" /> {article.readTime} min read
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Body — wider + visual blocks */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-8 py-14 pb-24 lg:pb-14">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.25 }}
+        >
+          {article.content.map((block, i) => (
+            <ContentBlock key={i} block={block} visual />
+          ))}
+        </motion.div>
+
+        <AuthorBio author={article.author} />
+      </div>
+
+      <SharePanel url={shareUrl} title={article.title} />
+      <RelatedSection related={related} />
+      <ArticleFooter />
+    </div>
+  );
+}
+
+// ─── Main page — selects the right template ───────────────────────────────────
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: article, isLoading } = useArticle(slug ?? "");
@@ -176,198 +888,40 @@ export default function ArticleDetailPage() {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
         <BookOpen className="w-12 h-12 text-muted-foreground opacity-30" />
-        <h1 className="text-2xl font-display font-bold text-foreground">Article not found</h1>
-        <p className="text-muted-foreground">This article may have been moved or removed.</p>
-        <Link href="/articles" className="text-primary font-semibold hover:underline">← Back to Articles & Updates</Link>
+        <h1 className="text-2xl font-display font-bold text-foreground">
+          Article not found
+        </h1>
+        <p className="text-muted-foreground">
+          This article may have been moved or removed.
+        </p>
+        <Link
+          href="/articles"
+          className="text-primary font-semibold hover:underline"
+        >
+          ← Back to Articles & Updates
+        </Link>
       </div>
     );
   }
 
-  const cc = article.coverColor ?? "#16a34a";
   const shareUrl = `https://sikafields.com/articles/${article.slug}`;
+  const template = article.template ?? "standard";
 
+  if (template === "hero") {
+    return (
+      <HeroTemplate article={article} shareUrl={shareUrl} related={related} />
+    );
+  }
+  if (template === "visual") {
+    return (
+      <VisualTemplate article={article} shareUrl={shareUrl} related={related} />
+    );
+  }
   return (
-    <div className="min-h-screen bg-background font-sans">
-      {/* Top bar */}
-      <div className="border-b border-border bg-background/95 backdrop-blur sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/articles" className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Articles & Updates
-          </Link>
-          <img src="/sikafields-logo.png" alt="SikaFields" className="h-8 object-contain" />
-          <div className="w-36" />
-        </div>
-      </div>
-
-      {/* Article header — full hero when coverImage present, colour gradient otherwise */}
-      <div
-        className={`relative ${article.coverImage ? "min-h-[420px] flex flex-col justify-end" : "py-16"}`}
-        style={
-          article.coverImage
-            ? {}
-            : {
-                background: `linear-gradient(135deg, ${cc}22 0%, ${cc}08 100%)`,
-                borderBottom: `3px solid ${cc}33`,
-              }
-        }
-      >
-        {/* Hero photo */}
-        {article.coverImage && (
-          <>
-            <div className="absolute inset-0 overflow-hidden">
-              <img
-                src={article.coverImage}
-                alt={article.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-          </>
-        )}
-
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 relative w-full pb-12 pt-24">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            {/* Kind + tags */}
-            <div className="flex items-center gap-2 flex-wrap mb-5">
-              <span
-                className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
-                style={{ backgroundColor: cc }}
-              >
-                {article.kind === "news" ? "News Update" : "Article"}
-              </span>
-              {article.tags.map((t) => {
-                const s = tagStyle(t);
-                return (
-                  <span
-                    key={t}
-                    className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full ${article.coverImage ? "bg-white/20 text-white border border-white/30" : ""}`}
-                    style={article.coverImage ? {} : { color: s.text, backgroundColor: s.bg }}
-                  >
-                    {t}
-                  </span>
-                );
-              })}
-            </div>
-
-            {/* Title */}
-            <h1
-              className={`text-2xl sm:text-3xl md:text-4xl font-display font-bold leading-tight mb-5 ${
-                article.coverImage ? "text-white" : "text-foreground"
-              }`}
-            >
-              {article.title}
-            </h1>
-
-            {/* Meta row */}
-            <div
-              className={`flex items-center gap-4 flex-wrap text-sm mb-6 ${
-                article.coverImage ? "text-white/70" : "text-muted-foreground"
-              }`}
-            >
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" /> {article.publishedAt}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" /> {article.readTime} min read
-              </span>
-            </div>
-
-            {/* Author */}
-            <div className="flex items-center gap-4 p-4 bg-white/70 backdrop-blur rounded-2xl border border-border inline-flex w-auto">
-              <AuthorAvatar author={article.author} size={12} />
-              <div>
-                <p className="font-bold text-foreground text-sm">{article.author.name}</p>
-                <p className="text-xs text-muted-foreground">{article.author.role}</p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Article body */}
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          {/* Excerpt lead */}
-          <p className="text-lg text-muted-foreground leading-relaxed mb-8 pb-8 border-b border-border font-medium">
-            {article.excerpt}
-          </p>
-
-          {/* Content blocks */}
-          {article.content.map((block, i) => (
-            <ContentBlock key={i} block={block} />
-          ))}
-        </motion.div>
-
-        {/* Share */}
-        <div className="mt-12 pt-8 border-t border-border flex items-center gap-4 flex-wrap">
-          <span className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-            <Share2 className="w-4 h-4" /> Share this post
-          </span>
-          <a
-            href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(article.title)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors"
-          >
-            <Twitter className="w-4 h-4" /> Twitter / X
-          </a>
-          <a
-            href={`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(article.title)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors"
-          >
-            <Linkedin className="w-4 h-4" /> LinkedIn
-          </a>
-        </div>
-
-        {/* Author bio */}
-        <div className="mt-8 p-6 bg-card rounded-2xl border border-border">
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">About the Author</p>
-          <div className="flex gap-4">
-            <AuthorAvatar author={article.author} size={16} />
-            <div>
-              <p className="font-bold text-foreground text-base mb-0.5">{article.author.name}</p>
-              <p className="text-sm font-semibold text-primary mb-2">{article.author.role} · SikaFields</p>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                A member of the SikaFields executive team writing from direct operational experience across our carbon farming programs in Ghana, India, and beyond.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Related articles */}
-      {related.length > 0 && (
-        <div className="bg-card border-t border-border py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-display font-bold text-foreground">Related Articles</h2>
-              <Link href="/articles" className="text-sm text-primary font-semibold hover:underline flex items-center gap-1">
-                View all <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {related.map((a) => (
-                <RelatedCard key={a.id} article={a} />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Footer */}
-      <div className="border-t border-border py-8 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <p>© 2026 SikaFields. All rights reserved.</p>
-          <Link href="/" className="hover:text-primary transition-colors font-semibold">← Back to homepage</Link>
-        </div>
-      </div>
-    </div>
+    <StandardTemplate
+      article={article}
+      shareUrl={shareUrl}
+      related={related}
+    />
   );
 }

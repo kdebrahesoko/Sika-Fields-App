@@ -14,6 +14,7 @@ export const ALL_ARTICLES_QUERY = `
     tags,
     category,
     featured,
+    template,
     publishedAt
   }
 `;
@@ -36,6 +37,7 @@ export const ARTICLE_BY_SLUG_QUERY = `
     tags,
     category,
     featured,
+    template,
     publishedAt,
     content
   }

@@ -35,6 +35,7 @@ export type Article = {
   id: string;
   slug: string;
   kind: "article" | "news";
+  template?: "standard" | "hero" | "visual";
   title: string;
   excerpt: string;
   content: ArticleBlock[];
@@ -53,6 +54,7 @@ export const ARTICLES: Article[] = [
     id: "1",
     slug: "how-carbon-credits-work-farmers-guide",
     kind: "article",
+    template: "standard",
     title: "How Carbon Credits Work: A Complete Guide for Smallholder Farmers",
     excerpt:
       "If you farm land that absorbs carbon dioxide — trees, cover crops, restored soil — you are already part of the climate solution. Carbon credits turn that invisible work into income.",
@@ -118,6 +120,7 @@ export const ARTICLES: Article[] = [
     id: "2",
     slug: "understanding-mrv-science-behind-carbon-credits",
     kind: "article",
+    template: "standard",
     title: "Understanding MRV: The Science Behind Every Carbon Credit We Issue",
     excerpt:
       "MRV — Measurement, Reporting, and Verification — is not jargon. It is the proof. Without it, a carbon credit is worthless. Here is how our science team makes sure every credit counts.",
@@ -181,6 +184,7 @@ export const ARTICLES: Article[] = [
     id: "3",
     slug: "esg-buyers-guide-african-smallholder-carbon-credits",
     kind: "article",
+    template: "standard",
     title: "ESG Buyers' Guide: Why African Smallholder Credits Command a Premium",
     excerpt:
       "Not all carbon credits are equal. Institutional ESG buyers are increasingly prioritising credits that deliver verified co-benefits — and smallholder African projects sit at the top of that ranking.",
@@ -240,6 +244,7 @@ export const ARTICLES: Article[] = [
     id: "4",
     slug: "economic-case-carbon-farming-ghana",
     kind: "article",
+    template: "standard",
     title: "The Economic Case for Carbon Farming in Ghana",
     excerpt:
       "Ghana's agricultural sector employs over 40% of the workforce, yet average farm incomes remain below $1,500 per year. Carbon farming is not a charity — it is the most compelling economic upgrade available to smallholder farmers today.",
@@ -295,6 +300,7 @@ export const ARTICLES: Article[] = [
     id: "5",
     slug: "sikafields-q1-2026-47000-farmers-enrolled",
     kind: "news",
+    template: "standard",
     newsCategory: "announcement",
     title: "SikaFields Reaches 47,000+ Enrolled Farmers — Q1 2026 Milestone",
     excerpt:
@@ -349,6 +355,7 @@ export const ARTICLES: Article[] = [
     id: "6",
     slug: "difc-registration-institutional-investor-access",
     kind: "news",
+    template: "standard",
     newsCategory: "announcement",
     title: "DIFC Registration Unlocks Institutional Investor Access — Series A Update",
     excerpt:
@@ -401,6 +408,7 @@ export const ARTICLES: Article[] = [
     id: "7",
     slug: "carbon-credit-prices-q1-2026-market-update",
     kind: "news",
+    template: "standard",
     newsCategory: "market",
     title: "Carbon Credit Prices Rise 14% in Q1 2026: What It Means for Farmers",
     excerpt:
@@ -449,6 +457,7 @@ export const ARTICLES: Article[] = [
     id: "8",
     slug: "why-africa-is-the-future-of-carbon-removal",
     kind: "article",
+    template: "hero",
     title: "Why Africa Is the Future of Carbon Removal",
     excerpt:
       "Africa is uniquely positioned to lead the next generation of carbon removal — but unlocking that potential requires infrastructure, access, and trust.",
@@ -501,6 +510,7 @@ export const ARTICLES: Article[] = [
     id: "9",
     slug: "regenerative-agriculture-more-than-just-farming",
     kind: "article",
+    template: "visual",
     title: "Regenerative Agriculture: More Than Just Farming",
     excerpt:
       "Regenerative agriculture is not just sustainable — it is one of the most effective and scalable tools for carbon removal available today.",
@@ -556,6 +566,7 @@ export const ARTICLES: Article[] = [
     id: "10",
     slug: "blockchain-carbon-credit-transparency",
     kind: "article",
+    template: "hero",
     title: "The Role of Blockchain in Carbon Credit Transparency",
     excerpt:
       "Trust is the biggest challenge in carbon markets. Blockchain is how you solve it — turning unverifiable claims into immutable, auditable proof.",
@@ -611,6 +622,7 @@ export const ARTICLES: Article[] = [
     id: "11",
     slug: "empowering-farmers-through-carbon-markets",
     kind: "article",
+    template: "visual",
     title: "Empowering Farmers Through Carbon Markets",
     excerpt:
       "Carbon markets can become one of the most powerful financial tools for rural communities — if farmers are genuinely included, not just used as a data source.",
@@ -662,6 +674,7 @@ export const ARTICLES: Article[] = [
     id: "12",
     slug: "what-esg-buyers-should-look-for-carbon-credits",
     kind: "article",
+    template: "standard",
     title: "What ESG Buyers Should Look for in Carbon Credits",
     excerpt:
       "High-quality carbon credits are defined by integrity, not volume. Here is how institutional buyers can distinguish meaningful impact from greenwashing.",
@@ -714,6 +727,7 @@ export const ARTICLES: Article[] = [
     id: "13",
     slug: "nature-based-vs-tech-based-carbon-removal",
     kind: "article",
+    template: "visual",
     title: "Nature-Based vs Tech-Based Carbon Removal",
     excerpt:
       "The future of carbon removal is not a single solution — it is a balance. But today, nature leads. Here is why, and what it means for the market.",
