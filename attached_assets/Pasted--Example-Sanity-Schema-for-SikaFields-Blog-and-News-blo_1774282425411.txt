@@ -1,0 +1,51 @@
+// Example Sanity Schema for SikaFields Blog and News
+
+// blog.js
+export default {
+  name: 'blog',
+  title: 'Blog',
+  type: 'document',
+  fields: [
+    { name: 'title', title: 'Title', type: 'string', validation: Rule => Rule.required() },
+    { name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title', maxLength: 96 }, validation: Rule => Rule.required() },
+    { name: 'excerpt', title: 'Excerpt', type: 'text' },
+    { name: 'coverImage', title: 'Cover Image', type: 'image', options: { hotspot: true } },
+    { name: 'author', title: 'Author', type: 'string' },
+    { name: 'publishedAt', title: 'Published At', type: 'datetime' },
+    { name: 'category', title: 'Category', type: 'string' },
+    { name: 'tags', title: 'Tags', type: 'array', of: [{ type: 'string' }] },
+    { name: 'content', title: 'Content', type: 'array', of: [
+      { type: 'block' },
+      { type: 'image', options: { hotspot: true } }
+    ] },
+    { name: 'metaTitle', title: 'Meta Title', type: 'string' },
+    { name: 'metaDescription', title: 'Meta Description', type: 'text' }
+  ],
+  preview: {
+    select: { title: 'title', media: 'coverImage' }
+  }
+};
+
+// news.js
+export default {
+  name: 'news',
+  title: 'News',
+  type: 'document',
+  fields: [
+    { name: 'title', title: 'Title', type: 'string', validation: Rule => Rule.required() },
+    { name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title', maxLength: 96 }, validation: Rule => Rule.required() },
+    { name: 'summary', title: 'Summary', type: 'text' },
+    { name: 'category', title: 'Category', type: 'string' },
+    { name: 'publishedAt', title: 'Published At', type: 'datetime' },
+    { name: 'featured', title: 'Featured', type: 'boolean', initialValue: false },
+    { name: 'content', title: 'Content', type: 'array', of: [
+      { type: 'block' },
+      { type: 'image', options: { hotspot: true } }
+    ] },
+    { name: 'metaTitle', title: 'Meta Title', type: 'string' },
+    { name: 'metaDescription', title: 'Meta Description', type: 'text' }
+  ],
+  preview: {
+    select: { title: 'title' }
+  }
+};

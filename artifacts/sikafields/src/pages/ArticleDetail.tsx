@@ -1,10 +1,12 @@
+import React from "react";
 import { motion } from "framer-motion";
 import { Link, useParams } from "wouter";
 import {
   ArrowLeft, Clock, Calendar, Twitter, Linkedin,
-  ChevronRight, BookOpen, Share2,
+  ChevronRight, BookOpen, Share2, Loader2,
 } from "lucide-react";
-import { getArticleBySlug, getRelatedArticles, type Article, type ArticleBlock } from "@/data/articles";
+import { type Article, type ArticleBlock } from "@/data/articles";
+import { useArticle, useRelatedArticles } from "@/hooks/useArticles";
 
 const TAG_COLORS: Record<string, { text: string; bg: string }> = {
   Education:               { text: "#16a34a", bg: "#f0faf4" },
@@ -34,19 +36,40 @@ function tagStyle(tag: string) {
 }
 
 function AuthorAvatar({ author, size = 12 }: { author: Article["author"]; size?: number }) {
-  const ext = author.imgFile === "dr-kwame" ? "jpeg" : "png";
+  const wh = `w-${size} h-${size}`;
+  const outline: React.CSSProperties = { outline: "2px solid rgba(22,163,74,0.15)", outlineOffset: "2px" };
+  if (author.photo) {
+    return (
+      <img
+        src={author.photo}
+        alt={author.name}
+        className={`${wh} rounded-2xl shrink-0 object-cover`}
+        style={outline}
+      />
+    );
+  }
+  if (author.imgFile) {
+    const ext = author.imgFile === "dr-kwame" ? "jpeg" : "png";
+    return (
+      <div
+        className={`${wh} rounded-2xl shrink-0`}
+        style={{
+          backgroundImage: `url('/${author.imgFile}.${ext}')`,
+          backgroundSize: author.bgSize ?? "cover",
+          backgroundPosition: author.bgPos ?? "center",
+          backgroundRepeat: "no-repeat",
+          ...outline,
+        }}
+      />
+    );
+  }
   return (
     <div
-      className={`w-${size} h-${size} rounded-2xl shrink-0`}
-      style={{
-        backgroundImage: `url('/${author.imgFile}.${ext}')`,
-        backgroundSize: author.bgSize,
-        backgroundPosition: author.bgPos,
-        backgroundRepeat: "no-repeat",
-        outline: "2px solid rgba(22,163,74,0.15)",
-        outlineOffset: "2px",
-      }}
-    />
+      className={`${wh} rounded-2xl shrink-0 bg-primary/10 flex items-center justify-center text-primary font-bold text-xl`}
+      style={outline}
+    >
+      {author.name.charAt(0)}
+    </div>
   );
 }
 
@@ -92,41 +115,62 @@ function ContentBlock({ block }: { block: ArticleBlock }) {
 }
 
 function RelatedCard({ article }: { article: Article }) {
+  const cc = article.coverColor ?? "#16a34a";
   return (
     <Link
       href={`/articles/${article.slug}`}
       className="group block bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all"
     >
-        <div
-          className="h-24 relative"
-          style={{
-            background: `linear-gradient(135deg, ${article.coverColor}44 0%, ${article.coverColor}11 100%)`,
-          }}
+      <div
+        className="h-24 relative"
+        style={{
+          background: `linear-gradient(135deg, ${cc}44 0%, ${cc}11 100%)`,
+        }}
+      >
+        {article.coverImage && (
+          <img
+            src={article.coverImage}
+            alt={article.title}
+            className="absolute inset-0 w-full h-full object-cover opacity-60"
+          />
+        )}
+        <span
+          className="absolute bottom-3 left-4 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full text-white z-10"
+          style={{ backgroundColor: cc }}
         >
-          <span
-            className="absolute bottom-3 left-4 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full text-white"
-            style={{ backgroundColor: article.coverColor }}
-          >
-            {article.kind === "news" ? "News" : "Article"}
-          </span>
+          {article.kind === "news" ? "News" : "Article"}
+        </span>
+      </div>
+      <div className="p-4">
+        <p className="font-semibold text-foreground text-sm leading-snug mb-1 group-hover:text-primary transition-colors line-clamp-2">
+          {article.title}
+        </p>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
+          <Clock className="w-3 h-3" /> {article.readTime} min
+          <span>·</span>
+          {article.publishedAt}
         </div>
-        <div className="p-4">
-          <p className="font-semibold text-foreground text-sm leading-snug mb-1 group-hover:text-primary transition-colors line-clamp-2">
-            {article.title}
-          </p>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-2">
-            <Clock className="w-3 h-3" /> {article.readTime} min
-            <span>·</span>
-            {article.publishedAt}
-          </div>
-        </div>
+      </div>
     </Link>
   );
 }
 
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const article = getArticleBySlug(slug ?? "");
+  const { data: article, isLoading } = useArticle(slug ?? "");
+  const { data: related = [] } = useRelatedArticles(
+    slug ?? "",
+    article?.tags ?? []
+  );
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-3">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Loading article…</p>
+      </div>
+    );
+  }
 
   if (!article) {
     return (
@@ -139,7 +183,7 @@ export default function ArticleDetailPage() {
     );
   }
 
-  const related = getRelatedArticles(article, 3);
+  const cc = article.coverColor ?? "#16a34a";
   const shareUrl = `https://sikafields.com/articles/${article.slug}`;
 
   return (
@@ -163,8 +207,8 @@ export default function ArticleDetailPage() {
           article.coverImage
             ? {}
             : {
-                background: `linear-gradient(135deg, ${article.coverColor}22 0%, ${article.coverColor}08 100%)`,
-                borderBottom: `3px solid ${article.coverColor}33`,
+                background: `linear-gradient(135deg, ${cc}22 0%, ${cc}08 100%)`,
+                borderBottom: `3px solid ${cc}33`,
               }
         }
       >
@@ -188,7 +232,7 @@ export default function ArticleDetailPage() {
             <div className="flex items-center gap-2 flex-wrap mb-5">
               <span
                 className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
-                style={{ backgroundColor: article.coverColor }}
+                style={{ backgroundColor: cc }}
               >
                 {article.kind === "news" ? "News Update" : "Article"}
               </span>

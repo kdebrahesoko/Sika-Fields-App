@@ -4,6 +4,35 @@
 
 pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
 
+## SikaFields CMS — Sanity Integration
+
+The Articles & Updates system supports two data sources:
+
+1. **Static fallback** — `artifacts/sikafields/src/data/articles.ts` (always active, no config needed)
+2. **Sanity CMS** — live data from Sanity Studio (active when `VITE_SANITY_PROJECT_ID` env var is set)
+
+### Setup (Sanity)
+1. Create a free account at [sanity.io](https://sanity.io)
+2. Create a new project, note the **Project ID** and **Dataset** (default: `production`)
+3. Set environment variables:
+   - `SANITY_STUDIO_PROJECT_ID` — for the Sanity Studio UI
+   - `SANITY_STUDIO_DATASET` — e.g. `production`
+   - `VITE_SANITY_PROJECT_ID` — for the SikaFields frontend
+   - `VITE_SANITY_DATASET` — e.g. `production`
+4. Start the **artifacts/cms: Sanity Studio** workflow — navigate to it in the preview to publish content
+5. Deploy the Sanity Studio publicly with `pnpm --filter @workspace/cms run deploy`
+
+### CMS schemas (`artifacts/cms/schemas/`)
+- `author.ts` — author profiles (name, role, photo, bio, LinkedIn)
+- `blog.ts` — blog articles (title, slug, excerpt, cover image, author ref, tags, rich body, SEO)
+- `news.ts` — news & updates (title, slug, summary, category, featured flag, rich body, SEO)
+
+### Frontend data layer (`artifacts/sikafields/src/`)
+- `lib/sanity.ts` — `@sanity/client` init, exports `isSanityConfigured` flag
+- `lib/sanity-queries.ts` — GROQ queries for all articles, single article, related articles
+- `lib/sanity-adapter.ts` — converts Sanity documents → `Article` type
+- `hooks/useArticles.ts` — React Query hooks: `useAllArticles`, `useArticle(slug)`, `useRelatedArticles(slug, tags)`
+
 ## Stack
 
 - **Monorepo tool**: pnpm workspaces

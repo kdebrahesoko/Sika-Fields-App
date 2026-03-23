@@ -2,10 +2,11 @@ import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import {
-  Search, ArrowLeft, Clock, Calendar, Tag, ChevronRight,
-  BookOpen, Newspaper, ArrowRight, Filter,
+  Search, ArrowLeft, Clock, Calendar, ChevronRight,
+  BookOpen, Newspaper, ArrowRight, Filter, Loader2,
 } from "lucide-react";
-import { ARTICLES, getAllTags, type Article } from "@/data/articles";
+import { type Article } from "@/data/articles";
+import { useAllArticles } from "@/hooks/useArticles";
 
 const TAG_COLORS: Record<string, { text: string; bg: string }> = {
   Education:               { text: "#16a34a", bg: "#f0faf4" },
@@ -48,21 +49,39 @@ function TagBadge({ tag, small }: { tag: string; small?: boolean }) {
 }
 
 function AuthorAvatar({ author, size = 8 }: { author: Article["author"]; size?: number }) {
-  const ext = author.imgFile === "dr-kwame" ? "jpeg" : "png";
+  const wh = `w-${size} h-${size}`;
+  if (author.photo) {
+    return (
+      <img
+        src={author.photo}
+        alt={author.name}
+        className={`${wh} rounded-full shrink-0 object-cover`}
+      />
+    );
+  }
+  if (author.imgFile) {
+    const ext = author.imgFile === "dr-kwame" ? "jpeg" : "png";
+    return (
+      <div
+        className={`${wh} rounded-full shrink-0`}
+        style={{
+          backgroundImage: `url('/${author.imgFile}.${ext}')`,
+          backgroundSize: author.bgSize ?? "cover",
+          backgroundPosition: author.bgPos ?? "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      />
+    );
+  }
   return (
-    <div
-      className={`w-${size} h-${size} rounded-full shrink-0`}
-      style={{
-        backgroundImage: `url('/${author.imgFile}.${ext}')`,
-        backgroundSize: author.bgSize,
-        backgroundPosition: author.bgPos,
-        backgroundRepeat: "no-repeat",
-      }}
-    />
+    <div className={`${wh} rounded-full shrink-0 bg-primary/10 flex items-center justify-center text-primary font-bold text-xs`}>
+      {author.name.charAt(0)}
+    </div>
   );
 }
 
 function ArticleCard({ article, index }: { article: Article; index: number }) {
+  const cc = article.coverColor ?? "#16a34a";
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -74,12 +93,12 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
       {/* Colour bar / cover */}
       <div
         className="h-36 relative flex items-end px-5 pb-4"
-        style={{ backgroundColor: article.coverColor + "22" }}
+        style={{ backgroundColor: cc + "22" }}
       >
         <div
           className="absolute inset-0 opacity-80"
           style={{
-            background: `linear-gradient(135deg, ${article.coverColor}33 0%, ${article.coverColor}11 100%)`,
+            background: `linear-gradient(135deg, ${cc}33 0%, ${cc}11 100%)`,
           }}
         />
         {article.coverImage && (
@@ -93,7 +112,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
         <div className="relative flex items-center gap-2">
           <span
             className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
-            style={{ backgroundColor: article.coverColor }}
+            style={{ backgroundColor: cc }}
           >
             {article.kind === "news" ? "News" : "Article"}
           </span>
@@ -146,6 +165,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
 }
 
 function FeaturedCard({ article }: { article: Article }) {
+  const cc = article.coverColor ?? "#16a34a";
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
@@ -158,7 +178,7 @@ function FeaturedCard({ article }: { article: Article }) {
         <div
           className="h-64 md:h-auto min-h-[240px] relative flex items-end p-8"
           style={{
-            background: `linear-gradient(135deg, ${article.coverColor} 0%, ${article.coverColor}99 100%)`,
+            background: `linear-gradient(135deg, ${cc} 0%, ${cc}99 100%)`,
           }}
         >
           {article.coverImage && (
@@ -226,11 +246,18 @@ export default function ArticlesPage() {
   const [activeKind, setActiveKind] = useState<"all" | "article" | "news">("all");
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
-  const allTags = useMemo(() => getAllTags(), []);
-  const featured = ARTICLES.find((a) => a.featured);
+  const { data: articles = [], isLoading } = useAllArticles();
+
+  const allTags = useMemo(() => {
+    const tagSet = new Set<string>();
+    articles.forEach((a) => a.tags.forEach((t) => tagSet.add(t)));
+    return Array.from(tagSet);
+  }, [articles]);
+
+  const featured = articles.find((a) => a.featured);
 
   const filtered = useMemo(() => {
-    return ARTICLES.filter((a) => {
+    return articles.filter((a) => {
       if (activeKind !== "all" && a.kind !== activeKind) return false;
       if (activeTag && !a.tags.includes(activeTag)) return false;
       if (search.trim()) {
@@ -243,7 +270,7 @@ export default function ArticlesPage() {
       }
       return true;
     });
-  }, [search, activeKind, activeTag]);
+  }, [articles, search, activeKind, activeTag]);
 
   const gridArticles = filtered.filter((a) => !a.featured || activeKind !== "all" || activeTag || search);
 
@@ -354,17 +381,27 @@ export default function ArticlesPage() {
           </div>
         )}
 
+        {/* Loading */}
+        {isLoading && (
+          <div className="flex items-center justify-center gap-3 py-24 text-muted-foreground">
+            <Loader2 className="w-5 h-5 animate-spin text-primary" />
+            <span className="text-sm">Loading articles…</span>
+          </div>
+        )}
+
         {/* Count */}
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-sm text-muted-foreground">
-            {filtered.length === ARTICLES.length
-              ? `${ARTICLES.length} posts`
-              : `${filtered.length} of ${ARTICLES.length} posts`}
-          </p>
-        </div>
+        {!isLoading && (
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-sm text-muted-foreground">
+              {filtered.length === articles.length
+                ? `${articles.length} posts`
+                : `${filtered.length} of ${articles.length} posts`}
+            </p>
+          </div>
+        )}
 
         {/* Grid */}
-        {gridArticles.length > 0 ? (
+        {!isLoading && gridArticles.length > 0 ? (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {gridArticles.map((article, i) => (
               <ArticleCard key={article.id} article={article} index={i} />

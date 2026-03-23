@@ -24,9 +24,11 @@ export type ArticleBlock =
 export type ArticleAuthor = {
   name: string;
   role: string;
-  bgPos: string;
-  bgSize: string;
-  imgFile: "leadership-team" | "advisory-board" | "dr-kwame";
+  bio?: string;
+  photo?: string;
+  bgPos?: string;
+  bgSize?: string;
+  imgFile?: "leadership-team" | "advisory-board" | "dr-kwame";
 };
 
 export type Article = {
@@ -37,7 +39,7 @@ export type Article = {
   excerpt: string;
   content: ArticleBlock[];
   coverImage?: string;
-  coverColor: string;
+  coverColor?: string;
   author: ArticleAuthor;
   tags: string[];
   newsCategory?: "announcement" | "market" | "regulation" | "press";

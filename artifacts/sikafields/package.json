@@ -75,6 +75,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@sanity/client": "^7.20.0",
     "react-countup": "^6.5.3",
     "react-simple-maps": "^3.0.0"
   }
