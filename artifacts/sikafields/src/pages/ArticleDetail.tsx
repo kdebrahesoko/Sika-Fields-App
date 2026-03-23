@@ -10,7 +10,6 @@ import { type Article, type ArticleBlock } from "@/data/articles";
 import { useArticle, useRelatedArticles } from "@/hooks/useArticles";
 import { isSanityConfigured } from "@/lib/sanity";
 
-// ─── Tag colours ─────────────────────────────────────────────────────────────
 const TAG_COLORS: Record<string, { text: string; bg: string }> = {
   Education:                  { text: "#16a34a", bg: "#f0faf4" },
   "Carbon Markets":           { text: "#16a34a", bg: "#f0faf4" },
@@ -38,7 +37,6 @@ function tagStyle(tag: string) {
   return TAG_COLORS[tag] ?? { text: "#5a7a65", bg: "#f0faf4" };
 }
 
-// ─── Author avatar ────────────────────────────────────────────────────────────
 function AuthorAvatar({
   author,
   size = 12,
@@ -88,7 +86,6 @@ function AuthorAvatar({
   );
 }
 
-// ─── Content blocks ───────────────────────────────────────────────────────────
 function ContentBlock({
   block,
   visual = false,
@@ -176,7 +173,19 @@ function ContentBlock({
   }
 }
 
-// ─── Related article card ─────────────────────────────────────────────────────
+// Groups content blocks into sections split by h2 headings.
+// Each section is an array of blocks starting with (optionally) an h2.
+function groupBySections(blocks: ArticleBlock[]): ArticleBlock[][] {
+  const sections: ArticleBlock[][] = [[]];
+  for (const block of blocks) {
+    if (block.type === "h2" && sections[sections.length - 1].length > 0) {
+      sections.push([]);
+    }
+    sections[sections.length - 1].push(block);
+  }
+  return sections.filter((s) => s.length > 0);
+}
+
 function RelatedCard({ article }: { article: Article }) {
   const cc = article.coverColor ?? "#16a34a";
   return (
@@ -216,7 +225,6 @@ function RelatedCard({ article }: { article: Article }) {
   );
 }
 
-// ─── Reading progress bar ─────────────────────────────────────────────────────
 function ReadingProgress() {
   const [progress, setProgress] = useState(0);
 
@@ -241,7 +249,6 @@ function ReadingProgress() {
   );
 }
 
-// ─── Floating share panel ─────────────────────────────────────────────────────
 function SharePanel({ url, title }: { url: string; title: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -265,7 +272,7 @@ function SharePanel({ url, title }: { url: string; title: string }) {
 
   const links = [
     {
-      label: "Twitter / X",
+      label: "Twitter",
       href: `https://twitter.com/intent/tweet?url=${encoded}&text=${encodedTitle}`,
       icon: <Twitter className="w-4 h-4" />,
       color: "#1d9bf0",
@@ -298,9 +305,7 @@ function SharePanel({ url, title }: { url: string; title: string }) {
     <>
       {/* Desktop: fixed left sidebar */}
       <div className="hidden lg:flex fixed left-5 top-1/2 -translate-y-1/2 z-40 flex-col items-center gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 rotate-0 writing-mode-vertical">
-          <Share2 className="w-3.5 h-3.5 text-muted-foreground" />
-        </span>
+        <Share2 className="w-3.5 h-3.5 text-muted-foreground mb-1" />
         {links.map((l) => (
           <a
             key={l.label}
@@ -341,7 +346,7 @@ function SharePanel({ url, title }: { url: string; title: string }) {
           >
             {l.icon}
             <span className="text-[9px] font-semibold text-muted-foreground">
-              {l.label.split(" / ")[0]}
+              {l.label}
             </span>
           </a>
         ))}
@@ -367,7 +372,6 @@ function SharePanel({ url, title }: { url: string; title: string }) {
   );
 }
 
-// ─── Author bio section ───────────────────────────────────────────────────────
 function AuthorBio({ author }: { author: Article["author"] }) {
   return (
     <div className="mt-8 p-6 bg-card rounded-2xl border border-border">
@@ -393,7 +397,6 @@ function AuthorBio({ author }: { author: Article["author"] }) {
   );
 }
 
-// ─── Related articles section ─────────────────────────────────────────────────
 function RelatedSection({ related }: { related: Article[] }) {
   if (related.length === 0) return null;
   return (
@@ -420,7 +423,6 @@ function RelatedSection({ related }: { related: Article[] }) {
   );
 }
 
-// ─── Shared footer ────────────────────────────────────────────────────────────
 function ArticleFooter() {
   return (
     <div className="border-t border-border py-8 bg-background">
@@ -437,7 +439,6 @@ function ArticleFooter() {
   );
 }
 
-// ─── Shared top nav bar ───────────────────────────────────────────────────────
 function TopBar({ article }: { article: Article }) {
   const projectId = import.meta.env.VITE_SANITY_PROJECT_ID as string | undefined;
   const cmsUrl =
@@ -463,16 +464,29 @@ function TopBar({ article }: { article: Article }) {
         />
         <div className="flex items-center gap-2">
           {cmsUrl && (
-            <a
-              href={cmsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary border border-border rounded-lg px-3 py-1.5 hover:border-primary/40 transition-all"
-            >
-              <Edit3 className="w-3 h-3" />
-              Edit in CMS
-              <ExternalLink className="w-2.5 h-2.5" />
-            </a>
+            <>
+              {/* Mobile: icon only */}
+              <a
+                href={cmsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Edit in CMS"
+                className="sm:hidden flex items-center justify-center w-8 h-8 text-muted-foreground hover:text-primary border border-border rounded-lg hover:border-primary/40 transition-all"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+              </a>
+              {/* Desktop: icon + label */}
+              <a
+                href={cmsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary border border-border rounded-lg px-3 py-1.5 hover:border-primary/40 transition-all"
+              >
+                <Edit3 className="w-3 h-3" />
+                Edit in CMS
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
+            </>
           )}
         </div>
       </div>
@@ -480,7 +494,7 @@ function TopBar({ article }: { article: Article }) {
   );
 }
 
-// ─── STANDARD TEMPLATE ────────────────────────────────────────────────────────
+// STANDARD TEMPLATE
 function StandardTemplate({
   article,
   shareUrl,
@@ -496,7 +510,6 @@ function StandardTemplate({
     <div className="min-h-screen bg-background font-sans">
       <TopBar article={article} />
 
-      {/* Header */}
       <div
         className={`relative ${
           article.coverImage
@@ -592,7 +605,6 @@ function StandardTemplate({
         </div>
       </div>
 
-      {/* Body */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12 pb-24 lg:pb-12">
         <motion.div
           initial={{ opacity: 0 }}
@@ -617,7 +629,7 @@ function StandardTemplate({
   );
 }
 
-// ─── HERO TEMPLATE ────────────────────────────────────────────────────────────
+// HERO TEMPLATE
 function HeroTemplate({
   article,
   shareUrl,
@@ -634,7 +646,6 @@ function HeroTemplate({
       <ReadingProgress />
       <TopBar article={article} />
 
-      {/* Full-viewport hero */}
       <div
         className="relative min-h-[90vh] flex flex-col justify-end"
         style={
@@ -663,7 +674,6 @@ function HeroTemplate({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
-            {/* Pill badges */}
             <div className="flex items-center gap-2 flex-wrap mb-6">
               <span
                 className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
@@ -681,12 +691,10 @@ function HeroTemplate({
               ))}
             </div>
 
-            {/* Giant title */}
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-white leading-[1.05] mb-8 max-w-3xl">
               {article.title}
             </h1>
 
-            {/* Author card + meta */}
             <div className="flex flex-wrap items-center gap-5">
               <div className="flex items-center gap-3 bg-white/10 backdrop-blur border border-white/20 rounded-2xl px-4 py-3">
                 <AuthorAvatar
@@ -714,7 +722,6 @@ function HeroTemplate({
         </div>
       </div>
 
-      {/* Body */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-14 pb-24 lg:pb-14">
         <motion.div
           initial={{ opacity: 0 }}
@@ -739,7 +746,7 @@ function HeroTemplate({
   );
 }
 
-// ─── VISUAL STORY TEMPLATE ────────────────────────────────────────────────────
+// VISUAL STORY TEMPLATE
 function VisualTemplate({
   article,
   shareUrl,
@@ -750,18 +757,15 @@ function VisualTemplate({
   related: Article[];
 }) {
   const cc = article.coverColor ?? "#16a34a";
+  const sections = groupBySections(article.content);
 
   return (
     <div className="min-h-screen bg-background font-sans">
       <ReadingProgress />
       <TopBar article={article} />
 
-      {/* Magazine-style header */}
-      <div
-        className="border-b border-border"
-        style={{ borderTop: `4px solid ${cc}` }}
-      >
-        {/* Cover strip */}
+      {/* Magazine header */}
+      <div className="border-b border-border" style={{ borderTop: `4px solid ${cc}` }}>
         {article.coverImage && (
           <div className="relative h-56 md:h-72 overflow-hidden">
             <img
@@ -779,7 +783,6 @@ function VisualTemplate({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            {/* Category + tags */}
             <div className="flex items-center gap-2 flex-wrap mb-6">
               <span
                 className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
@@ -801,11 +804,7 @@ function VisualTemplate({
               })}
             </div>
 
-            {/* Large left-accented title */}
-            <div
-              className="pl-6 mb-8"
-              style={{ borderLeft: `5px solid ${cc}` }}
-            >
+            <div className="pl-6 mb-8" style={{ borderLeft: `5px solid ${cc}` }}>
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-foreground leading-[1.1] mb-5">
                 {article.title}
               </h1>
@@ -814,7 +813,6 @@ function VisualTemplate({
               </p>
             </div>
 
-            {/* Author + meta row */}
             <div className="flex flex-wrap items-center gap-4 pt-6 border-t border-border">
               <div className="flex items-center gap-3">
                 <AuthorAvatar
@@ -844,19 +842,35 @@ function VisualTemplate({
         </div>
       </div>
 
-      {/* Body — wider + visual blocks */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-8 py-14 pb-24 lg:pb-14">
+      {/* Alternating sections body */}
+      <div className="max-w-4xl mx-auto pb-24 lg:pb-14">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.25 }}
         >
-          {article.content.map((block, i) => (
-            <ContentBlock key={i} block={block} visual />
-          ))}
+          {sections.map((section, sectionIdx) => {
+            const isAlternate = sectionIdx % 2 === 1;
+            return (
+              <div
+                key={sectionIdx}
+                className={`px-4 sm:px-8 py-8 ${
+                  isAlternate
+                    ? "bg-primary/[0.04] border-l-4 border-primary/25"
+                    : ""
+                }`}
+              >
+                {section.map((block, i) => (
+                  <ContentBlock key={i} block={block} visual />
+                ))}
+              </div>
+            );
+          })}
         </motion.div>
 
-        <AuthorBio author={article.author} />
+        <div className="px-4 sm:px-8">
+          <AuthorBio author={article.author} />
+        </div>
       </div>
 
       <SharePanel url={shareUrl} title={article.title} />
@@ -866,7 +880,6 @@ function VisualTemplate({
   );
 }
 
-// ─── Main page — selects the right template ───────────────────────────────────
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: article, isLoading } = useArticle(slug ?? "");
