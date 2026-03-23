@@ -181,7 +181,7 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
 
 function Field({
   label, children, hint,
-}: { label: string; children: ReactNode; hint?: string }) {
+}: { label: string; children: ReactNode; hint?: ReactNode }) {
   return (
     <div className="mb-3 last:mb-0">
       <label className="block text-xs font-semibold text-foreground mb-1">{label}</label>
@@ -378,8 +378,10 @@ function TagInput({ tags, onChange }: { tags: string[]; onChange: (t: string[]) 
 
 function CopyJsonButton({ draft }: { draft: Draft }) {
   const [state, setState] = useState<"idle" | "copied">("idle");
+  const hasTitle = draft.title.trim().length > 0;
 
   const copy = useCallback(async () => {
+    if (!hasTitle) return;
     const article = draftToArticle(draft);
     const json = JSON.stringify({ ...article, id: Date.now().toString() }, null, 2);
     try {
@@ -394,12 +396,14 @@ function CopyJsonButton({ draft }: { draft: Draft }) {
     }
     setState("copied");
     setTimeout(() => setState("idle"), 2500);
-  }, [draft]);
+  }, [draft, hasTitle]);
 
   return (
     <button
       onClick={copy}
-      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
+      disabled={!hasTitle}
+      title={!hasTitle ? "Add a title before copying" : undefined}
+      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
         state === "copied"
           ? "bg-primary/10 text-primary"
           : "bg-muted text-foreground hover:bg-muted/80"
@@ -522,7 +526,7 @@ export default function AdminComposerPage() {
             className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Articles</span>
+            <span className="hidden sm:inline">Back to Articles</span>
           </Link>
           <div className="w-px h-5 bg-border mx-1 hidden sm:block" />
           <div className="flex items-center gap-2 min-w-0">
@@ -654,9 +658,16 @@ export default function AdminComposerPage() {
 
             {/* Details */}
             <SectionCard title="Details">
-              <Field label="Title" hint="Required. Slug is auto-generated from title.">
+              <Field
+                label="Title"
+                hint={
+                  !draft.title.trim()
+                    ? "Required — add a title to enable JSON export."
+                    : "Slug is auto-generated from title."
+                }
+              >
                 <input
-                  className={inputCls}
+                  className={`${inputCls} ${!draft.title.trim() ? "border-amber-300 focus:border-amber-400 focus:ring-amber-200/50" : ""}`}
                   placeholder="Article title…"
                   value={draft.title}
                   onChange={(e) => updateTitle(e.target.value)}
