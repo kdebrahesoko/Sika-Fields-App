@@ -1,0 +1,70 @@
+// Sanity CMS Blog & News with Template Support for SikaFields
+
+// 1. Blog Document Schema with Template Field
+export default {
+  name: 'blog',
+  title: 'Blog',
+  type: 'document',
+  fields: [
+    { name: 'title', title: 'Title', type: 'string', validation: Rule => Rule.required() },
+    { name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title', maxLength: 96 }, validation: Rule => Rule.required() },
+    { name: 'excerpt', title: 'Excerpt', type: 'text' },
+    { name: 'coverImage', title: 'Cover Image', type: 'image', options: { hotspot: true } },
+    { name: 'author', title: 'Author', type: 'string' },
+    { name: 'publishedAt', title: 'Published At', type: 'datetime' },
+    { name: 'category', title: 'Category', type: 'string' },
+    { name: 'tags', title: 'Tags', type: 'array', of: [{ type: 'string' }] },
+    { name: 'template', title: 'Template', type: 'string', options: { list: [
+        { title: 'Standard', value: 'standard' },
+        { title: 'Hero Focus', value: 'hero' },
+        { title: 'Visual Story', value: 'visual' }
+      ]
+    }},
+    { name: 'content', title: 'Content', type: 'array', of: [
+      { type: 'block' },
+      { type: 'image', options: { hotspot: true } },
+      { type: 'code' }
+    ] },
+    { name: 'metaTitle', title: 'Meta Title', type: 'string' },
+    { name: 'metaDescription', title: 'Meta Description', type: 'text' }
+  ],
+  preview: {
+    select: { title: 'title', media: 'coverImage' }
+  }
+};
+
+// 2. Sample React Component for Blog Templates
+import React, { useState, useEffect } from 'react';
+import { getAllBlogs } from './sanityClient';
+
+export default function BlogTemplates() {
+  const [blogs, setBlogs] = useState([]);
+
+  useEffect(() => {
+    getAllBlogs().then(data => setBlogs(data));
+  }, []);
+
+  return (
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6">SikaFields Blog Templates</h1>
+      <div className="grid md:grid-cols-2 gap-6">
+        {blogs.map(blog => (
+          <div key={blog.slug.current} className="bg-white rounded-2xl shadow p-4 hover:shadow-lg">
+            <img src={blog.coverImage?.asset.url} alt="" className="w-full h-48 object-cover rounded-t-2xl mb-4" />
+            <span className="text-green-600 font-semibold text-sm">{blog.category}</span>
+            <h2 className="text-xl font-bold my-2">{blog.title}</h2>
+            <p className="text-gray-600 mb-4">{blog.excerpt}</p>
+            <span className="text-gray-400 text-sm">Template: {blog.template}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// 3. Sharing Support
+// Use a simple copy/share button component to generate shareable links:
+function ShareButton({ url }) {
+  const copyLink = () => navigator.clipboard.writeText(url);
+  return <button onClick={copyLink} className="mt-2 px-4 py-2 bg-green-600 text-white rounded">Copy Link</button>;
+}
