@@ -4,16 +4,18 @@ import { Link, useParams } from "wouter";
 import {
   ArrowLeft, Clock, Calendar, Twitter, Linkedin, Facebook,
   Copy, Check, ExternalLink, Edit3, Loader2, BookOpen,
-  FileText, Image as ImageIcon, LayoutGrid, Share2, Eye,
+  FileText, ImageIcon, LayoutGrid, Share2, Eye,
   ChevronRight, Palette, Tag,
 } from "lucide-react";
 import { type Article } from "@/data/articles";
 import { useArticle } from "@/hooks/useArticles";
 import { isSanityConfigured } from "@/lib/sanity";
+import { tagStyle, AuthorAvatar, WHATSAPP_ICON } from "@/lib/article-shared";
 import {
-  tagStyle, AuthorAvatar, ContentBlock, AuthorBio,
-  groupBySections, VisualSection, WHATSAPP_ICON,
-} from "@/lib/article-shared";
+  StandardTemplate,
+  HeroTemplate,
+  VisualTemplate,
+} from "@/components/article-templates";
 
 type TemplateId = "standard" | "hero" | "visual";
 
@@ -21,7 +23,7 @@ const TEMPLATES: {
   id: TemplateId;
   label: string;
   desc: string;
-  icon: JSX.Element;
+  icon: React.ReactNode;
 }[] = [
   {
     id: "standard",
@@ -32,19 +34,20 @@ const TEMPLATES: {
   {
     id: "hero",
     label: "Hero",
-    desc: "Full-viewport cinematic cover with bold typography. Best for long-form flagship pieces.",
+    desc: "Full-viewport cinematic cover with bold typography. Best for flagship pieces.",
     icon: <ImageIcon className="w-4 h-4" />,
   },
   {
     id: "visual",
     label: "Visual Story",
-    desc: "Magazine-style alternating sections with oversized pull quotes and numbered callouts.",
+    desc: "Magazine-style alternating sections with oversized pull quotes.",
     icon: <LayoutGrid className="w-4 h-4" />,
   },
 ];
 
 function useTemplateState(slug: string, initialTemplate: TemplateId) {
   const storageKey = `sf-studio-template:${slug}`;
+
   const [template, setTemplateRaw] = useState<TemplateId>(() => {
     try {
       const stored = localStorage.getItem(storageKey);
@@ -69,7 +72,6 @@ function useTemplateState(slug: string, initialTemplate: TemplateId) {
     [storageKey]
   );
 
-  // Sync initial template once the article data loads
   useEffect(() => {
     try {
       if (!localStorage.getItem(storageKey)) {
@@ -83,7 +85,6 @@ function useTemplateState(slug: string, initialTemplate: TemplateId) {
   return [template, setTemplate] as const;
 }
 
-// Share utilities
 function buildShareLinks(url: string, title: string) {
   const encoded = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
@@ -91,6 +92,7 @@ function buildShareLinks(url: string, title: string) {
     {
       id: "twitter",
       label: "Twitter / X",
+      shortLabel: "Twitter",
       href: `https://twitter.com/intent/tweet?url=${encoded}&text=${encodedTitle}`,
       icon: <Twitter className="w-4 h-4" />,
       color: "#1d9bf0",
@@ -99,6 +101,7 @@ function buildShareLinks(url: string, title: string) {
     {
       id: "linkedin",
       label: "LinkedIn",
+      shortLabel: "LinkedIn",
       href: `https://www.linkedin.com/shareArticle?mini=true&url=${encoded}&title=${encodedTitle}`,
       icon: <Linkedin className="w-4 h-4" />,
       color: "#0a66c2",
@@ -107,6 +110,7 @@ function buildShareLinks(url: string, title: string) {
     {
       id: "facebook",
       label: "Facebook",
+      shortLabel: "FB",
       href: `https://www.facebook.com/sharer/sharer.php?u=${encoded}`,
       icon: <Facebook className="w-4 h-4" />,
       color: "#1877f2",
@@ -115,6 +119,7 @@ function buildShareLinks(url: string, title: string) {
     {
       id: "whatsapp",
       label: "WhatsApp",
+      shortLabel: "WhatsApp",
       href: `https://wa.me/?text=${encodeURIComponent(title + " " + url)}`,
       icon: WHATSAPP_ICON,
       color: "#25d366",
@@ -309,13 +314,7 @@ function MetadataCard({ article }: { article: Article }) {
   );
 }
 
-function LinksCard({
-  article,
-  shareUrl,
-}: {
-  article: Article;
-  shareUrl: string;
-}) {
+function LinksCard({ article }: { article: Article }) {
   const projectId = import.meta.env.VITE_SANITY_PROJECT_ID as string | undefined;
   const cmsUrl =
     isSanityConfigured && projectId
@@ -347,290 +346,11 @@ function LinksCard({
   );
 }
 
-// PREVIEW: Standard template layout (no fixed overlays)
-function PreviewStandard({ article, cc }: { article: Article; cc: string }) {
-  return (
-    <div className="bg-background font-sans">
-      <div
-        className={`relative ${
-          article.coverImage ? "min-h-[340px] flex flex-col justify-end" : "py-12"
-        }`}
-        style={
-          article.coverImage
-            ? {}
-            : {
-                background: `linear-gradient(135deg, ${cc}22 0%, ${cc}08 100%)`,
-                borderBottom: `3px solid ${cc}33`,
-              }
-        }
-      >
-        {article.coverImage && (
-          <>
-            <div className="absolute inset-0 overflow-hidden">
-              <img
-                src={article.coverImage}
-                alt={article.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-          </>
-        )}
-        <div className="max-w-3xl mx-auto px-6 relative w-full pb-10 pt-16">
-          <div className="flex items-center gap-2 flex-wrap mb-4">
-            <span
-              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
-              style={{ backgroundColor: cc }}
-            >
-              {article.kind === "news" ? "News Update" : "Article"}
-            </span>
-            {article.tags.map((t) => {
-              const s = tagStyle(t);
-              return (
-                <span
-                  key={t}
-                  className={`text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full ${
-                    article.coverImage
-                      ? "bg-white/20 text-white border border-white/30"
-                      : ""
-                  }`}
-                  style={
-                    article.coverImage
-                      ? {}
-                      : { color: s.text, backgroundColor: s.bg }
-                  }
-                >
-                  {t}
-                </span>
-              );
-            })}
-          </div>
-          <h1
-            className={`text-2xl sm:text-3xl md:text-4xl font-display font-bold leading-tight mb-4 ${
-              article.coverImage ? "text-white" : "text-foreground"
-            }`}
-          >
-            {article.title}
-          </h1>
-          <div
-            className={`flex items-center gap-4 flex-wrap text-sm mb-5 ${
-              article.coverImage ? "text-white/70" : "text-muted-foreground"
-            }`}
-          >
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5" /> {article.publishedAt}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" /> {article.readTime} min read
-            </span>
-          </div>
-          <div className="flex items-center gap-4 p-4 bg-white/80 backdrop-blur rounded-2xl border border-border w-fit">
-            <AuthorAvatar author={article.author} size={10} />
-            <div>
-              <p className="font-bold text-foreground text-sm">{article.author.name}</p>
-              <p className="text-xs text-muted-foreground">{article.author.role}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="max-w-3xl mx-auto px-6 py-10">
-        <p className="text-lg text-muted-foreground leading-relaxed mb-8 pb-8 border-b border-border font-medium">
-          {article.excerpt}
-        </p>
-        {article.content.map((block, i) => (
-          <ContentBlock key={i} block={block} />
-        ))}
-        <AuthorBio author={article.author} />
-      </div>
-    </div>
-  );
-}
-
-// PREVIEW: Hero template layout (no fixed overlays, capped height)
-function PreviewHero({ article, cc }: { article: Article; cc: string }) {
-  return (
-    <div className="bg-background font-sans">
-      <div
-        className="relative flex flex-col justify-end"
-        style={{
-          minHeight: "480px",
-          background: !article.coverImage
-            ? `linear-gradient(160deg, ${cc} 0%, #0d2418 100%)`
-            : undefined,
-        }}
-      >
-        {article.coverImage && (
-          <>
-            <div className="absolute inset-0 overflow-hidden">
-              <img
-                src={article.coverImage}
-                alt={article.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20" />
-          </>
-        )}
-        <div className="relative max-w-5xl mx-auto px-6 pb-12 pt-24 w-full">
-          <div className="flex items-center gap-2 flex-wrap mb-5">
-            <span
-              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
-              style={{ backgroundColor: cc }}
-            >
-              {article.kind === "news" ? "News Update" : "Article"}
-            </span>
-            {article.tags.map((t) => (
-              <span
-                key={t}
-                className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/15 text-white border border-white/25"
-              >
-                {t}
-              </span>
-            ))}
-          </div>
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-bold text-white leading-[1.05] mb-7 max-w-3xl">
-            {article.title}
-          </h1>
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-3 bg-white/10 backdrop-blur border border-white/20 rounded-2xl px-4 py-3">
-              <AuthorAvatar author={article.author} size={9} rounded="rounded-xl" />
-              <div>
-                <p className="font-bold text-white text-sm leading-tight">
-                  {article.author.name}
-                </p>
-                <p className="text-white/60 text-xs">{article.author.role}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 text-white/60 text-sm">
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" /> {article.publishedAt}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" /> {article.readTime} min
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="max-w-3xl mx-auto px-6 py-12">
-        <p className="text-xl text-muted-foreground leading-relaxed mb-10 pb-10 border-b border-border font-medium">
-          {article.excerpt}
-        </p>
-        {article.content.map((block, i) => (
-          <ContentBlock key={i} block={block} />
-        ))}
-        <AuthorBio author={article.author} />
-      </div>
-    </div>
-  );
-}
-
-// PREVIEW: Visual Story layout (no fixed overlays)
-function PreviewVisual({ article, cc }: { article: Article; cc: string }) {
-  const sections = groupBySections(article.content);
-  return (
-    <div className="bg-background font-sans">
-      <div className="border-b border-border" style={{ borderTop: `4px solid ${cc}` }}>
-        {article.coverImage && (
-          <div className="relative h-48 overflow-hidden">
-            <img
-              src={article.coverImage}
-              alt={article.title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
-          </div>
-        )}
-        <div className="max-w-4xl mx-auto px-6 py-10">
-          <div className="flex items-center gap-2 flex-wrap mb-5">
-            <span
-              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
-              style={{ backgroundColor: cc }}
-            >
-              Visual Story
-            </span>
-            {article.tags.map((t) => {
-              const s = tagStyle(t);
-              return (
-                <span
-                  key={t}
-                  className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
-                  style={{ color: s.text, backgroundColor: s.bg }}
-                >
-                  {t}
-                </span>
-              );
-            })}
-          </div>
-          <div className="pl-5 mb-7" style={{ borderLeft: `5px solid ${cc}` }}>
-            <h1 className="text-2xl sm:text-4xl font-display font-bold text-foreground leading-[1.1] mb-4">
-              {article.title}
-            </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed font-medium">
-              {article.excerpt}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-4 pt-5 border-t border-border">
-            <div className="flex items-center gap-3">
-              <AuthorAvatar author={article.author} size={10} rounded="rounded-xl" />
-              <div>
-                <p className="font-bold text-foreground text-sm">{article.author.name}</p>
-                <p className="text-xs text-muted-foreground">{article.author.role}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 text-muted-foreground text-sm ml-auto">
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" /> {article.publishedAt}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" /> {article.readTime} min
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="max-w-4xl mx-auto pb-10">
-        {sections.map((section, idx) => (
-          <VisualSection key={idx} section={section} idx={idx} cc={cc} />
-        ))}
-        <div className="px-6">
-          <AuthorBio author={article.author} />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ArticlePreview({
-  article,
-  template,
-}: {
-  article: Article;
-  template: TemplateId;
-}) {
-  const cc = article.coverColor ?? "#16a34a";
-
-  return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={template}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.2 }}
-      >
-        {template === "hero" && <PreviewHero article={article} cc={cc} />}
-        {template === "visual" && <PreviewVisual article={article} cc={cc} />}
-        {template === "standard" && <PreviewStandard article={article} cc={cc} />}
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-// Mobile share strip (fixed at bottom on small screens)
-function MobileShareStrip({ url, title }: { url: string; title: string }) {
+// Inline mobile share row — not fixed, lives in the top controls area
+function MobileShareRow({ url, title }: { url: string; title: string }) {
   const [copied, setCopied] = useState(false);
   const links = buildShareLinks(url, title);
+
   const copyLink = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(url);
@@ -647,7 +367,10 @@ function MobileShareStrip({ url, title }: { url: string; title: string }) {
   }, [url]);
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-t border-border px-4 py-2 flex items-center justify-around">
+    <div className="lg:hidden bg-white border-b border-border px-4 py-2.5 flex items-center gap-3 justify-center">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mr-1">
+        Share
+      </p>
       {links.map((l) => (
         <a
           key={l.id}
@@ -655,32 +378,54 @@ function MobileShareStrip({ url, title }: { url: string; title: string }) {
           target="_blank"
           rel="noopener noreferrer"
           title={l.label}
-          className="flex flex-col items-center gap-0.5"
-          style={{ color: l.color }}
+          className="w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 transition-transform"
+          style={{ backgroundColor: l.bg, color: l.color }}
         >
           {l.icon}
-          <span className="text-[9px] font-semibold text-muted-foreground">
-            {l.id === "twitter" ? "Twitter" : l.id === "linkedin" ? "LinkedIn" : l.id === "facebook" ? "Facebook" : "WhatsApp"}
-          </span>
         </a>
       ))}
       <button
         onClick={copyLink}
-        className="flex flex-col items-center gap-0.5 text-muted-foreground"
+        title="Copy link"
+        className={`w-8 h-8 rounded-full flex items-center justify-center hover:scale-110 transition-transform ${
+          copied ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+        }`}
       >
-        {copied ? (
-          <>
-            <Check className="w-4 h-4 text-primary" />
-            <span className="text-[9px] font-semibold text-primary">Copied!</span>
-          </>
-        ) : (
-          <>
-            <Copy className="w-4 h-4" />
-            <span className="text-[9px] font-semibold">Copy</span>
-          </>
-        )}
+        {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
       </button>
     </div>
+  );
+}
+
+function ArticlePreview({
+  article,
+  template,
+}: {
+  article: Article;
+  template: TemplateId;
+}) {
+  const shareUrl = `https://sikafields.com/articles/${article.slug}`;
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={template}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.2 }}
+      >
+        {template === "hero" && (
+          <HeroTemplate article={article} shareUrl={shareUrl} preview />
+        )}
+        {template === "visual" && (
+          <VisualTemplate article={article} shareUrl={shareUrl} preview />
+        )}
+        {template === "standard" && (
+          <StandardTemplate article={article} shareUrl={shareUrl} preview />
+        )}
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
@@ -749,8 +494,8 @@ export default function PostStudioPage() {
         </div>
       </div>
 
-      {/* Mobile template strip */}
-      <div className="lg:hidden bg-white border-b border-border px-4 py-3 flex gap-2 overflow-x-auto scrollbar-none shrink-0">
+      {/* Mobile controls: template tab strip + share row stacked at top */}
+      <div className="lg:hidden bg-white border-b border-border px-4 py-3 flex gap-2 overflow-x-auto shrink-0">
         {TEMPLATES.map((t) => {
           const isActive = template === t.id;
           return (
@@ -776,21 +521,24 @@ export default function PostStudioPage() {
         </Link>
       </div>
 
+      {/* Mobile share row — inline below template strip, not fixed */}
+      <MobileShareRow url={shareUrl} title={article.title} />
+
       {/* Two-panel layout */}
       <div className="flex-1 flex max-w-screen-2xl mx-auto w-full">
-        {/* Left sidebar */}
+        {/* Left sidebar — desktop only */}
         <div className="hidden lg:flex flex-col w-80 shrink-0 border-r border-border bg-white/60">
           <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-8">
             <TemplateSwitcher active={template} onChange={setTemplate} />
             <ShareCard url={shareUrl} title={article.title} />
             <MetadataCard article={article} />
-            <LinksCard article={article} shareUrl={shareUrl} />
+            <LinksCard article={article} />
           </div>
         </div>
 
         {/* Right preview panel */}
-        <div className="flex-1 overflow-y-auto pb-20 lg:pb-8">
-          {/* Preview label */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Preview label strip */}
           <div className="sticky top-0 z-30 bg-muted/80 backdrop-blur border-b border-border px-5 py-2 flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
               <Eye className="w-3.5 h-3.5" />
@@ -807,15 +555,12 @@ export default function PostStudioPage() {
             </Link>
           </div>
 
-          {/* Article content preview */}
+          {/* Article preview rendered with shared template, preview=true */}
           <div className="bg-white min-h-full shadow-sm">
             <ArticlePreview article={article} template={template} />
           </div>
         </div>
       </div>
-
-      {/* Mobile share strip */}
-      <MobileShareStrip url={shareUrl} title={article.title} />
     </div>
   );
 }
