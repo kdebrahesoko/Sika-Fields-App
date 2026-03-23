@@ -174,7 +174,6 @@ function ContentBlock({
 }
 
 // Groups content blocks into sections split by h2 headings.
-// Each section is an array of blocks starting with (optionally) an h2.
 function groupBySections(blocks: ArticleBlock[]): ArticleBlock[][] {
   const sections: ArticleBlock[][] = [[]];
   for (const block of blocks) {
@@ -184,6 +183,65 @@ function groupBySections(blocks: ArticleBlock[]): ArticleBlock[][] {
     sections[sections.length - 1].push(block);
   }
   return sections.filter((s) => s.length > 0);
+}
+
+// Renders one section of the Visual Story template.
+// Alternating sections use a true two-column layout: decorative accent | content.
+function VisualSection({
+  section,
+  idx,
+  cc,
+}: {
+  section: ArticleBlock[];
+  idx: number;
+  cc: string;
+}) {
+  const isAlternate = idx % 2 === 1;
+  const h2Block = section.find((b) => b.type === "h2") as
+    | { type: "h2"; text: string }
+    | undefined;
+  const bodyBlocks = section.filter((b) => b.type !== "h2");
+
+  if (!isAlternate || !h2Block || bodyBlocks.length === 0) {
+    // Full-width fallback
+    return (
+      <div className="px-4 sm:px-8 py-8">
+        {section.map((block, i) => (
+          <ContentBlock key={i} block={block} visual />
+        ))}
+      </div>
+    );
+  }
+
+  // Two-column: decorative visual anchor on the left, body content on the right
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-[5fr_8fr]">
+      {/* Decorative left panel */}
+      <div
+        className="flex flex-col items-center justify-center px-8 py-10 text-center"
+        style={{ backgroundColor: `${cc}0a`, borderRight: `1px solid ${cc}20` }}
+      >
+        <span
+          className="block text-[88px] leading-none font-display font-black select-none mb-3"
+          style={{ color: `${cc}22` }}
+        >
+          {String(Math.ceil(idx / 2)).padStart(2, "0")}
+        </span>
+        <h2
+          className="text-xl md:text-2xl font-display font-bold leading-tight"
+          style={{ color: `${cc}dd` }}
+        >
+          {h2Block.text}
+        </h2>
+      </div>
+      {/* Body content on the right */}
+      <div className="px-6 sm:px-10 py-10">
+        {bodyBlocks.map((block, i) => (
+          <ContentBlock key={i} block={block} visual />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function RelatedCard({ article }: { article: Article }) {
@@ -849,23 +907,14 @@ function VisualTemplate({
           animate={{ opacity: 1 }}
           transition={{ delay: 0.25 }}
         >
-          {sections.map((section, sectionIdx) => {
-            const isAlternate = sectionIdx % 2 === 1;
-            return (
-              <div
-                key={sectionIdx}
-                className={`px-4 sm:px-8 py-8 ${
-                  isAlternate
-                    ? "bg-primary/[0.04] border-l-4 border-primary/25"
-                    : ""
-                }`}
-              >
-                {section.map((block, i) => (
-                  <ContentBlock key={i} block={block} visual />
-                ))}
-              </div>
-            );
-          })}
+          {sections.map((section, sectionIdx) => (
+            <VisualSection
+              key={sectionIdx}
+              section={section}
+              idx={sectionIdx}
+              cc={cc}
+            />
+          ))}
         </motion.div>
 
         <div className="px-4 sm:px-8">
