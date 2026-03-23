@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useParams } from "wouter";
 import {
@@ -23,7 +23,7 @@ const TEMPLATES: {
   id: TemplateId;
   label: string;
   desc: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }[] = [
   {
     id: "standard",
@@ -45,20 +45,23 @@ const TEMPLATES: {
   },
 ];
 
+function readStoredTemplate(key: string): TemplateId | null {
+  try {
+    const v = localStorage.getItem(key);
+    if (v === "standard" || v === "hero" || v === "visual") return v;
+  } catch {
+    // localStorage unavailable
+  }
+  return null;
+}
+
 function useTemplateState(slug: string, initialTemplate: TemplateId) {
   const storageKey = `sf-studio-template:${slug}`;
+  const prevStorageKeyRef = useRef(storageKey);
 
-  const [template, setTemplateRaw] = useState<TemplateId>(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored === "standard" || stored === "hero" || stored === "visual") {
-        return stored;
-      }
-    } catch {
-      // localStorage unavailable
-    }
-    return initialTemplate;
-  });
+  const [template, setTemplateRaw] = useState<TemplateId>(
+    () => readStoredTemplate(storageKey) ?? initialTemplate
+  );
 
   const setTemplate = useCallback(
     (t: TemplateId) => {
@@ -72,12 +75,18 @@ function useTemplateState(slug: string, initialTemplate: TemplateId) {
     [storageKey]
   );
 
+  // Re-hydrate from the new key whenever the slug (storageKey) changes
   useEffect(() => {
-    try {
-      if (!localStorage.getItem(storageKey)) {
-        setTemplateRaw(initialTemplate);
-      }
-    } catch {
+    if (prevStorageKeyRef.current !== storageKey) {
+      prevStorageKeyRef.current = storageKey;
+      setTemplateRaw(readStoredTemplate(storageKey) ?? initialTemplate);
+    }
+  }, [storageKey, initialTemplate]);
+
+  // Apply article's own template as default once data has loaded (no stored pref)
+  useEffect(() => {
+    if (initialTemplate === "standard") return;
+    if (!readStoredTemplate(storageKey)) {
       setTemplateRaw(initialTemplate);
     }
   }, [initialTemplate, storageKey]);
