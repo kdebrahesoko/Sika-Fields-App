@@ -8,6 +8,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   streaming?: boolean;
+  timestamp: Date;
 }
 
 const STARTER_PROMPTS = [
@@ -18,8 +19,17 @@ const STARTER_PROMPTS = [
 
 const STORAGE_KEY = "sf-chat-conversation-id";
 
+const API_BASE = "/api/openai";
+
+function formatTime(date: Date): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 async function apiCreateConversation(): Promise<number> {
-  const res = await fetch("/api/openai/conversations", {
+  const res = await fetch(`${API_BASE}/conversations`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ title: "SikaFields Chat" }),
@@ -30,15 +40,15 @@ async function apiCreateConversation(): Promise<number> {
 
 async function apiLoadHistory(
   id: number,
-): Promise<{ id: number; role: string; content: string }[]> {
-  const res = await fetch(`/api/openai/conversations/${id}`);
+): Promise<{ id: number; role: string; content: string; createdAt: string }[]> {
+  const res = await fetch(`${API_BASE}/conversations/${id}`);
   if (!res.ok) throw new Error("not found");
   const data = await res.json();
   return data.messages;
 }
 
 async function apiDeleteConversation(id: number): Promise<void> {
-  await fetch(`/api/openai/conversations/${id}`, { method: "DELETE" });
+  await fetch(`${API_BASE}/conversations/${id}`, { method: "DELETE" });
 }
 
 export default function ChatWidget() {
@@ -55,6 +65,9 @@ export default function ChatWidget() {
 
   const isHidden =
     location.startsWith("/admin") || location.includes("/studio");
+
+  const isArticlePage =
+    location.startsWith("/articles/") && !location.includes("/studio");
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -73,6 +86,7 @@ export default function ChatWidget() {
           id: String(m.id),
           role: m.role as "user" | "assistant",
           content: m.content,
+          timestamp: new Date(m.createdAt),
         }));
         setMessages(msgs);
       })
@@ -91,6 +105,7 @@ export default function ChatWidget() {
         id: `user-${Date.now()}`,
         role: "user",
         content: content.trim(),
+        timestamp: new Date(),
       };
       setMessages((prev) => [...prev, userMsg]);
       setInput("");
@@ -98,7 +113,13 @@ export default function ChatWidget() {
       const assistantMsgId = `assistant-${Date.now()}`;
       setMessages((prev) => [
         ...prev,
-        { id: assistantMsgId, role: "assistant", content: "", streaming: true },
+        {
+          id: assistantMsgId,
+          role: "assistant",
+          content: "",
+          streaming: true,
+          timestamp: new Date(),
+        },
       ]);
       setStreaming(true);
 
@@ -121,7 +142,7 @@ export default function ChatWidget() {
         const abort = new AbortController();
         abortRef.current = abort;
 
-        const res = await fetch(`/api/openai/conversations/${convId}/messages`, {
+        const res = await fetch(`${API_BASE}/conversations/${convId}/messages`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ content: content.trim() }),
@@ -205,6 +226,14 @@ export default function ChatWidget() {
     }
   };
 
+  const buttonBottomClass = isArticlePage
+    ? "bottom-16 sm:bottom-5"
+    : "bottom-5";
+
+  const panelBottomClass = isArticlePage
+    ? "sm:bottom-24"
+    : "sm:bottom-24";
+
   return (
     <>
       <AnimatePresence>
@@ -215,7 +244,10 @@ export default function ChatWidget() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.97 }}
             transition={{ type: "spring", stiffness: 340, damping: 28 }}
-            className="fixed bottom-24 right-4 z-50 flex flex-col w-[370px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100dvh-7rem)] rounded-2xl shadow-2xl overflow-hidden border border-green-100 bg-white"
+            className={`fixed z-50 flex flex-col overflow-hidden border border-green-100 bg-white
+              inset-x-0 bottom-0 rounded-t-2xl h-[90dvh]
+              sm:inset-x-auto sm:right-4 sm:w-[370px] sm:h-[560px] sm:rounded-2xl sm:max-h-[calc(100dvh-7rem)]
+              ${panelBottomClass}`}
             style={{ boxShadow: "0 8px 40px rgba(0,0,0,0.18)" }}
           >
             <div className="flex items-center justify-between px-4 py-3 bg-[hsl(145,62%,33%)] text-white shrink-0">
@@ -287,17 +319,24 @@ export default function ChatWidget() {
                       <Leaf className="w-3.5 h-3.5 text-white" />
                     </div>
                   )}
-                  <div
-                    className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
-                      msg.role === "user"
-                        ? "bg-[hsl(145,62%,33%)] text-white rounded-br-sm"
-                        : "bg-white text-gray-800 border border-gray-100 shadow-sm rounded-bl-sm"
-                    }`}
-                  >
-                    {msg.content || (msg.streaming && <StreamingDots />)}
-                    {msg.streaming && msg.content && (
-                      <span className="inline-block w-1 h-3.5 ml-0.5 mb-[-2px] bg-current animate-pulse rounded-sm" />
-                    )}
+                  <div className="flex flex-col gap-0.5 max-w-[78%]">
+                    <div
+                      className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                        msg.role === "user"
+                          ? "bg-[hsl(145,62%,33%)] text-white rounded-br-sm"
+                          : "bg-white text-gray-800 border border-gray-100 shadow-sm rounded-bl-sm"
+                      }`}
+                    >
+                      {msg.content || (msg.streaming && <StreamingDots />)}
+                      {msg.streaming && msg.content && (
+                        <span className="inline-block w-1 h-3.5 ml-0.5 mb-[-2px] bg-current animate-pulse rounded-sm" />
+                      )}
+                    </div>
+                    <p
+                      className={`text-[10px] text-gray-400 ${msg.role === "user" ? "text-right" : "text-left pl-1"}`}
+                    >
+                      {formatTime(msg.timestamp)}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -336,7 +375,7 @@ export default function ChatWidget() {
 
       <motion.button
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-5 right-4 z-50 w-14 h-14 rounded-full bg-[hsl(145,62%,33%)] text-white shadow-xl flex items-center justify-center hover:bg-[hsl(145,62%,27%)] transition-colors"
+        className={`fixed right-4 z-50 w-14 h-14 rounded-full bg-[hsl(145,62%,33%)] text-white shadow-xl flex items-center justify-center hover:bg-[hsl(145,62%,27%)] transition-colors ${buttonBottomClass}`}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.94 }}
         style={{ boxShadow: "0 4px 20px rgba(40,120,60,0.40)" }}
