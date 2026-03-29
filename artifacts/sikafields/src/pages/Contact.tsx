@@ -92,16 +92,12 @@ export default function ContactPage() {
       {/* ── Top nav bar ── */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/60 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/">
-            <a className="flex items-center gap-2 group">
-              <img src="/sikafields-logo.png" alt="SikaFields" className="h-9 w-auto" />
-            </a>
+          <Link href="/" className="flex items-center gap-2 group">
+            <img src="/sikafields-logo.png" alt="SikaFields" className="h-9 w-auto" />
           </Link>
-          <Link href="/">
-            <a className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Home
-            </a>
+          <Link href="/" className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Home
           </Link>
         </div>
       </header>
