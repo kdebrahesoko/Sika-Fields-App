@@ -16,18 +16,6 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
- * @summary List all conversations
- */
-export const ListOpenaiConversationsResponseItem = zod.object({
-  id: zod.number(),
-  title: zod.string(),
-  createdAt: zod.date(),
-});
-export const ListOpenaiConversationsResponse = zod.array(
-  ListOpenaiConversationsResponseItem,
-);
-
-/**
  * @summary Create a new conversation
  */
 export const CreateOpenaiConversationBody = zod.object({
@@ -90,16 +78,4 @@ export const SendOpenaiMessageParams = zod.object({
 
 export const SendOpenaiMessageBody = zod.object({
   content: zod.string(),
-});
-
-/**
- * @summary Generate an image from a text prompt
- */
-export const GenerateOpenaiImageBody = zod.object({
-  prompt: zod.string(),
-  size: zod.enum(["1024x1024", "512x512", "256x256"]).optional(),
-});
-
-export const GenerateOpenaiImageResponse = zod.object({
-  b64_json: zod.string(),
 });

@@ -2,8 +2,9 @@
   "name": "@workspace/api-spec",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "codegen": "orval --config ./orval.config.ts"
+    "codegen": "orval --config ./orval.config.ts && node fix-api-zod-index.js"
   },
   "devDependencies": {
     "orval": "^8.5.2"

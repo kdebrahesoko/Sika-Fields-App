@@ -18,8 +18,6 @@ import type {
 
 import type {
   CreateOpenaiConversationBody,
-  GenerateOpenaiImageBody,
-  GenerateOpenaiImageResponse,
   HealthStatus,
   OpenaiConversation,
   OpenaiConversationWithMessages,
@@ -105,82 +103,6 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
-
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey;
-  };
-
-  return { ...query, queryKey: queryOptions.queryKey };
-}
-
-/**
- * @summary List all conversations
- */
-export const getListOpenaiConversationsUrl = () => {
-  return `/api/openai/conversations`;
-};
-
-export const listOpenaiConversations = async (
-  options?: RequestInit,
-): Promise<OpenaiConversation[]> => {
-  return customFetch<OpenaiConversation[]>(getListOpenaiConversationsUrl(), {
-    ...options,
-    method: "GET",
-  });
-};
-
-export const getListOpenaiConversationsQueryKey = () => {
-  return [`/api/openai/conversations`] as const;
-};
-
-export const getListOpenaiConversationsQueryOptions = <
-  TData = Awaited<ReturnType<typeof listOpenaiConversations>>,
-  TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof listOpenaiConversations>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-
-  const queryKey =
-    queryOptions?.queryKey ?? getListOpenaiConversationsQueryKey();
-
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof listOpenaiConversations>>
-  > = ({ signal }) => listOpenaiConversations({ signal, ...requestOptions });
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listOpenaiConversations>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey };
-};
-
-export type ListOpenaiConversationsQueryResult = NonNullable<
-  Awaited<ReturnType<typeof listOpenaiConversations>>
->;
-export type ListOpenaiConversationsQueryError = ErrorType<unknown>;
-
-/**
- * @summary List all conversations
- */
-
-export function useListOpenaiConversations<
-  TData = Awaited<ReturnType<typeof listOpenaiConversations>>,
-  TError = ErrorType<unknown>,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof listOpenaiConversations>>,
-    TError,
-    TData
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-  const queryOptions = getListOpenaiConversationsQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;
@@ -623,90 +545,4 @@ export const useSendOpenaiMessage = <
   TContext
 > => {
   return useMutation(getSendOpenaiMessageMutationOptions(options));
-};
-
-/**
- * @summary Generate an image from a text prompt
- */
-export const getGenerateOpenaiImageUrl = () => {
-  return `/api/openai/generate-image`;
-};
-
-export const generateOpenaiImage = async (
-  generateOpenaiImageBody: GenerateOpenaiImageBody,
-  options?: RequestInit,
-): Promise<GenerateOpenaiImageResponse> => {
-  return customFetch<GenerateOpenaiImageResponse>(getGenerateOpenaiImageUrl(), {
-    ...options,
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    body: JSON.stringify(generateOpenaiImageBody),
-  });
-};
-
-export const getGenerateOpenaiImageMutationOptions = <
-  TError = ErrorType<unknown>,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof generateOpenaiImage>>,
-    TError,
-    { data: BodyType<GenerateOpenaiImageBody> },
-    TContext
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationOptions<
-  Awaited<ReturnType<typeof generateOpenaiImage>>,
-  TError,
-  { data: BodyType<GenerateOpenaiImageBody> },
-  TContext
-> => {
-  const mutationKey = ["generateOpenaiImage"];
-  const { mutation: mutationOptions, request: requestOptions } = options
-    ? options.mutation &&
-      "mutationKey" in options.mutation &&
-      options.mutation.mutationKey
-      ? options
-      : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof generateOpenaiImage>>,
-    { data: BodyType<GenerateOpenaiImageBody> }
-  > = (props) => {
-    const { data } = props ?? {};
-
-    return generateOpenaiImage(data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type GenerateOpenaiImageMutationResult = NonNullable<
-  Awaited<ReturnType<typeof generateOpenaiImage>>
->;
-export type GenerateOpenaiImageMutationBody = BodyType<GenerateOpenaiImageBody>;
-export type GenerateOpenaiImageMutationError = ErrorType<unknown>;
-
-/**
- * @summary Generate an image from a text prompt
- */
-export const useGenerateOpenaiImage = <
-  TError = ErrorType<unknown>,
-  TContext = unknown,
->(options?: {
-  mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof generateOpenaiImage>>,
-    TError,
-    { data: BodyType<GenerateOpenaiImageBody> },
-    TContext
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}): UseMutationResult<
-  Awaited<ReturnType<typeof generateOpenaiImage>>,
-  TError,
-  { data: BodyType<GenerateOpenaiImageBody> },
-  TContext
-> => {
-  return useMutation(getGenerateOpenaiImageMutationOptions(options));
 };

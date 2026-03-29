@@ -231,7 +231,7 @@ export default function ChatWidget() {
     : "bottom-5";
 
   const panelBottomClass = isArticlePage
-    ? "sm:bottom-24"
+    ? "sm:bottom-28 lg:bottom-24"
     : "sm:bottom-24";
 
   return (
