@@ -98,11 +98,6 @@ function FlipCard({ person }: { person: typeof LEADERS[0] }) {
 
         {/* Back face */}
         <div
-          style={{
-            backfaceVisibility: "hidden",
-            WebkitBackfaceVisibility: "hidden",
-            transform: "rotateY(180deg)",
-          }}
           className="absolute inset-0 rounded-2xl overflow-hidden"
           style={{
             backfaceVisibility: "hidden",

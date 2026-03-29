@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { eq, desc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db, conversations, messages } from "@workspace/db";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import {
@@ -33,14 +33,6 @@ For complex legal, financial, or agronomic questions, recommend the user contact
 Keep answers concise (2–4 sentences usually), friendly, and confident. Use plain language — many of our farmers and buyers are not climate experts.`;
 
 const router = Router();
-
-router.get("/conversations", async (_req: Request, res: Response) => {
-  const rows = await db
-    .select()
-    .from(conversations)
-    .orderBy(desc(conversations.createdAt));
-  res.json(rows);
-});
 
 router.post("/conversations", async (req: Request, res: Response) => {
   const parsed = CreateOpenaiConversationBody.safeParse(req.body);
