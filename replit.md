@@ -149,6 +149,33 @@ React 19 + Vite landing page for SikaFields — a climate-tech carbon credit pla
 - `public/dr-kwame.jpeg` — standalone CTO photo
 - `public/about-farming.jpg` — farming photo for About section
 
+### AI Chat Assistant — "Ask Sika"
+
+A floating AI chat widget powered by OpenAI via Replit AI Integrations (no API key required). The widget appears on all pages except admin and studio pages.
+
+**Widget:** `artifacts/sikafields/src/components/ChatWidget.tsx`
+- Fixed bottom-right green circular button
+- Slide-up chat panel (370px × 560px) with Framer Motion animation
+- Starter prompts shown on empty conversation
+- SSE streaming responses (character-by-character)
+- Conversation persisted in DB; ID stored in `localStorage` under `sf-chat-conversation-id`
+- Suppressed on `/admin/*` and paths containing `/studio`
+
+**API Routes:** `artifacts/api-server/src/routes/openai/index.ts`
+- `POST /api/openai/conversations` — create conversation
+- `GET /api/openai/conversations/:id` — get conversation with message history
+- `DELETE /api/openai/conversations/:id` — delete conversation
+- `GET /api/openai/conversations/:id/messages` — list messages
+- `POST /api/openai/conversations/:id/messages` — send message, streams SSE response
+
+**AI Provider:** `@workspace/integrations-openai-ai-server` — wraps OpenAI SDK initialized with `AI_INTEGRATIONS_OPENAI_BASE_URL` and `AI_INTEGRATIONS_OPENAI_API_KEY` (auto-provisioned by Replit).
+
+**DB Schema:** `lib/db/src/schema/conversations.ts` + `lib/db/src/schema/messages.ts` (tables: `conversations`, `messages` with foreign key cascade)
+
+**Model:** `gpt-5.2` with `max_completion_tokens: 8192`, streaming enabled.
+
+**System prompt:** Configures the assistant as "Sika", knowledgeable about SikaFields' programs (farmer enrollment, carbon credits, MRV, ESG), Ghana/India/Dubai operations, pricing ($15+/tonne), contact info.
+
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.

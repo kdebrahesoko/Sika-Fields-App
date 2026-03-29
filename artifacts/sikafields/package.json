@@ -76,6 +76,7 @@
   },
   "dependencies": {
     "@sanity/client": "^7.20.0",
+    "@workspace/integrations-openai-ai-react": "workspace:*",
     "react-countup": "^6.5.3",
     "react-simple-maps": "^3.0.0"
   }

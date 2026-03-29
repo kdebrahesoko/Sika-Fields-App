@@ -11,6 +11,7 @@ import ArticleDetailPage from "@/pages/ArticleDetail";
 import PostStudioPage from "@/pages/PostStudio";
 import AdminComposerPage from "@/pages/AdminComposer";
 import NotFound from "@/pages/not-found";
+import ChatWidget from "@/components/ChatWidget";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <Router />
+          <ChatWidget />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>
