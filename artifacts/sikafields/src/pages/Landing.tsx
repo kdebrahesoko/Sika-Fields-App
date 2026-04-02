@@ -10,6 +10,7 @@ import {
   SatelliteDish, HeartHandshake, TrendingUp, AlertTriangle,
   Lightbulb, Info, Phone, Mail, Clock, Send, Loader2, Linkedin
 } from "lucide-react";
+import { Link } from "wouter";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -1802,13 +1803,13 @@ function LeadershipSection() {
 
               {/* View full advisory board CTA */}
               <div className="mt-8 text-center">
-                <a
+                <Link
                   href="/advisory"
                   className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors border border-primary/30 px-5 py-2.5 rounded-full hover:bg-primary/5"
                 >
                   View Full Advisory Board
                   <ChevronRight className="w-4 h-4" />
-                </a>
+                </Link>
               </div>
             </motion.div>
           );
