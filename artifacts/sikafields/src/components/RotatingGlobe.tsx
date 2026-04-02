@@ -20,20 +20,26 @@ export default function RotatingGlobe({ className = "" }: RotatingGlobeProps) {
     const context = canvas.getContext("2d")
     if (!context) return
 
-    const containerWidth = container.clientWidth
-    const containerHeight = container.clientHeight
-    const radius = Math.min(containerWidth, containerHeight) * 0.44
+    let containerWidth = container.clientWidth
+    let containerHeight = container.clientHeight
+    let baseRadius = Math.min(containerWidth, containerHeight) * 0.44
+    let zoomRatio = 1.0
 
     const dpr = window.devicePixelRatio || 1
-    canvas.width = containerWidth * dpr
-    canvas.height = containerHeight * dpr
-    canvas.style.width = `${containerWidth}px`
-    canvas.style.height = `${containerHeight}px`
-    context.scale(dpr, dpr)
+
+    const setupCanvas = (w: number, h: number) => {
+      canvas.width = w * dpr
+      canvas.height = h * dpr
+      canvas.style.width = `${w}px`
+      canvas.style.height = `${h}px`
+      context.setTransform(dpr, 0, 0, dpr, 0, 0)
+    }
+
+    setupCanvas(containerWidth, containerHeight)
 
     const projection = d3
       .geoOrthographic()
-      .scale(radius)
+      .scale(baseRadius)
       .translate([containerWidth / 2, containerHeight / 2])
       .clipAngle(90)
 
@@ -55,15 +61,15 @@ export default function RotatingGlobe({ className = "" }: RotatingGlobeProps) {
     const pointInFeature = (point: [number, number], feature: { geometry: { type: string; coordinates: number[][][] | number[][][][] } }): boolean => {
       const geometry = feature.geometry
       if (geometry.type === "Polygon") {
-        const coordinates = geometry.coordinates as number[][][]
-        if (!pointInPolygon(point, coordinates[0])) return false
-        for (let i = 1; i < coordinates.length; i++) {
-          if (pointInPolygon(point, coordinates[i])) return false
+        const coords = geometry.coordinates as number[][][]
+        if (!pointInPolygon(point, coords[0])) return false
+        for (let i = 1; i < coords.length; i++) {
+          if (pointInPolygon(point, coords[i])) return false
         }
         return true
       } else if (geometry.type === "MultiPolygon") {
-        const coordinates = geometry.coordinates as number[][][][]
-        for (const polygon of coordinates) {
+        const coords = geometry.coordinates as number[][][][]
+        for (const polygon of coords) {
           if (pointInPolygon(point, polygon[0])) {
             let inHole = false
             for (let i = 1; i < polygon.length; i++) {
@@ -77,11 +83,11 @@ export default function RotatingGlobe({ className = "" }: RotatingGlobeProps) {
       return false
     }
 
-    const generateDotsInPolygon = (feature: { geometry: { type: string; coordinates: number[][][] | number[][][][] }; properties?: Record<string, unknown> }, dotSpacing = 16) => {
+    const generateDotsInPolygon = (feature: { geometry: { type: string; coordinates: number[][][] | number[][][][] }; properties?: Record<string, unknown> }) => {
       const dots: [number, number][] = []
       const bounds = d3.geoBounds(feature as Parameters<typeof d3.geoBounds>[0])
       const [[minLng, minLat], [maxLng, maxLat]] = bounds
-      const stepSize = dotSpacing * 0.08
+      const stepSize = 16 * 0.08
       for (let lng = minLng; lng <= maxLng; lng += stepSize) {
         for (let lat = minLat; lat <= maxLat; lat += stepSize) {
           const point: [number, number] = [lng, lat]
@@ -99,7 +105,7 @@ export default function RotatingGlobe({ className = "" }: RotatingGlobeProps) {
       context.clearRect(0, 0, containerWidth, containerHeight)
 
       const currentScale = projection.scale()
-      const sf = currentScale / radius
+      const sf = currentScale / baseRadius
 
       const cx = containerWidth / 2
       const cy = containerHeight / 2
@@ -113,7 +119,6 @@ export default function RotatingGlobe({ className = "" }: RotatingGlobeProps) {
       context.arc(cx, cy, currentScale, 0, 2 * Math.PI)
       context.fillStyle = outerGrad
       context.fill()
-
       context.strokeStyle = "rgba(74, 222, 128, 0.35)"
       context.lineWidth = 1.5 * sf
       context.stroke()
@@ -154,7 +159,6 @@ export default function RotatingGlobe({ className = "" }: RotatingGlobeProps) {
       shimmerGrad.addColorStop(0, "rgba(74, 222, 128, 0.06)")
       shimmerGrad.addColorStop(0.5, "transparent")
       shimmerGrad.addColorStop(1, "rgba(0,0,0,0.18)")
-
       context.beginPath()
       context.arc(cx, cy, currentScale, 0, 2 * Math.PI)
       context.fillStyle = shimmerGrad
@@ -168,12 +172,10 @@ export default function RotatingGlobe({ className = "" }: RotatingGlobeProps) {
         )
         if (!response.ok) throw new Error("Failed to load land data")
         landFeatures = await response.json() as typeof landFeatures
-
         landFeatures!.features.forEach((feature) => {
-          const dots = generateDotsInPolygon(feature, 16)
+          const dots = generateDotsInPolygon(feature)
           dots.forEach(([lng, lat]) => allDots.push({ lng, lat }))
         })
-
         setLoaded(true)
         render()
       } catch {
@@ -217,13 +219,45 @@ export default function RotatingGlobe({ className = "" }: RotatingGlobeProps) {
       document.addEventListener("mouseup", handleMouseUp)
     }
 
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault()
+      const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1
+      const minScale = baseRadius * 0.5
+      const maxScale = baseRadius * 2.5
+      const newScale = Math.max(minScale, Math.min(maxScale, projection.scale() * zoomFactor))
+      zoomRatio = newScale / baseRadius
+      projection.scale(newScale)
+      render()
+    }
+
+    const resizeObserver = new ResizeObserver(() => {
+      const newW = container.clientWidth
+      const newH = container.clientHeight
+      if (newW === containerWidth && newH === containerHeight) return
+
+      containerWidth = newW
+      containerHeight = newH
+      const newBaseRadius = Math.min(containerWidth, containerHeight) * 0.44
+      baseRadius = newBaseRadius
+
+      setupCanvas(containerWidth, containerHeight)
+      projection
+        .scale(baseRadius * zoomRatio)
+        .translate([containerWidth / 2, containerHeight / 2])
+      render()
+    })
+
     canvas.addEventListener("mousedown", handleMouseDown)
+    canvas.addEventListener("wheel", handleWheel, { passive: false })
+    resizeObserver.observe(container)
 
     loadWorldData()
 
     return () => {
       rotationTimer.stop()
       canvas.removeEventListener("mousedown", handleMouseDown)
+      canvas.removeEventListener("wheel", handleWheel)
+      resizeObserver.disconnect()
     }
   }, [])
 
