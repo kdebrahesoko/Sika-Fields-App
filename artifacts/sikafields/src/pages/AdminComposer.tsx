@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import {
   ArrowLeft, Plus, Trash2, FileText, ImageIcon, LayoutGrid,
   Type, AlignLeft, Quote, List, Check, Copy, ExternalLink,
-  Eye, X, RotateCcw, ChevronUp, ChevronDown, PenLine,
+  Eye, X, RotateCcw, ChevronUp, ChevronDown, PenLine, LayoutDashboard,
 } from "lucide-react";
 import { type Article, type ArticleBlock } from "@/data/articles";
 import { isSanityConfigured } from "@/lib/sanity";
@@ -563,6 +563,14 @@ export default function AdminComposerPage() {
                 <span className="hidden sm:inline">Clear draft</span>
               </button>
             )}
+            <Link
+              href="/admin/posts"
+              className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              title="Manage all posts"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">All posts</span>
+            </Link>
             <img src="/sikafields-logo.png" alt="SikaFields" className="h-7 object-contain" />
           </div>
         </div>

@@ -1,11 +1,25 @@
 import { Link, useParams } from "wouter";
-import { Loader2, BookOpen } from "lucide-react";
+import { Loader2, BookOpen, Eye } from "lucide-react";
 import { useArticle, useRelatedArticles } from "@/hooks/useArticles";
 import {
   StandardTemplate,
   HeroTemplate,
   VisualTemplate,
 } from "@/components/article-templates";
+
+function PostStudioFAB({ slug }: { slug: string }) {
+  return (
+    <div className="fixed bottom-6 right-6 z-50">
+      <Link
+        href={`/articles/${slug}/studio`}
+        className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-primary text-white text-sm font-semibold shadow-lg hover:bg-primary/90 hover:shadow-xl hover:-translate-y-0.5 transition-all"
+      >
+        <Eye className="w-4 h-4" />
+        Post Studio
+      </Link>
+    </div>
+  );
+}
 
 export default function ArticleDetailPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -49,27 +63,36 @@ export default function ArticleDetailPage() {
 
   if (template === "hero") {
     return (
-      <HeroTemplate
-        article={article}
-        shareUrl={shareUrl}
-        related={related}
-      />
+      <>
+        <HeroTemplate
+          article={article}
+          shareUrl={shareUrl}
+          related={related}
+        />
+        <PostStudioFAB slug={article.slug} />
+      </>
     );
   }
   if (template === "visual") {
     return (
-      <VisualTemplate
+      <>
+        <VisualTemplate
+          article={article}
+          shareUrl={shareUrl}
+          related={related}
+        />
+        <PostStudioFAB slug={article.slug} />
+      </>
+    );
+  }
+  return (
+    <>
+      <StandardTemplate
         article={article}
         shareUrl={shareUrl}
         related={related}
       />
-    );
-  }
-  return (
-    <StandardTemplate
-      article={article}
-      shareUrl={shareUrl}
-      related={related}
-    />
+      <PostStudioFAB slug={article.slug} />
+    </>
   );
 }

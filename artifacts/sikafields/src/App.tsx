@@ -10,6 +10,7 @@ import ArticlesPage from "@/pages/Articles";
 import ArticleDetailPage from "@/pages/ArticleDetail";
 import PostStudioPage from "@/pages/PostStudio";
 import AdminComposerPage from "@/pages/AdminComposer";
+import AdminPostsPage from "@/pages/AdminPosts";
 import NotFound from "@/pages/not-found";
 import ChatWidget from "@/components/ChatWidget";
 
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/articles" component={ArticlesPage} />
       <Route path="/articles/:slug/studio" component={PostStudioPage} />
       <Route path="/articles/:slug" component={ArticleDetailPage} />
+      <Route path="/admin/posts" component={AdminPostsPage} />
       <Route path="/admin/new-post" component={AdminComposerPage} />
       <Route component={NotFound} />
     </Switch>

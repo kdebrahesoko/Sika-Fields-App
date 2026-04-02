@@ -4,7 +4,7 @@ import { Link } from "wouter";
 import {
   Search, ArrowLeft, Clock, Calendar, ChevronRight,
   BookOpen, Newspaper, ArrowRight, Filter, Loader2,
-  Image as ImageIcon, LayoutGrid, FileText,
+  Image as ImageIcon, LayoutGrid, FileText, LayoutDashboard,
 } from "lucide-react";
 import { type Article } from "@/data/articles";
 import { useAllArticles } from "@/hooks/useArticles";
@@ -297,7 +297,13 @@ export default function ArticlesPage() {
             Back to SikaFields
           </Link>
           <img src="/sikafields-logo.png" alt="SikaFields" className="h-8 object-contain" />
-          <div className="w-36" />
+          <Link
+            href="/admin/posts"
+            className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors w-36 justify-end"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            <span className="hidden sm:inline">Manage posts</span>
+          </Link>
         </div>
       </div>
 
