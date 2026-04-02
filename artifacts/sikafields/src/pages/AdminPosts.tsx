@@ -2,8 +2,7 @@ import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import {
-  ArrowLeft, FileText, ImageIcon, LayoutGrid,
-  Copy, Check, Eye, ExternalLink, Palette,
+  ArrowLeft, Copy, Check, Eye, ExternalLink, Palette,
   LayoutDashboard, Calendar, Clock, Loader2, BookOpen, Plus,
 } from "lucide-react";
 import { type Article } from "@/data/articles";
@@ -24,11 +23,75 @@ function readStoredTemplate(slug: string): TemplateId | null {
   return null;
 }
 
-const TEMPLATE_OPTIONS: { id: TemplateId; label: string; shortLabel: string; icon: React.ReactNode }[] = [
-  { id: "standard", label: "Standard", shortLabel: "Std", icon: <FileText className="w-3 h-3" /> },
-  { id: "hero", label: "Hero Focus", shortLabel: "Hero", icon: <ImageIcon className="w-3 h-3" /> },
-  { id: "visual", label: "Visual Story", shortLabel: "Visual", icon: <LayoutGrid className="w-3 h-3" /> },
-];
+const TEMPLATE_LABELS: Record<TemplateId, string> = {
+  standard: "Standard",
+  hero: "Hero Focus",
+  visual: "Visual Story",
+};
+
+function StandardThumbnail() {
+  return (
+    <div className="w-full h-full flex flex-col overflow-hidden rounded">
+      <div className="h-[5px] bg-gray-200 shrink-0" />
+      <div className="flex-1 bg-white px-[5px] py-[3px] flex flex-col gap-[2px]">
+        <div className="h-[5px] w-3/4 bg-gray-700 rounded-sm" />
+        <div className="h-[3px] w-1/2 bg-gray-400 rounded-sm" />
+        <div className="mt-[2px] h-[2px] w-full bg-gray-200 rounded-sm" />
+        <div className="h-[2px] w-full bg-gray-200 rounded-sm" />
+        <div className="h-[2px] w-4/5 bg-gray-200 rounded-sm" />
+        <div className="mt-[2px] h-[2px] w-full bg-gray-200 rounded-sm" />
+        <div className="h-[2px] w-3/4 bg-gray-200 rounded-sm" />
+      </div>
+    </div>
+  );
+}
+
+function HeroThumbnail() {
+  return (
+    <div className="w-full h-full flex flex-col overflow-hidden rounded">
+      <div className="h-[18px] shrink-0 bg-gradient-to-br from-green-700 to-green-900 relative flex items-end px-[5px] pb-[3px]">
+        <div className="absolute inset-0 bg-black/25" />
+        <div className="relative h-[4px] w-1/2 bg-white/70 rounded-sm" />
+      </div>
+      <div className="flex-1 bg-white px-[5px] py-[3px] flex flex-col gap-[2px]">
+        <div className="h-[3px] w-2/3 bg-gray-600 rounded-sm" />
+        <div className="h-[2px] w-full bg-gray-200 rounded-sm" />
+        <div className="h-[2px] w-full bg-gray-200 rounded-sm" />
+        <div className="h-[2px] w-4/5 bg-gray-200 rounded-sm" />
+        <div className="mt-[2px] h-[2px] w-full bg-gray-200 rounded-sm" />
+      </div>
+    </div>
+  );
+}
+
+function VisualThumbnail() {
+  return (
+    <div className="w-full h-full flex flex-col overflow-hidden rounded">
+      <div className="h-[5px] bg-gray-200 shrink-0" />
+      <div className="flex-1 bg-white px-[4px] py-[3px] flex flex-col gap-[2px]">
+        <div className="h-[3px] w-3/5 bg-gray-700 rounded-sm" />
+        <div className="flex gap-[3px] mt-[1px] flex-1">
+          <div className="flex flex-col gap-[2px] flex-1">
+            <div className="h-[8px] bg-green-100 rounded-sm" />
+            <div className="h-[2px] w-full bg-gray-200 rounded-sm" />
+            <div className="h-[2px] w-3/4 bg-gray-200 rounded-sm" />
+          </div>
+          <div className="flex flex-col gap-[2px] flex-1">
+            <div className="h-[2px] w-full bg-gray-200 rounded-sm" />
+            <div className="h-[2px] w-4/5 bg-gray-200 rounded-sm" />
+            <div className="h-[8px] bg-green-100 rounded-sm" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const TEMPLATE_THUMBNAILS: Record<TemplateId, React.ReactNode> = {
+  standard: <StandardThumbnail />,
+  hero: <HeroThumbnail />,
+  visual: <VisualThumbnail />,
+};
 
 function PostCard({ article, index }: { article: Article; index: number }) {
   const [activeTemplate, setActiveTemplate] = useState<TemplateId>(
@@ -157,25 +220,38 @@ function PostCard({ article, index }: { article: Article; index: number }) {
 
         {/* Template picker */}
         <div>
-          <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 flex items-center gap-1">
-            <Palette className="w-2.5 h-2.5" /> Template
-          </p>
-          <div className="flex gap-1">
-            {TEMPLATE_OPTIONS.map((t) => {
-              const isActive = activeTemplate === t.id;
+          <div className="flex items-center justify-between mb-1.5">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+              <Palette className="w-2.5 h-2.5" /> Template
+            </p>
+            <span className="text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
+              {TEMPLATE_LABELS[activeTemplate]}
+            </span>
+          </div>
+          <div className="flex gap-1.5">
+            {(["standard", "hero", "visual"] as TemplateId[]).map((id) => {
+              const isActive = activeTemplate === id;
               return (
                 <button
-                  key={t.id}
-                  onClick={() => selectTemplate(t.id)}
-                  title={t.label}
-                  className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded-lg text-[9px] font-bold uppercase tracking-wide border transition-all ${
+                  key={id}
+                  onClick={() => selectTemplate(id)}
+                  title={TEMPLATE_LABELS[id]}
+                  className={`flex-1 flex flex-col items-center gap-1 p-1.5 rounded-xl border-2 transition-all group ${
                     isActive
-                      ? "bg-primary text-white border-primary shadow-sm"
-                      : "border-border text-muted-foreground hover:border-primary/40 hover:text-primary bg-transparent"
+                      ? "border-primary shadow-sm bg-primary/5"
+                      : "border-border hover:border-primary/40 bg-transparent"
                   }`}
                 >
-                  {t.icon}
-                  <span>{t.shortLabel}</span>
+                  <div className="w-full h-[44px] overflow-hidden rounded-md border border-border/50 bg-gray-50">
+                    {TEMPLATE_THUMBNAILS[id]}
+                  </div>
+                  <span
+                    className={`text-[8px] font-bold uppercase tracking-wide ${
+                      isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary"
+                    }`}
+                  >
+                    {TEMPLATE_LABELS[id]}
+                  </span>
                 </button>
               );
             })}
