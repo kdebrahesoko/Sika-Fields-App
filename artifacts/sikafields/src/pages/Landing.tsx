@@ -659,7 +659,7 @@ function HeroSection() {
 
               <div className="flex items-center gap-2 text-sm text-white/60">
                 <CheckCircle2 className="w-4 h-4 text-primary" />
-                <span>Open Forest Protocol certified</span>
+                <span>OFP validation pathway active</span>
               </div>
 
               <div className="h-8 w-px bg-white/15 hidden sm:block" />
