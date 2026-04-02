@@ -305,6 +305,14 @@ function Navbar() {
 
   const closeAll = () => setMobileMenuOpen(false);
 
+  const openDropdown = (name: "about" | "solutions" | "impact" | "resources" | "login") => {
+    setAboutOpen(name === "about");
+    setSolutionsOpen(name === "solutions");
+    setImpactOpen(name === "impact");
+    setResourcesOpen(name === "resources");
+    setLoginOpen(name === "login");
+  };
+
   return (
     <nav className={cn(
       "fixed w-full z-40 transition-all duration-300",
@@ -327,7 +335,7 @@ function Navbar() {
         {/* Desktop Nav */}
         <div className={cn("hidden md:flex items-center gap-8 font-medium text-sm transition-colors duration-300", scrolled ? "text-foreground/80" : "text-white/80")}>
           {/* About Us — two-column mega dropdown */}
-          <DesktopDropdown label="About Us" isOpen={aboutOpen} setOpen={setAboutOpen} wide>
+          <DesktopDropdown label="About Us" isOpen={aboutOpen} setOpen={(v) => { if (v) openDropdown("about"); else setAboutOpen(false); }} wide>
             {/* Header strip */}
             <div className="px-5 py-4 border-b border-border bg-gradient-to-r from-primary/5 to-accent/5 flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -391,7 +399,7 @@ function Navbar() {
           <a href="#how-it-works" className="hover:text-primary transition-colors">How It Works</a>
 
           {/* Impact dropdown */}
-          <DesktopDropdown label="Impact" isOpen={impactOpen} setOpen={setImpactOpen}>
+          <DesktopDropdown label="Impact" isOpen={impactOpen} setOpen={(v) => { if (v) openDropdown("impact"); else setImpactOpen(false); }}>
             <div className="px-4 py-3 border-b border-border bg-muted/40">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Our Impact</p>
               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Working with organisations to deliver sustainable performance at a global scale.</p>
@@ -411,7 +419,7 @@ function Navbar() {
           </DesktopDropdown>
 
           {/* Solutions dropdown */}
-          <DesktopDropdown label="Solutions" isOpen={solutionsOpen} setOpen={setSolutionsOpen}>
+          <DesktopDropdown label="Solutions" isOpen={solutionsOpen} setOpen={(v) => { if (v) openDropdown("solutions"); else setSolutionsOpen(false); }}>
             <a href="#farmers" className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors"
               onClick={() => setSolutionsOpen(false)}>
               <Sprout className="w-4 h-4 text-primary" /> Farmers
@@ -423,7 +431,7 @@ function Navbar() {
           </DesktopDropdown>
 
           {/* Resources dropdown */}
-          <DesktopDropdown label="Resources" isOpen={resourcesOpen} setOpen={setResourcesOpen} wide>
+          <DesktopDropdown label="Resources" isOpen={resourcesOpen} setOpen={(v) => { if (v) openDropdown("resources"); else setResourcesOpen(false); }} wide>
             <div className="px-4 py-3 border-b border-border bg-muted/40">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Explore</p>
               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">Latest news, insights and industry developments.</p>
@@ -463,7 +471,7 @@ function Navbar() {
             <Languages className="w-4 h-4" />
             <span className="font-medium">EN</span>
           </div>
-          <DesktopDropdown label="Log In" isOpen={loginOpen} setOpen={setLoginOpen} buttonClassName={cn("font-semibold", !scrolled && "text-white hover:text-white")}>
+          <DesktopDropdown label="Log In" isOpen={loginOpen} setOpen={(v) => { if (v) openDropdown("login"); else setLoginOpen(false); }} buttonClassName={cn("font-semibold", !scrolled && "text-white hover:text-white")}>
             <a
               href="#"
               className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors"
@@ -1881,7 +1889,7 @@ function TrustWallSection() {
 function FieldDispatchesSection() {
   const dispatches = [
     { from: "Daniel Asare-Kyei", suffix: "PhD", role: "CEO", bgPos: "0% 6%", bgSize: "320% 265%", color: "#16a34a", date: "Mar 19, 2026", subject: "Ghana Field Update — Brong-Ahafo Agroforestry Expansion", body: "Our Brong-Ahafo region cocoa-shade agroforestry cluster has enrolled an additional 4,200 smallholders this quarter, bringing the Ghanaian total to over 28,000 active farmers. Kofi Mensah's plot in Techiman North recorded 1.4 tCO₂ sequestered in the first 90 days — above our baseline projection. Community field days in Sunyani and Kintampo are driving organic referrals at a 32% rate. Northern Region pipeline is on track for Q3 enrollment.", tag: "Field Report" },
-    { from: "William Osei Agyemang", suffix: "", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", color: "#ca8a04", date: "Mar 17, 2026", subject: "Farmer Revenue Distribution — Q1 Ghana Payments", body: "Q1 mobile money disbursements to Ghanaian farmers totalled GHS 2.84M, disbursed via MTN MoMo and Vodafone Cash across Ashanti, Brong-Ahafo, Northern and Upper East regions. Average farmer payout: GHS 101 per quarter — representing a 34% income supplement above baseline. In-kind seedlings and agronomic inputs delivered to 6,400 households in Tamale and Wa districts. Working capital for Q2 disbursements is fully secured.", tag: "Finance" },
+    { from: "William Osei Agyemang", suffix: "", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", color: "#ca8a04", date: "Mar 17, 2026", subject: "Farmer Revenue Distribution — Q1 Ghana Payments", body: "Cumulative mobile money disbursements to Ghanaian farmers have reached GHS 2.3M, paid via MTN MoMo and Vodafone Cash across Ashanti, Brong-Ahafo, Northern and Upper East regions. Average farmer payout: GHS 101 per quarter — a 34% income supplement above baseline. In-kind seedlings and agronomic inputs delivered to 6,400 households in Tamale and Wa districts. Working capital for Q2 disbursements is fully secured.", tag: "Finance" },
     { from: "Valentijn Venus", suffix: "", role: "CPRO", bgPos: "100% 6%", bgSize: "320% 265%", color: "#7c3aed", date: "Mar 15, 2026", subject: "MRV Validation — Ashanti & Northern Region Plots", body: "Satellite validation pass across 47,000+ enrolled plots confirms 98% accuracy. Ghana-specific: our shea belt plots in the Upper East (Bolgatanga cluster) are showing ±1.9% variance from direct soil measurement — our best result yet. Millet and cassava intercropping in Northern Region adds measurable biomass accumulation beyond baseline. Field teams dispatched to 212 flagged NDVI anomalies in Kumasi peri-urban zone. Verra PDD review scheduled for April.", tag: "Science" },
     { from: "Charlotte Owusu-Ansah", suffix: "", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", color: "#db2777", date: "Mar 14, 2026", subject: "Ops Update — Community Field Coordinator Network, Ghana", body: "84 community field coordinators across Ashanti, Brong-Ahafo, Northern and Upper East regions completed our Q1 refresher training in Kumasi and Tamale. 11 coordinators promoted to Senior Field Agent — all drawn from enrolled farming communities. The SikaFields App WhatsApp integration now delivers weekly carbon balance updates in Twi, Dagbani, and Hausa. Farmer satisfaction across Ghana sits at 4.7/5; re-enrollment rate 96%.", tag: "Operations" },
   ];
@@ -2123,7 +2131,7 @@ function HowItWorks() {
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
               className="grid lg:grid-cols-[280px_1fr] gap-10 items-start"
             >
-              {/* Phone mockup */}
+              {/* Phone mockup — desktop sidebar */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
@@ -2144,8 +2152,16 @@ function HowItWorks() {
                 <p className="mt-5 text-center text-xs text-muted-foreground font-medium">SikaFields App — works offline</p>
               </motion.div>
 
-              {/* Steps grid */}
+              {/* Steps grid (includes mobile app banner on smaller screens) */}
               <div className="grid sm:grid-cols-2 gap-5">
+                {/* Mobile/tablet app screenshot banner */}
+                <div className="sm:col-span-2 lg:hidden flex items-center gap-4 bg-background rounded-2xl border border-border p-4 shadow-sm mb-1">
+                  <img src="/mobile-app.jpeg" alt="SikaFields mobile app" className="w-16 h-28 object-cover rounded-xl shadow-md shrink-0" />
+                  <div>
+                    <p className="font-bold text-foreground text-sm mb-1">SikaFields App</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">Log farm activities, track carbon points, and receive payments — all from your phone. Works offline in low-connectivity areas.</p>
+                  </div>
+                </div>
                 {farmerSteps.map((step, idx) => (
                   <motion.div key={idx}
                     initial={{ opacity: 0, y: 20 }}
