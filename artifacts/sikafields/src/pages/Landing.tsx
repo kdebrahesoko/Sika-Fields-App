@@ -192,9 +192,9 @@ const RESOURCES_FAQ_LINKS = [
 
 const ABOUT_COMPANY_LINKS = [
   { label: "Our Mission", href: "#about", icon: <Target className="w-4 h-4 text-primary" />, desc: "Reducing emissions, empowering farmers" },
-  { label: "Our Story", href: "#about", icon: <BookOpen className="w-4 h-4 text-accent" />, desc: "A spin-off from Esoko AgriTech" },
-  { label: "Impact Stats", href: "#about", icon: <BarChart2 className="w-4 h-4 text-secondary" />, desc: "2.5M+ trees, 10K+ farmers" },
-  { label: "Partners & Certifications", href: "#about", icon: <HeartHandshake className="w-4 h-4 text-primary" />, desc: "Open Forest Protocol & more" },
+  { label: "Company Overview", href: "#about", icon: <BookOpen className="w-4 h-4 text-accent" />, desc: "Esoko spinout · 17 years of field infrastructure" },
+  { label: "Market Opportunity", href: "#market-opportunity", icon: <TrendingUp className="w-4 h-4 text-secondary" />, desc: "Africa holds 30%+ of global removal potential" },
+  { label: "Partners & Certifications", href: "#about", icon: <HeartHandshake className="w-4 h-4 text-primary" />, desc: "Open Forest Protocol & Verra" },
 ];
 
 const ABOUT_TEAM_LINKS = [
@@ -205,16 +205,30 @@ const ABOUT_TEAM_LINKS = [
 
 const ABOUT_LINKS = [...ABOUT_COMPANY_LINKS, ...ABOUT_TEAM_LINKS];
 
-function DesktopDropdown({ label, children, isOpen, setOpen, wide = false }: {
+function DesktopDropdown({ label, children, isOpen, setOpen, wide = false, buttonClassName }: {
   label: string;
   children: React.ReactNode;
   isOpen: boolean;
   setOpen: (v: boolean) => void;
   wide?: boolean;
+  buttonClassName?: string;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [isOpen, setOpen]);
+
   return (
-    <div className="relative" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
-      <button className="flex items-center gap-1 hover:text-primary transition-colors">
+    <div className="relative" ref={ref}>
+      <button
+        className={cn("flex items-center gap-1 hover:text-primary transition-colors", buttonClassName)}
+        onClick={() => setOpen(!isOpen)}
+      >
         {label}
         <ChevronRight className={cn("w-4 h-4 transition-transform duration-200", isOpen ? "rotate-90" : "rotate-0")} />
       </button>
@@ -280,6 +294,8 @@ function Navbar() {
   const [mobileSolutionsOpen, setMobileSolutionsOpen] = useState(false);
   const [mobileImpactOpen, setMobileImpactOpen] = useState(false);
   const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [mobileLoginOpen, setMobileLoginOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -447,7 +463,30 @@ function Navbar() {
             <Languages className="w-4 h-4" />
             <span className="font-medium">EN</span>
           </div>
-          <Button variant="ghost" className={cn("font-semibold", !scrolled && "text-white hover:text-white hover:bg-white/10")}>Log In</Button>
+          <DesktopDropdown label="Log In" isOpen={loginOpen} setOpen={setLoginOpen} buttonClassName={cn("font-semibold", !scrolled && "text-white hover:text-white")}>
+            <a
+              href="#"
+              className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors"
+              onClick={() => setLoginOpen(false)}
+            >
+              <Sprout className="w-4 h-4 text-primary" />
+              <div>
+                <div className="font-medium">Farmers</div>
+                <div className="text-xs text-muted-foreground">Access your carbon dashboard</div>
+              </div>
+            </a>
+            <a
+              href="#"
+              className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border"
+              onClick={() => setLoginOpen(false)}
+            >
+              <Building2 className="w-4 h-4 text-accent" />
+              <div>
+                <div className="font-medium">Employees</div>
+                <div className="text-xs text-muted-foreground">SikaFields staff portal</div>
+              </div>
+            </a>
+          </DesktopDropdown>
           <Button className="font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30">Get Started</Button>
         </div>
 
@@ -524,8 +563,15 @@ function Navbar() {
               ))}
             </MobileAccordion>
 
-            <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-border">
-              <Button variant="outline" className="w-full">Log In</Button>
+            <div className="mt-4 pt-4 border-t border-border space-y-2">
+              <MobileAccordion label="Log In" isOpen={mobileLoginOpen} setOpen={setMobileLoginOpen}>
+                <a href="#" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={closeAll}>
+                  <Sprout className="w-4 h-4 text-primary" /> Farmers
+                </a>
+                <a href="#" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={closeAll}>
+                  <Building2 className="w-4 h-4 text-accent" /> Employees
+                </a>
+              </MobileAccordion>
               <Button className="w-full">Get Started</Button>
             </div>
           </motion.div>
@@ -968,7 +1014,7 @@ function AboutSection() {
               {
                 icon: <Smartphone className="w-5 h-5" />,
                 color: "bg-accent/10 text-accent border-accent/15",
-                title: "Insyt Technology",
+                title: "SikaFields App",
                 body: "Biometric identity, GPS plot mapping, mobile field logging, satellite-aligned data capture, and mobile wallet integration — all in one platform.",
               },
               {
@@ -1033,7 +1079,7 @@ function AboutSection() {
                   {
                     pct: "32%",
                     label: "Mobile Cash Payments",
-                    desc: "Disbursed directly to farmer wallets via Insyt / DigiMakt",
+                    desc: "Disbursed directly to farmer wallets via SikaFields App",
                     cls: "bg-primary/8 border-primary/20 text-primary",
                     dot: "bg-primary",
                   },
@@ -1085,7 +1131,7 @@ function AboutSection() {
               <div className="bg-muted/40 rounded-2xl p-6 border border-border">
                 <h4 className="font-bold text-foreground mb-2">Auditable from Field to Registry</h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Every seedling, agronomic visit, and payment is logged in Insyt and linked to the plot-level MRV record — creating a continuous, audit-ready chain from farmer enrollment through independent validator review and registry issuance.
+                  Every seedling, agronomic visit, and payment is logged in the SikaFields App and linked to the plot-level MRV record — creating a continuous, audit-ready chain from farmer enrollment through independent validator review and registry issuance.
                 </p>
               </div>
 
@@ -1108,7 +1154,7 @@ function AboutSection() {
         </div>
 
         {/* ── Market Opportunity ── */}
-        <div className="mt-28 pt-24 border-t border-border">
+        <div id="market-opportunity" className="mt-28 pt-24 border-t border-border">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -1119,11 +1165,11 @@ function AboutSection() {
               <TrendingUp className="w-4 h-4" /> Market Opportunity
             </div>
             <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-5">
-              Global demand for carbon removals is{" "}
-              <span className="text-primary">accelerating</span>
+              Surging global demand meets Africa's{" "}
+              <span className="text-primary">untapped supply</span>
             </h2>
             <p className="text-muted-foreground text-lg leading-relaxed">
-              Regulators and institutional buyers are shifting to verified removal credits as the credible instrument for balancing residual emissions — creating a structural, multi-decade demand tailwind.
+              Remaining within a 1.5°C pathway requires a 43% reduction in global emissions by 2030. Regulators and institutional buyers are shifting to verified removal credits as the credible instrument for balancing residual emissions — and Africa holds the majority of the world's available supply.
             </p>
           </motion.div>
 
@@ -1132,22 +1178,22 @@ function AboutSection() {
             {[
               {
                 value: "43%",
-                label: "Global Emissions Cut Required",
-                sub: "Required reduction by 2030 to stay within a 1.5°C pathway — driving urgent, large-scale carbon removal demand.",
+                label: "Global Emissions Cut Required by 2030",
+                sub: "Remaining within a 1.5°C pathway demands this reduction — creating immediate, large-scale demand for verified nature-based carbon removals at institutional quality.",
                 gradient: "from-primary to-emerald-800",
                 icon: <Wind className="w-6 h-6" />,
               },
               {
                 value: "2036",
                 label: "EU Compliance Window Opens",
-                sub: "The European Union plans to accept credits from developing countries for compliance beginning in 2036, alongside a 90% emissions reduction target by 2040.",
+                sub: "The EU has adopted a 90% emissions reduction target for 2040 and will accept credits from developing nations for compliance from 2036 — with agroforestry and restoration credits preferred by institutional buyers.",
                 gradient: "from-blue-700 to-blue-900",
                 icon: <Globe className="w-6 h-6" />,
               },
               {
                 value: "$100B+",
                 label: "Gulf Net-Zero Commitments",
-                sub: "Committed across Gulf national net-zero plans, with corporate procurement actively shifting toward verified removal credits from emerging markets.",
+                sub: "Across Gulf national net-zero plans, corporate procurement is actively shifting toward verified removal credits — and African agroforestry credits command the premium prices these buyers seek.",
                 gradient: "from-amber-600 to-orange-800",
                 icon: <Building2 className="w-6 h-6" />,
               },
@@ -1174,6 +1220,70 @@ function AboutSection() {
             ))}
           </div>
 
+          {/* Africa supply gap narrative */}
+          <div className="grid md:grid-cols-2 gap-6 mb-10">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-primary/5 border border-primary/15 rounded-3xl p-7"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                  <TreePine className="w-5 h-5 text-primary" />
+                </div>
+                <h4 className="font-bold text-foreground">Africa's Untapped Removal Capacity</h4>
+              </div>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                Africa holds more than <strong className="text-foreground">30% of the world's nature-based removal potential</strong> yet currently issues only a small fraction of what it could each year. The Congo Basin alone absorbs ~1.2 billion tonnes of CO₂ annually across 674 million hectares of forest.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { stat: "$6–30B", label: "African carbon market potential by 2030" },
+                  { stat: "$250B", label: "Projected scale by 2050" },
+                  { stat: "22M→300M", label: "ACMI issuance target (tonnes/yr)" },
+                  { stat: "30%+", label: "Of global nature-based potential in Africa" },
+                ].map((s, i) => (
+                  <div key={i} className="bg-background rounded-xl p-3 border border-border">
+                    <p className="font-black text-foreground font-display text-lg leading-tight">{s.stat}</p>
+                    <p className="text-muted-foreground text-[11px] leading-snug mt-0.5">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="bg-amber-50 border border-amber-200 rounded-3xl p-7"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                </div>
+                <h4 className="font-bold text-foreground">The Structural Barrier SikaFields Solves</h4>
+              </div>
+              <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                Despite enormous demand, structural barriers prevent rural smallholders from participating. The principal constraint is the <strong className="text-foreground">absence of continuous, auditable, plot-level data</strong> acceptable to registries. Without it, registries will not issue credits and buyers will not transact.
+              </p>
+              <ul className="space-y-2.5">
+                {[
+                  "High monitoring costs and complexity of verification standards",
+                  "Land tenure uncertainty and historical integrity concerns",
+                  "No MRV infrastructure scaled to smallholder plots",
+                  "Ghana and Kenya policy reforms create frameworks — but supply needs operational MRV",
+                ].map((point, i) => (
+                  <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-2" />
+                    {point}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          </div>
+
           {/* Closing statement */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -1182,8 +1292,8 @@ function AboutSection() {
             className="bg-primary/5 border border-primary/15 rounded-3xl p-8 md:p-10 text-center max-w-4xl mx-auto"
           >
             <p className="text-lg text-muted-foreground leading-relaxed">
-              SikaFields is positioned at the intersection of this demand — with registry-grade MRV, field-verified farmer data from the Esoko network, and institutional-grade compliance infrastructure — to deliver the{" "}
-              <strong className="text-foreground">high-integrity African carbon removals</strong> that EU, Gulf, and global corporate buyers are actively seeking.
+              SikaFields is the infrastructure layer that closes this gap — with registry-grade MRV rooted in Esoko's 17-year field network, biometric plot-level data from the SikaFields App, and transparent farmer payment rails — delivering the{" "}
+              <strong className="text-foreground">high-integrity African agroforestry credits</strong> that EU, Gulf, and global corporate buyers are actively seeking and cannot yet source at scale.
             </p>
           </motion.div>
         </div>
@@ -1459,6 +1569,9 @@ function LeadershipSection() {
       role: "Strategic Partnerships & Capital",
       initials: "HM",
       color: "from-amber-600 to-orange-800",
+      bgImage: "/hope-mbakadi.jpg",
+      bgSize: "cover",
+      bgPos: "center 15%",
       credential: "Capital & Partnerships",
       credentialSub: "Investor Relations · Strategic Growth",
       domains: ["Capital Raising", "Strategic Partnerships", "Investor Relations"],
@@ -1688,14 +1801,14 @@ function LeadershipSection() {
 
 function TrustWallSection() {
   const proofs = [
-    { type: "stat", category: "Farmer Impact", headline: "47,000+", sub: "Smallholder farmers enrolled across Africa & India", color: "#16a34a", bg: "#f0faf4", border: "#bbf7d0", owners: [{ name: "Daniel Asare-Kyei", role: "CEO", bgPos: "0% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Charlotte Owusu-Ansah", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", img: "leadership" }] },
-    { type: "stat", category: "Climate Outcome", headline: "2.3M tCO₂", sub: "Verified carbon credits sequestered to date", color: "#0f766e", bg: "#f0fdfa", border: "#99f6e4", owners: [{ name: "Valentijn Venus", role: "CPRO", bgPos: "100% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Vijay Palat", role: "CSSO", bgPos: "47% 82%", bgSize: "320% 265%", img: "leadership" }] },
-    { type: "cert", category: "Regulatory", headline: "DIFC Registered", sub: "Dubai International Financial Centre entity — global institutional access", color: "#0891b2", bg: "#f0f9ff", border: "#bae6fd", owners: [{ name: "William Osei Agyemang", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Vijay Palat", role: "CSSO", bgPos: "47% 82%", bgSize: "320% 265%", img: "leadership" }] },
-    { type: "stat", category: "Geographical Reach", headline: "4 Countries", sub: "Active operations in Ghana, Kenya, India, and Nigeria", color: "#b45309", bg: "#fffbeb", border: "#fde68a", owners: [{ name: "Charlotte Owusu-Ansah", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", img: "leadership" }, { name: "Daniel Asare-Kyei", role: "CEO", bgPos: "0% 6%", bgSize: "320% 265%", img: "leadership" }] },
-    { type: "cert", category: "Scientific Integrity", headline: "VCS + CCB Standards", sub: "Verra Verified Carbon Standard with Climate, Community & Biodiversity co-benefits", color: "#7c3aed", bg: "#faf5ff", border: "#e9d5ff", owners: [{ name: "Valentijn Venus", role: "CPRO", bgPos: "100% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Dr. Cheryl Sterling", role: "Policy Advisor", bgPos: "50% 42%", bgSize: "320% 340%", img: "advisory" }] },
-    { type: "stat", category: "Financial Structure", headline: "$12M+", sub: "Capital raised across development finance and climate impact investors", color: "#ca8a04", bg: "#fefce8", border: "#fde68a", owners: [{ name: "William Osei Agyemang", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Derrick Adu Gyamfi", role: "Capital Advisor", bgPos: "0% 42%", bgSize: "320% 340%", img: "advisory" }] },
-    { type: "cert", category: "Farmer Retention", headline: "94%", sub: "Annual farmer re-enrollment rate — the highest in-class retention signal", color: "#16a34a", bg: "#f0faf4", border: "#bbf7d0", owners: [{ name: "Charlotte Owusu-Ansah", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", img: "leadership" }, { name: "Festus W. Amoyaw", role: "Agribiz Advisor", bgPos: "100% 42%", bgSize: "320% 340%", img: "advisory" }] },
-    { type: "cert", category: "Legal Framework", headline: "Multi-Jurisdiction", sub: "Legal framework covering Ghana, India, Nigeria, and UAE/DIFC", color: "#dc2626", bg: "#fff5f5", border: "#fecaca", owners: [{ name: "Nana Ama Boateng-Kagyah", role: "Legal Advisor", bgPos: "0% 90%", bgSize: "320% 340%", img: "advisory" }, { name: "William Osei Agyemang", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", img: "leadership" }] },
+    { type: "stat", category: "Farmers Enrolled", headline: "47,000+", sub: "Verified smallholder farmers enrolled — primarily across Ghana's Ashanti, Brong-Ahafo, Northern and Upper East regions", color: "#16a34a", bg: "#f0faf4", border: "#bbf7d0", owners: [{ name: "Daniel Asare-Kyei", role: "CEO", bgPos: "0% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Charlotte Owusu-Ansah", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", img: "leadership" }] },
+    { type: "stat", category: "Tonnes CO₂ Sequestered", headline: "47,000+", sub: "Verified tonnes of CO₂ sequestered across enrolled plots — measured by satellite and validated by independent verifiers", color: "#0f766e", bg: "#f0fdfa", border: "#99f6e4", owners: [{ name: "Valentijn Venus", role: "CPRO", bgPos: "100% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Vijay Palat", role: "CSSO", bgPos: "47% 82%", bgSize: "320% 265%", img: "leadership" }] },
+    { type: "stat", category: "Farmer Earnings", headline: "2.3M", sub: "GHS 2.3M disbursed directly to farmer wallets via MTN MoMo and Vodafone Cash — 60% of carbon revenue returned to growers", color: "#b45309", bg: "#fffbeb", border: "#fde68a", owners: [{ name: "William Osei Agyemang", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Charlotte Owusu-Ansah", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", img: "leadership" }] },
+    { type: "stat", category: "Carbon Revenue", headline: "$18.4M", sub: "Carbon revenue generated across verified agroforestry projects — distributed to farmers, operations, and reinvested in expansion", color: "#ca8a04", bg: "#fefce8", border: "#fde68a", owners: [{ name: "William Osei Agyemang", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Derrick Adu Gyamfi", role: "Capital Advisor", bgPos: "0% 42%", bgSize: "320% 340%", img: "advisory" }] },
+    { type: "cert", category: "Verification Rate", headline: "98%", sub: "Plot-level verification accuracy confirmed across 47,000+ enrolled plots — satellite cross-referenced with field agent ground-truth data", color: "#7c3aed", bg: "#faf5ff", border: "#e9d5ff", owners: [{ name: "Valentijn Venus", role: "CPRO", bgPos: "100% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Dr. Cheryl Sterling", role: "Policy Advisor", bgPos: "50% 42%", bgSize: "320% 340%", img: "advisory" }] },
+    { type: "cert", category: "Regulatory", headline: "DIFC Registered", sub: "Dubai International Financial Centre entity — enabling institutional access to Gulf and EU compliance buyers", color: "#0891b2", bg: "#f0f9ff", border: "#bae6fd", owners: [{ name: "William Osei Agyemang", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", img: "leadership" }, { name: "Vijay Palat", role: "CSSO", bgPos: "47% 82%", bgSize: "320% 265%", img: "leadership" }] },
+    { type: "cert", category: "Farmer Retention", headline: "96%", sub: "Annual farmer re-enrollment rate in Ghana — driven by consistent mobile money payments and visible income uplift", color: "#16a34a", bg: "#f0faf4", border: "#bbf7d0", owners: [{ name: "Charlotte Owusu-Ansah", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", img: "leadership" }, { name: "Festus W. Amoyaw", role: "Agribiz Advisor", bgPos: "100% 42%", bgSize: "320% 340%", img: "advisory" }] },
+    { type: "cert", category: "Legal Framework", headline: "Multi-Jurisdiction", sub: "Legal structure spanning Ghana, India, Nigeria, and UAE/DIFC — covering full farmer-to-registry-to-buyer chain", color: "#dc2626", bg: "#fff5f5", border: "#fecaca", owners: [{ name: "Nana Ama Boateng-Kagyah", role: "Legal Advisor", bgPos: "0% 90%", bgSize: "320% 340%", img: "advisory" }, { name: "William Osei Agyemang", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", img: "leadership" }] },
   ];
 
   return (
@@ -1767,11 +1880,10 @@ function TrustWallSection() {
 
 function FieldDispatchesSection() {
   const dispatches = [
-    { from: "Daniel Asare-Kyei", suffix: "PhD", role: "CEO", bgPos: "0% 6%", bgSize: "320% 265%", color: "#16a34a", date: "Mar 19, 2026", subject: "Carbon Market Update — Q1 2026", body: "REDD+ pricing moved up 14% this quarter on renewed demand from European compliance buyers. Our Ghana farm pilots are now generating verified offsets at $24/tonne ex-farm — above our underwriting assumption of $18. The pipeline for additional 12,000 hectares in the Northern Region is on track for Q3 enrollment. DIFC registration is opening institutional conversations we couldn't have 18 months ago.", tag: "Market Intel" },
-    { from: "William Osei Agyemang", suffix: "", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", color: "#ca8a04", date: "Mar 17, 2026", subject: "Capital Structure Note — Series A Progress", body: "The Series A close is progressing well. Lead investor due diligence on our DIFC structure completed last week — no material issues raised. We're carrying a 2.1x coverage ratio on our current carbon receivables. Working capital is fully funded through Q4. I've engaged two development finance institutions for the blended finance tranche; term sheets expected by end of April.", tag: "Finance" },
-    { from: "Valentijn Venus", suffix: "", role: "CPRO", bgPos: "100% 6%", bgSize: "320% 265%", color: "#7c3aed", date: "Mar 15, 2026", subject: "MRV Field Report — Q1 Satellite Validation", body: "Latest satellite validation pass confirms 98.7% accuracy across all 47,000 enrolled plots. We identified 340 plots with anomalous NDVI readings — field teams have been dispatched. Our new soil carbon algorithm (v3.1) is performing within ±2.3% of direct measurement in the Ghana pilot. This is the tightest variance we've achieved. Verra review of our updated PDD is scheduled for April 8.", tag: "Science" },
-    { from: "Charlotte Owusu-Ansah", suffix: "", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", color: "#db2777", date: "Mar 14, 2026", subject: "Ops Dispatch — Q1 Field Coordinator Training Complete", body: "127 community field coordinators across Ghana and India completed the updated enrollment protocol training. Completion rate: 94%. We've promoted 12 coordinators to senior field agent roles — all internal promotions. The WhatsApp-based farmer communication system now covers 89% of enrolled farmers with weekly carbon balance updates in local languages. Farmer satisfaction scores sit at 4.6/5.", tag: "Operations" },
-    { from: "Vijay Palat", suffix: "", role: "CSSO", bgPos: "47% 82%", bgSize: "320% 265%", color: "#0f766e", date: "Mar 12, 2026", subject: "ESG Briefing — Paris Alignment Confirmed", body: "Third-party assessment of our portfolio confirms full alignment with Paris Agreement 1.5°C pathway. We've completed our first TCFD disclosure — no material climate risks identified in the operating model. GRI 305-1 and 305-2 reporting is filed. SDG alignment mapping covers SDGs 1, 2, 13, 15, and 17. I'm presenting our impact thesis at the IFC Climate Finance Summit in April.", tag: "ESG" },
+    { from: "Daniel Asare-Kyei", suffix: "PhD", role: "CEO", bgPos: "0% 6%", bgSize: "320% 265%", color: "#16a34a", date: "Mar 19, 2026", subject: "Ghana Field Update — Brong-Ahafo Agroforestry Expansion", body: "Our Brong-Ahafo region cocoa-shade agroforestry cluster has enrolled an additional 4,200 smallholders this quarter, bringing the Ghanaian total to over 28,000 active farmers. Kofi Mensah's plot in Techiman North recorded 1.4 tCO₂ sequestered in the first 90 days — above our baseline projection. Community field days in Sunyani and Kintampo are driving organic referrals at a 32% rate. Northern Region pipeline is on track for Q3 enrollment.", tag: "Field Report" },
+    { from: "William Osei Agyemang", suffix: "", role: "CFO", bgPos: "50% 6%", bgSize: "320% 265%", color: "#ca8a04", date: "Mar 17, 2026", subject: "Farmer Revenue Distribution — Q1 Ghana Payments", body: "Q1 mobile money disbursements to Ghanaian farmers totalled GHS 2.84M, disbursed via MTN MoMo and Vodafone Cash across Ashanti, Brong-Ahafo, Northern and Upper East regions. Average farmer payout: GHS 101 per quarter — representing a 34% income supplement above baseline. In-kind seedlings and agronomic inputs delivered to 6,400 households in Tamale and Wa districts. Working capital for Q2 disbursements is fully secured.", tag: "Finance" },
+    { from: "Valentijn Venus", suffix: "", role: "CPRO", bgPos: "100% 6%", bgSize: "320% 265%", color: "#7c3aed", date: "Mar 15, 2026", subject: "MRV Validation — Ashanti & Northern Region Plots", body: "Satellite validation pass across 47,000+ enrolled plots confirms 98% accuracy. Ghana-specific: our shea belt plots in the Upper East (Bolgatanga cluster) are showing ±1.9% variance from direct soil measurement — our best result yet. Millet and cassava intercropping in Northern Region adds measurable biomass accumulation beyond baseline. Field teams dispatched to 212 flagged NDVI anomalies in Kumasi peri-urban zone. Verra PDD review scheduled for April.", tag: "Science" },
+    { from: "Charlotte Owusu-Ansah", suffix: "", role: "CTAO", bgPos: "0% 82%", bgSize: "320% 265%", color: "#db2777", date: "Mar 14, 2026", subject: "Ops Update — Community Field Coordinator Network, Ghana", body: "84 community field coordinators across Ashanti, Brong-Ahafo, Northern and Upper East regions completed our Q1 refresher training in Kumasi and Tamale. 11 coordinators promoted to Senior Field Agent — all drawn from enrolled farming communities. The SikaFields App WhatsApp integration now delivers weekly carbon balance updates in Twi, Dagbani, and Hausa. Farmer satisfaction across Ghana sits at 4.7/5; re-enrollment rate 96%.", tag: "Operations" },
   ];
 
   return (
@@ -2009,34 +2121,58 @@ function HowItWorks() {
           {activeTab === "farmers" ? (
             <motion.div key="farmers"
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-              className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"
+              className="grid lg:grid-cols-[280px_1fr] gap-10 items-start"
             >
-              {farmerSteps.map((step, idx) => (
-                <motion.div key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="relative bg-background rounded-3xl p-6 border border-border shadow-sm hover:shadow-lg hover:shadow-primary/5 transition-all group"
-                >
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 group-hover:-translate-y-1 transition-transform">
-                      {step.icon}
-                    </div>
-                    <span className="text-3xl">{step.emoji}</span>
+              {/* Phone mockup */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="hidden lg:flex flex-col items-center"
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-b from-primary/20 to-accent/10 blur-2xl scale-110 pointer-events-none" />
+                  <div className="relative bg-[#0a0a0a] rounded-[2.5rem] p-2 shadow-2xl border border-white/10 w-[230px]">
+                    <img
+                      src="/mobile-app.jpeg"
+                      alt="SikaFields mobile app"
+                      className="rounded-[2rem] w-full object-cover"
+                    />
                   </div>
-                  <div className="w-6 h-6 rounded-full bg-secondary text-white text-xs font-bold flex items-center justify-center mb-3">{idx + 1}</div>
-                  <h4 className="text-lg font-bold text-foreground mb-3">{step.title}</h4>
-                  <ul className="space-y-2">
-                    {step.items.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              ))}
+                  <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-20 h-1.5 bg-black rounded-full opacity-30 blur-sm" />
+                </div>
+                <p className="mt-5 text-center text-xs text-muted-foreground font-medium">SikaFields App — works offline</p>
+              </motion.div>
+
+              {/* Steps grid */}
+              <div className="grid sm:grid-cols-2 gap-5">
+                {farmerSteps.map((step, idx) => (
+                  <motion.div key={idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="relative bg-background rounded-3xl p-6 border border-border shadow-sm hover:shadow-lg hover:shadow-primary/5 transition-all group"
+                  >
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 group-hover:-translate-y-1 transition-transform">
+                        {step.icon}
+                      </div>
+                      <span className="text-3xl">{step.emoji}</span>
+                    </div>
+                    <div className="w-6 h-6 rounded-full bg-secondary text-white text-xs font-bold flex items-center justify-center mb-3">{idx + 1}</div>
+                    <h4 className="text-lg font-bold text-foreground mb-3">{step.title}</h4>
+                    <ul className="space-y-2">
+                      {step.items.map((item, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                          <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
           ) : (
             <motion.div key="buyers"
