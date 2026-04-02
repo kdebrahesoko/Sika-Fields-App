@@ -1577,9 +1577,9 @@ function LeadershipSection() {
       role: "Strategic Partnerships & Capital",
       initials: "HM",
       color: "from-amber-600 to-orange-800",
-      bgImage: "/hope-mbakadi.jpg",
+      bgImage: "/hope-jr-mbakadi.png",
       bgSize: "cover",
-      bgPos: "center 15%",
+      bgPos: "center 12%",
       credential: "Capital & Partnerships",
       credentialSub: "Investor Relations · Strategic Growth",
       domains: ["Capital Raising", "Strategic Partnerships", "Investor Relations"],
@@ -1708,6 +1708,111 @@ function LeadershipSection() {
             <LeaderFlipCard key={i} person={person} delay={i * 0.07} />
           ))}
         </div>
+
+        {/* Advisory Board */}
+        {(() => {
+          const advisors = [
+            { name: "Derrick Adu Gyamfi", credential: "Capital Markets & Finance", credentialSub: "Advisory & Investment Strategy", focus: "Capital markets guidance", domains: ["Capital Markets", "Advisory", "Governance"], bgPos: "0% 42%", bgSize: "320% 340%", color: "#166534", linkedin: "https://www.linkedin.com/in/derick-adu-gyamfi-esq-7011901b4/" },
+            { name: "Dr. Cheryl Sterling", credential: "Doctorate — Policy Research", credentialSub: "Sustainability & ESG Frameworks", focus: "Policy research & ESG", domains: ["Policy Research", "Sustainability", "ESG"], bgPos: "50% 42%", bgSize: "320% 340%", color: "#0f766e", linkedin: "https://www.linkedin.com/in/cheryl-sterling-a33890aa/" },
+            { name: "Festus William Amoyaw", credential: "Agribusiness Development", credentialSub: "Agriculture & Rural Partnerships", focus: "Agribusiness & rural dev.", domains: ["Agribusiness", "Rural Dev.", "Partnerships"], bgPos: "100% 42%", bgSize: "320% 340%", color: "#b45309", linkedin: "https://www.linkedin.com/in/festus-william-amoyaw-13152b7/" },
+            { name: "Nana Ama Boateng-Kagyah", credential: "Legal & Compliance", credentialSub: "Corporate Law & Governance", focus: "Legal & compliance", domains: ["Legal", "Compliance", "Governance"], bgPos: "0% 90%", bgSize: "320% 340%", color: "#166534", linkedin: "https://www.linkedin.com/in/nana-ama-boateng-b7b1915/" },
+            { name: "Olubgenga Olanrewaju Awe", credential: "The Alternative Bank", credentialSub: "Structured Trade & Commodities Finance", focus: "Structured trade finance", domains: ["Trade Finance", "Commodities", "Banking"], bgPos: "100% 90%", bgSize: "320% 340%", color: "#166534", linkedin: "" },
+          ];
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mb-20"
+            >
+              {/* Section header */}
+              <div className="flex items-center gap-4 mb-10">
+                <div className="flex-1 h-px bg-border" />
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/20">
+                  <Building2 className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-semibold text-primary">Advisory Board</span>
+                </div>
+                <div className="flex-1 h-px bg-border" />
+              </div>
+              <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
+                Domain experts advising on capital markets, legal frameworks, agribusiness, policy research, and structured finance.
+              </p>
+
+              {/* Advisor cards */}
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {advisors.map((a, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.06 }}
+                    className="bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md transition-shadow group"
+                  >
+                    <div className="h-1.5 w-full" style={{ backgroundColor: a.color }} />
+                    <div className="p-5 flex items-start gap-4">
+                      <div
+                        className="w-16 h-16 rounded-xl shrink-0"
+                        style={{
+                          backgroundImage: "url('/advisory-board.png')",
+                          backgroundSize: a.bgSize,
+                          backgroundPosition: a.bgPos,
+                          backgroundRepeat: "no-repeat",
+                          outline: `3px solid ${a.color}25`,
+                          outlineOffset: "2px",
+                        }}
+                      />
+                      <div className="flex-1 min-w-0 pt-0.5">
+                        <p className="font-bold text-foreground text-sm leading-snug">{a.name}</p>
+                        <p className="text-xs font-semibold mt-0.5" style={{ color: a.color }}>{a.credential}</p>
+                        <p className="text-xs text-muted-foreground leading-snug mt-0.5">{a.credentialSub}</p>
+                      </div>
+                    </div>
+                    <div className="px-5 pb-4">
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {a.domains.map((d, di) => (
+                          <span
+                            key={di}
+                            className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                            style={{ backgroundColor: `${a.color}15`, color: a.color }}
+                          >
+                            {d}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">{a.focus}</span>
+                        {a.linkedin && (
+                          <a
+                            href={a.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-6 h-6 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity"
+                            style={{ backgroundColor: a.color }}
+                            aria-label={`${a.name} on LinkedIn`}
+                          >
+                            <svg className="w-3 h-3 fill-white" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* View full advisory board CTA */}
+              <div className="mt-8 text-center">
+                <a
+                  href="/advisory"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-primary hover:text-primary/80 transition-colors border border-primary/30 px-5 py-2.5 rounded-full hover:bg-primary/5"
+                >
+                  View Full Advisory Board
+                  <ChevronRight className="w-4 h-4" />
+                </a>
+              </div>
+            </motion.div>
+          );
+        })()}
 
         {/* Ground Reports — Advisory Board by Territory */}
         <motion.div
