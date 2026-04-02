@@ -1456,7 +1456,7 @@ function LeadershipSection() {
     },
     {
       name: "Hope Jr. Mbakadi",
-      role: "Capital Relationships & Strategic Partnerships",
+      role: "Strategic Partnerships & Capital",
       initials: "HM",
       color: "from-amber-600 to-orange-800",
       credential: "Capital & Partnerships",
