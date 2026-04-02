@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CountUp from "react-countup";
 import {
@@ -13,6 +13,7 @@ import {
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import HeroCanvas from "@/components/HeroCanvas";
 
 // Constants & Data
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
@@ -534,6 +535,7 @@ function Navbar() {
 }
 
 function HeroSection() {
+  const heroRef = useRef<HTMLElement>(null);
   const [activeSlide, setActiveSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
@@ -579,20 +581,18 @@ function HeroSection() {
   ];
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-[hsl(160_28%_6%)] via-[hsl(150_25%_9%)] to-[hsl(145_30%_12%)]">
-      {/* Ambient glow orbs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[700px] h-[700px] rounded-full bg-primary/20 blur-[130px]" />
-        <div className="absolute bottom-[-15%] right-[-5%] w-[600px] h-[600px] rounded-full bg-accent/15 blur-[120px]" />
-        <div className="absolute top-[40%] left-[35%] w-[400px] h-[400px] rounded-full bg-secondary/10 blur-[100px]" />
-        {/* Subtle grid overlay */}
-        <div className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `linear-gradient(hsl(0 0% 100% / 0.6) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 100% / 0.6) 1px, transparent 1px)`,
-            backgroundSize: "60px 60px"
-          }}
-        />
-      </div>
+    <section ref={heroRef} className="relative min-h-screen flex items-center overflow-hidden bg-[#050d08]">
+      {/* Animated canvas background */}
+      <HeroCanvas containerRef={heroRef} />
+
+      {/* Subtle grid overlay on top of canvas */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-[0.03]"
+        style={{
+          backgroundImage: `linear-gradient(hsl(0 0% 100% / 0.6) 1px, transparent 1px), linear-gradient(90deg, hsl(0 0% 100% / 0.6) 1px, transparent 1px)`,
+          backgroundSize: "60px 60px",
+        }}
+      />
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 lg:py-0 w-full">
         <div className="grid lg:grid-cols-2 gap-12 xl:gap-20 items-center min-h-screen lg:min-h-0 lg:py-28">

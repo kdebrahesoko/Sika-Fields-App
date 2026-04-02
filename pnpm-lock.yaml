@@ -416,6 +416,9 @@ importers:
       '@workspace/integrations-openai-ai-react':
         specifier: workspace:*
         version: link:../../lib/integrations-openai-ai-react
+      gsap:
+        specifier: ^3.14.2
+        version: 3.14.2
       react-countup:
         specifier: ^6.5.3
         version: 6.5.3(react@19.1.0)
@@ -4455,6 +4458,9 @@ packages:
   groq@3.99.0:
     resolution: {integrity: sha512-ZwKAWzvVCw51yjmIf5484KgsAzZAlGTM4uy9lki4PjAYxcEME2Xf93d31LhHzgUAr2JI79H+cNKoRjDHdv1BXQ==}
     engines: {node: '>=18'}
+
+  gsap@3.14.2:
+    resolution: {integrity: sha512-P8/mMxVLU7o4+55+1TCnQrPmgjPKnwkzkXOK1asnR9Jg2lna4tEY5qBJjMmAaOBDDZWtlRjBXjLa0w53G/uBLA==}
 
   gunzip-maybe@1.4.2:
     resolution: {integrity: sha512-4haO1M4mLO91PW57BMsDFf75UmwoRX0GkdD+Faw+Lr+r/OZrOCS0pIBwOL1xCKQqnQzbNFGgK2V2CpBUPeFNTw==}
@@ -11426,6 +11432,8 @@ snapshots:
       - supports-color
 
   groq@3.99.0: {}
+
+  gsap@3.14.2: {}
 
   gunzip-maybe@1.4.2:
     dependencies:
