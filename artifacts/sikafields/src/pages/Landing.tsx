@@ -599,7 +599,7 @@ function HeroSection() {
               transition={{ delay: 0.35, duration: 0.6 }}
               className="text-base sm:text-lg text-white/65 leading-relaxed mb-10 max-w-lg"
             >
-              Join <strong className="text-white/90 font-semibold">10,000+ African and Indian farmers</strong> earning income through verified carbon removal while regenerating their land.
+              Built on Esoko's 17-year field infrastructure and access to <strong className="text-white/90 font-semibold">2M+ verified farmers</strong>, we deliver registry-grade carbon credits while returning <strong className="text-white/90 font-semibold">60% of revenue</strong> directly to smallholders across Africa and India.
             </motion.p>
 
             {/* CTAs */}
@@ -660,6 +660,13 @@ function HeroSection() {
               <div className="flex items-center gap-2 text-sm text-white/60">
                 <CheckCircle2 className="w-4 h-4 text-primary" />
                 <span>Open Forest Protocol certified</span>
+              </div>
+
+              <div className="h-8 w-px bg-white/15 hidden sm:block" />
+
+              <div className="flex items-center gap-2 text-sm text-white/60">
+                <DollarSign className="w-4 h-4 text-secondary" />
+                <span><strong className="text-white">60%</strong> revenue to farmers</span>
               </div>
             </motion.div>
           </motion.div>
@@ -921,6 +928,259 @@ function AboutSection() {
             </div>
           </div>
         </div>
+
+        {/* ── Company Overview ── */}
+        <div className="mt-28 pt-24 border-t border-border">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center max-w-3xl mx-auto mb-16"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary font-semibold text-sm mb-6 border border-primary/20">
+              <Sprout className="w-4 h-4" /> Company Overview
+            </div>
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-5">
+              Full-lifecycle credits backed by{" "}
+              <span className="text-primary">17 years of field infrastructure</span>
+            </h2>
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              A spinout of Esoko, SikaFields leverages 17 years of digital agri-infrastructure and direct access to 2 million verified smallholder farmers to manage the complete carbon credit lifecycle — from enrollment through MRV, registry issuance, and transparent benefit distribution.
+            </p>
+          </motion.div>
+
+          {/* 4 feature pillars */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-16">
+            {[
+              {
+                icon: <SatelliteDish className="w-5 h-5" />,
+                color: "bg-primary/10 text-primary border-primary/15",
+                title: "Esoko Foundation",
+                body: "Built on 17 years of mobile field infrastructure with direct access to 2M+ verified smallholder farmers across Africa and India.",
+              },
+              {
+                icon: <Smartphone className="w-5 h-5" />,
+                color: "bg-accent/10 text-accent border-accent/15",
+                title: "Insyt Technology",
+                body: "Biometric identity, GPS plot mapping, mobile field logging, satellite-aligned data capture, and mobile wallet integration — all in one platform.",
+              },
+              {
+                icon: <ShieldCheck className="w-5 h-5" />,
+                color: "bg-teal-50 text-teal-700 border-teal-200",
+                title: "Dual Registry Track",
+                body: "Plots verified under Open Forest Protocol (OFP, Q4 2026 target) and Verra VM0047 methodology (Q4 2027 target) for maximum market coverage.",
+              },
+              {
+                icon: <DollarSign className="w-5 h-5" />,
+                color: "bg-secondary/10 text-secondary border-secondary/20",
+                title: "Farmer-First Revenue",
+                body: "60% of carbon revenue goes directly to farmers — 32% as mobile cash payments and 28% as in-kind seedlings and agronomic services.",
+              },
+            ].map((f, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className="bg-background rounded-2xl border border-border p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+              >
+                <div className={cn("w-11 h-11 rounded-xl border flex items-center justify-center mb-4", f.color)}>
+                  {f.icon}
+                </div>
+                <h4 className="font-bold text-foreground mb-2">{f.title}</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.body}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Revenue model + Video side by side */}
+          <div className="grid lg:grid-cols-2 gap-10 items-start">
+            {/* Revenue split */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="bg-background rounded-3xl border border-border p-8 shadow-sm"
+            >
+              <h3 className="text-xl font-bold text-foreground mb-1">How Farmer Revenue Works</h3>
+              <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
+                Of every carbon credit sold, farmers receive 60% of the revenue — split between direct mobile payments and practical in-kind support.
+              </p>
+
+              {/* Stacked bar */}
+              <div className="flex h-10 rounded-xl overflow-hidden mb-4 shadow-inner">
+                <div className="bg-primary flex items-center justify-center transition-all" style={{ width: "32%" }}>
+                  <span className="text-white text-xs font-bold">32%</span>
+                </div>
+                <div className="bg-accent flex items-center justify-center transition-all" style={{ width: "28%" }}>
+                  <span className="text-white text-xs font-bold">28%</span>
+                </div>
+                <div className="bg-muted flex items-center justify-center transition-all" style={{ width: "40%" }}>
+                  <span className="text-muted-foreground text-xs font-medium">40%</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {[
+                  {
+                    pct: "32%",
+                    label: "Mobile Cash Payments",
+                    desc: "Disbursed directly to farmer wallets via Insyt / DigiMakt",
+                    cls: "bg-primary/8 border-primary/20 text-primary",
+                    dot: "bg-primary",
+                  },
+                  {
+                    pct: "28%",
+                    label: "In-Kind Benefits",
+                    desc: "Seedlings, agronomic services, training, and MRV support via DigiMakt",
+                    cls: "bg-accent/8 border-accent/20 text-accent",
+                    dot: "bg-accent",
+                  },
+                  {
+                    pct: "40%",
+                    label: "Operations & MRV",
+                    desc: "Field teams, satellite monitoring, registry management, and platform costs",
+                    cls: "bg-muted border-border text-muted-foreground",
+                    dot: "bg-muted-foreground/40",
+                  },
+                ].map((row, i) => (
+                  <div key={i} className={cn("flex items-start gap-4 p-4 rounded-xl border", row.cls)}>
+                    <div className="shrink-0 font-display font-black text-lg leading-none pt-0.5">{row.pct}</div>
+                    <div>
+                      <p className="font-semibold text-sm mb-0.5">{row.label}</p>
+                      <p className="text-xs opacity-70 leading-relaxed">{row.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Video embed + caption */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-5"
+            >
+              <div className="rounded-3xl overflow-hidden border border-border shadow-lg" style={{ aspectRatio: "16/9" }}>
+                <iframe
+                  width="100%"
+                  height="100%"
+                  src="https://www.youtube.com/embed/9EgGW_rXwqo?rel=0&modestbranding=1"
+                  title="Carbon Credits and Smallholder Farmers"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ display: "block", width: "100%", height: "100%" }}
+                />
+              </div>
+
+              <div className="bg-muted/40 rounded-2xl p-6 border border-border">
+                <h4 className="font-bold text-foreground mb-2">Auditable from Field to Registry</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Every seedling, agronomic visit, and payment is logged in Insyt and linked to the plot-level MRV record — creating a continuous, audit-ready chain from farmer enrollment through independent validator review and registry issuance.
+                </p>
+              </div>
+
+              {/* Registry timeline */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { registry: "Open Forest Protocol", code: "OFP", target: "Q4 2026", color: "bg-primary/10 border-primary/25 text-primary" },
+                  { registry: "Verra VM0047", code: "VCS", target: "Q4 2027", color: "bg-accent/10 border-accent/25 text-accent" },
+                ].map((r, i) => (
+                  <div key={i} className={cn("rounded-2xl border p-4", r.color)}>
+                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-60 mb-1">{r.code}</p>
+                    <p className="font-bold text-sm mb-1">{r.registry}</p>
+                    <p className="text-xs opacity-70">Target issuance</p>
+                    <p className="font-bold text-base">{r.target}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* ── Market Opportunity ── */}
+        <div className="mt-28 pt-24 border-t border-border">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center max-w-3xl mx-auto mb-16"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 text-secondary font-semibold text-sm mb-6 border border-secondary/20">
+              <TrendingUp className="w-4 h-4" /> Market Opportunity
+            </div>
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-5">
+              Global demand for carbon removals is{" "}
+              <span className="text-primary">accelerating</span>
+            </h2>
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              Regulators and institutional buyers are shifting to verified removal credits as the credible instrument for balancing residual emissions — creating a structural, multi-decade demand tailwind.
+            </p>
+          </motion.div>
+
+          {/* 3 stat pillars */}
+          <div className="grid md:grid-cols-3 gap-8 mb-14">
+            {[
+              {
+                value: "43%",
+                label: "Global Emissions Cut Required",
+                sub: "Required reduction by 2030 to stay within a 1.5°C pathway — driving urgent, large-scale carbon removal demand.",
+                gradient: "from-primary to-emerald-800",
+                icon: <Wind className="w-6 h-6" />,
+              },
+              {
+                value: "2036",
+                label: "EU Compliance Window Opens",
+                sub: "The European Union plans to accept credits from developing countries for compliance beginning in 2036, alongside a 90% emissions reduction target by 2040.",
+                gradient: "from-blue-700 to-blue-900",
+                icon: <Globe className="w-6 h-6" />,
+              },
+              {
+                value: "$100B+",
+                label: "Gulf Net-Zero Commitments",
+                sub: "Committed across Gulf national net-zero plans, with corporate procurement actively shifting toward verified removal credits from emerging markets.",
+                gradient: "from-amber-600 to-orange-800",
+                icon: <Building2 className="w-6 h-6" />,
+              },
+            ].map((p, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.12 }}
+                className={cn("relative overflow-hidden rounded-3xl p-8 text-white shadow-xl bg-gradient-to-br", p.gradient)}
+              >
+                <div className="absolute -bottom-8 -right-8 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
+                <div className="absolute -top-6 -left-6 w-28 h-28 rounded-full bg-black/10 pointer-events-none" />
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center mb-6">
+                    {p.icon}
+                  </div>
+                  <p className="text-5xl font-display font-black mb-2 tracking-tight">{p.value}</p>
+                  <p className="font-bold text-base mb-3">{p.label}</p>
+                  <p className="text-white/65 text-sm leading-relaxed">{p.sub}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Closing statement */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-primary/5 border border-primary/15 rounded-3xl p-8 md:p-10 text-center max-w-4xl mx-auto"
+          >
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              SikaFields is positioned at the intersection of this demand — with registry-grade MRV, field-verified farmer data from the Esoko network, and institutional-grade compliance infrastructure — to deliver the{" "}
+              <strong className="text-foreground">high-integrity African carbon removals</strong> that EU, Gulf, and global corporate buyers are actively seeking.
+            </p>
+          </motion.div>
+        </div>
+
       </div>
     </section>
   );
@@ -1187,6 +1447,33 @@ function LeadershipSection() {
       flipColor: "#0f766e",
       linkedin: "https://www.linkedin.com/in/kwamefosu",
     },
+    {
+      name: "Hope Jr. Mbakadi",
+      role: "Strategic Partnerships & Capital",
+      initials: "HM",
+      color: "from-amber-600 to-orange-800",
+      credential: "Capital & Partnerships",
+      credentialSub: "Investor Relations · Strategic Growth",
+      domains: ["Capital Raising", "Strategic Partnerships", "Investor Relations"],
+      quote: "Advancing the company's capital relationships and strategic partnerships to drive long-term alignment and sustainable opportunity for SikaFields.",
+      flipColor: "#92400e",
+      linkedin: "https://www.linkedin.com/in/hope-mbakadi/",
+    },
+    {
+      name: "Peace Mbakadi",
+      role: "Business Development",
+      initials: "PM",
+      color: "from-primary to-teal-600",
+      bgImage: "/peace-mbakadi.jpg",
+      bgSize: "cover",
+      bgPos: "center 5%",
+      credential: "Business Development",
+      credentialSub: "Partnership Coordination · Operations",
+      domains: ["Business Development", "Partnerships", "Operations"],
+      quote: "Coordinating partnership projects and aligning operational efforts with partnership initiatives to ensure relationships are effectively maintained and progress.",
+      flipColor: "#166534",
+      linkedin: "https://www.linkedin.com/in/peace-mbakadi/",
+    },
   ];
 
   const groundReports = [
@@ -1283,7 +1570,7 @@ function LeadershipSection() {
           </div>
           <h2 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-4">Our Leadership</h2>
           <p className="text-muted-foreground text-lg leading-relaxed">
-            Five domain specialists, one mission. Hover any card to reveal the credential and expertise behind the title.
+            Eight domain specialists, one mission. Hover any card to reveal the credential and expertise behind the title.
           </p>
         </motion.div>
 
