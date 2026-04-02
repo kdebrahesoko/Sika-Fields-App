@@ -255,7 +255,7 @@ export function TopBar({ article }: { article: Article }) {
           <span className="sm:hidden">Back</span>
         </Link>
         <img
-          src="/sikafields-logo.png"
+          src="/sikafields-logo-new.png"
           alt="SikaFields"
           className="h-7 object-contain"
         />

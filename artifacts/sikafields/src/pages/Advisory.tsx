@@ -282,7 +282,7 @@ export default function AdvisoryPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to SikaFields
           </Link>
-          <img src="/sikafields-logo.png" alt="SikaFields" className="h-8 object-contain" />
+          <img src="/sikafields-logo-new.png" alt="SikaFields" className="h-8 object-contain" />
           <div className="w-28" />
         </div>
       </div>

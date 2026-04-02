@@ -495,7 +495,7 @@ export default function PostStudioPage() {
           </div>
           <div className="ml-auto">
             <img
-              src="/sikafields-logo.png"
+              src="/sikafields-logo-new.png"
               alt="SikaFields"
               className="h-7 object-contain"
             />

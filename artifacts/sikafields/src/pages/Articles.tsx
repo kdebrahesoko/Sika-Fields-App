@@ -296,7 +296,7 @@ export default function ArticlesPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to SikaFields
           </Link>
-          <img src="/sikafields-logo.png" alt="SikaFields" className="h-8 object-contain" />
+          <img src="/sikafields-logo-new.png" alt="SikaFields" className="h-8 object-contain" />
           <Link
             href="/admin/posts"
             className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors w-36 justify-end"

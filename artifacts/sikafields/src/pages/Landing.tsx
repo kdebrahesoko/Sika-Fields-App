@@ -14,6 +14,7 @@ import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import HeroCanvas from "@/components/HeroCanvas";
+import RotatingGlobe from "@/components/RotatingGlobe";
 
 // Constants & Data
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
@@ -296,7 +297,7 @@ function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
         <a href="/" className="flex items-center">
           <img
-            src="/sikafields-logo.png"
+            src="/sikafields-logo-new.png"
             alt="SikaFields"
             className="h-9 w-auto object-contain transition-all duration-300"
             style={{
@@ -536,43 +537,6 @@ function Navbar() {
 
 function HeroSection() {
   const heroRef = useRef<HTMLElement>(null);
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-
-  const slides = [
-    {
-      src: "/hero-carbon.png",
-      label: "Carbon Credit Markets",
-      caption: "2.3M tonnes CO₂ sequestered",
-      accent: "from-primary/20 via-transparent to-black/30",
-    },
-    {
-      src: "/hero-invest.png",
-      label: "Invest in Sustainability",
-      caption: "Verified credits. Measurable impact.",
-      accent: "from-emerald-900/30 via-transparent to-black/40",
-    },
-    {
-      src: "/hero-farmers.jpg",
-      label: "Smallholder Farmers",
-      caption: "10,000+ farmers across Africa & India",
-      accent: "from-green-900/30 via-transparent to-black/50",
-    },
-  ];
-
-  useEffect(() => {
-    if (!isAutoPlaying) return;
-    const timer = setInterval(() => {
-      setActiveSlide(prev => (prev + 1) % slides.length);
-    }, 4500);
-    return () => clearInterval(timer);
-  }, [isAutoPlaying, slides.length]);
-
-  const goTo = (i: number) => {
-    setActiveSlide(i);
-    setIsAutoPlaying(false);
-    setTimeout(() => setIsAutoPlaying(true), 8000);
-  };
 
   const floatingBadges = [
     { icon: <Leaf className="w-5 h-5 text-primary" />, label: "Credits Minted", value: "+12.5k Tonnes", bg: "bg-emerald-50", delay: 0, pos: "top-[18%] left-[-5%]" },
@@ -700,91 +664,22 @@ function HeroSection() {
             </motion.div>
           </motion.div>
 
-          {/* ── Right: Dynamic Image Slider ── */}
+          {/* ── Right: Rotating Globe ── */}
           <motion.div
             initial={{ opacity: 0, scale: 0.92, x: 30 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ duration: 0.9, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="relative hidden lg:block"
+            className="relative hidden lg:flex items-center justify-center"
           >
-            {/* Glow ring */}
-            <div className="absolute inset-4 rounded-[2.5rem] bg-primary/20 blur-3xl animate-glow" />
+            {/* Atmospheric glow behind globe */}
+            <div className="absolute inset-8 rounded-full bg-primary/15 blur-3xl animate-glow pointer-events-none" />
 
-            {/* Slider card */}
-            <div className="relative rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl shadow-black/40"
-              style={{ aspectRatio: "4/3" }}
+            {/* Globe container */}
+            <div
+              className="relative rounded-full overflow-hidden border border-primary/20 shadow-2xl shadow-black/60 w-full"
+              style={{ aspectRatio: "1/1" }}
             >
-              {/* Slide images — crossfade */}
-              {slides.map((slide, i) => (
-                <div
-                  key={i}
-                  className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-                  style={{ opacity: i === activeSlide ? 1 : 0, zIndex: i === activeSlide ? 1 : 0 }}
-                >
-                  <img
-                    src={slide.src}
-                    alt={slide.label}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className={cn("absolute inset-0 bg-gradient-to-br", slide.accent)} />
-                </div>
-              ))}
-
-              {/* Prev / Next arrows */}
-              <button
-                onClick={() => goTo((activeSlide - 1 + slides.length) % slides.length)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full glass-dark flex items-center justify-center hover:bg-white/20 transition-colors"
-                aria-label="Previous"
-              >
-                <ChevronRight className="w-4 h-4 text-white rotate-180" />
-              </button>
-              <button
-                onClick={() => goTo((activeSlide + 1) % slides.length)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full glass-dark flex items-center justify-center hover:bg-white/20 transition-colors"
-                aria-label="Next"
-              >
-                <ChevronRight className="w-4 h-4 text-white" />
-              </button>
-
-              {/* Bottom caption + dots */}
-              <div className="absolute bottom-0 left-0 right-0 z-20 px-5 pb-5 pt-12 bg-gradient-to-t from-black/60 to-transparent">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeSlide}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.35 }}
-                    className="mb-3"
-                  >
-                    <p className="text-white/50 text-xs font-medium uppercase tracking-widest mb-0.5">{slides[activeSlide].label}</p>
-                    <p className="text-white font-bold text-sm">{slides[activeSlide].caption}</p>
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Dot indicators + progress bar */}
-                <div className="flex items-center gap-2">
-                  {slides.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => goTo(i)}
-                      className="relative overflow-hidden h-1.5 rounded-full transition-all duration-300 focus:outline-none"
-                      style={{ width: i === activeSlide ? 32 : 8, background: "rgba(255,255,255,0.35)" }}
-                      aria-label={`Go to slide ${i + 1}`}
-                    >
-                      {i === activeSlide && (
-                        <motion.div
-                          className="absolute inset-0 rounded-full bg-white origin-left"
-                          initial={{ scaleX: 0 }}
-                          animate={{ scaleX: 1 }}
-                          transition={{ duration: 4.5, ease: "linear" }}
-                          key={activeSlide}
-                        />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <RotatingGlobe className="absolute inset-0" />
             </div>
 
             {/* Floating badges */}
@@ -2637,7 +2532,7 @@ function Footer() {
 
           {/* Brand + social */}
           <div className="col-span-2 lg:col-span-2">
-            <img src="/sikafields-logo.png" alt="SikaFields" className="h-10 w-auto mb-5" />
+            <img src="/sikafields-logo-new.png" alt="SikaFields" className="h-10 w-auto mb-5" />
             <p className="text-white/40 text-sm max-w-xs mb-7 leading-relaxed">
               Empowering smallholder farmers to participate in global carbon markets. Science-backed, community-powered.
             </p>

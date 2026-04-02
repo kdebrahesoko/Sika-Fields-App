@@ -571,7 +571,7 @@ export default function AdminComposerPage() {
               <LayoutDashboard className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">All posts</span>
             </Link>
-            <img src="/sikafields-logo.png" alt="SikaFields" className="h-7 object-contain" />
+            <img src="/sikafields-logo-new.png" alt="SikaFields" className="h-7 object-contain" />
           </div>
         </div>
       </div>
