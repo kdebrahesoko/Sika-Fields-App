@@ -668,6 +668,13 @@ function HeroSection() {
                 <DollarSign className="w-4 h-4 text-secondary" />
                 <span><strong className="text-white">60%</strong> revenue to farmers</span>
               </div>
+
+              <div className="h-8 w-px bg-white/15 hidden sm:block" />
+
+              <div className="flex items-center gap-2 text-sm text-white/60">
+                <MapPin className="w-4 h-4 text-white/40" />
+                <span>HQ Dubai · Operations Accra</span>
+              </div>
             </motion.div>
           </motion.div>
 
