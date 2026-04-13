@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MapPin, ChevronLeft, ChevronRight, Images } from "lucide-react";
+import { X, MapPin, ChevronLeft, ChevronRight, Images, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useGalleryImages, type GalleryImage, type GalleryCategory } from "@/hooks/useGalleryImages";
 import ImageCard from "./ImageCard";
@@ -8,17 +8,28 @@ import ImageCard from "./ImageCard";
 const CATEGORIES = ["All", "Reforestation", "Agroforestry", "Community Work", "Technology"] as const;
 type FilterCategory = typeof CATEGORIES[number];
 
+const PAGE_SIZE = 9;
+
 export default function GallerySection() {
   const [activeFilter, setActiveFilter] = useState<FilterCategory>("All");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [lightboxImage, setLightboxImage] = useState<GalleryImage | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number>(0);
 
   const category = activeFilter === "All" ? undefined : (activeFilter as GalleryCategory);
   const { data: images = [], isLoading } = useGalleryImages(category);
 
-  const openLightbox = useCallback((image: GalleryImage, index: number) => {
+  const visibleImages = images.slice(0, visibleCount);
+  const remaining = images.length - visibleCount;
+
+  const handleFilterChange = (cat: FilterCategory) => {
+    setActiveFilter(cat);
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const openLightbox = useCallback((image: GalleryImage, idx: number) => {
     setLightboxImage(image);
-    setLightboxIndex(index);
+    setLightboxIndex(idx);
   }, []);
 
   const closeLightbox = useCallback(() => setLightboxImage(null), []);
@@ -44,19 +55,12 @@ export default function GallerySection() {
   }, [lightboxImage, closeLightbox, navigateLightbox]);
 
   useEffect(() => {
-    if (lightboxImage) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = lightboxImage ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [lightboxImage]);
 
-  const featuredImage = images.find((img) => img.featured) ?? images[0];
-  const restImages = images.filter((img) => img !== featuredImage);
-
   return (
-    <section id="gallery" className="py-20 bg-[#f7f9f7]">
+    <section id="gallery" className="py-20 bg-[#f5f7f2]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <motion.div
@@ -88,7 +92,7 @@ export default function GallerySection() {
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
-              onClick={() => setActiveFilter(cat)}
+              onClick={() => handleFilterChange(cat)}
               className={cn(
                 "px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 font-['Inter',sans-serif]",
                 activeFilter === cat
@@ -102,9 +106,13 @@ export default function GallerySection() {
         </motion.div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="aspect-[4/3] rounded-2xl bg-gray-100 animate-pulse" />
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
+            {[...Array(9)].map((_, i) => (
+              <div
+                key={i}
+                className="break-inside-avoid mb-4 rounded-2xl bg-stone-100 animate-pulse"
+                style={{ height: `${180 + (i % 3) * 60}px` }}
+              />
             ))}
           </div>
         ) : images.length === 0 ? (
@@ -112,66 +120,49 @@ export default function GallerySection() {
             No images found in this category yet.
           </div>
         ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeFilter}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-auto">
-                {featuredImage && (
-                  <motion.div layout className="col-span-1 sm:col-span-2 lg:col-span-3">
-                    <div
-                      className="group relative overflow-hidden rounded-2xl cursor-pointer bg-black shadow-md hover:shadow-xl transition-shadow duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                      onClick={() => openLightbox(featuredImage, 0)}
-                      onKeyDown={(e) => e.key === "Enter" && openLightbox(featuredImage, 0)}
-                      tabIndex={0}
-                      role="button"
-                      aria-label={`View ${featuredImage.title}`}
-                    >
-                      <div className="relative w-full overflow-hidden" style={{ height: "clamp(220px, 40vw, 420px)" }}>
-                        <motion.img
-                          src={featuredImage.imageUrl}
-                          alt={featuredImage.alt}
-                          loading="lazy"
-                          className="w-full h-full object-cover"
-                          whileHover={{ scale: 1.04 }}
-                          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-4 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-                          <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide bg-emerald-700/90 text-emerald-50 mb-2 font-['Inter',sans-serif]">
-                            {featuredImage.category}
-                          </span>
-                          <p className="text-white font-bold text-lg sm:text-xl leading-snug font-['Sora',sans-serif]">{featuredImage.title}</p>
-                          {featuredImage.description && (
-                            <p className="text-white/75 text-sm mt-1 line-clamp-2 font-['Inter',sans-serif]">{featuredImage.description}</p>
-                          )}
-                          {featuredImage.location && (
-                            <p className="flex items-center gap-1 text-white/55 text-xs mt-1.5">
-                              <MapPin className="w-3 h-3" />
-                              {featuredImage.location}
-                            </p>
-                          )}
-                        </div>
-                      </div>
+          <>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${activeFilter}-${visibleCount}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4">
+                  {visibleImages.map((image, i) => (
+                    <div key={image._id} className="break-inside-avoid mb-4">
+                      <ImageCard
+                        image={image}
+                        index={i}
+                        onClick={() => openLightbox(image, images.indexOf(image))}
+                      />
                     </div>
-                  </motion.div>
-                )}
+                  ))}
+                </div>
+              </motion.div>
+            </AnimatePresence>
 
-                {restImages.map((image, i) => (
-                  <ImageCard
-                    key={image._id}
-                    image={image}
-                    index={i + 1}
-                    onClick={() => openLightbox(image, i + 1)}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          </AnimatePresence>
+            {remaining > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-col items-center gap-2 mt-10"
+              >
+                <button
+                  onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-emerald-700 text-white text-sm font-semibold shadow-md hover:bg-emerald-800 transition-colors duration-200 font-['Inter',sans-serif]"
+                >
+                  Show {Math.min(remaining, PAGE_SIZE)} more photos
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                <p className="text-gray-400 text-xs font-['Inter',sans-serif]">
+                  Showing {visibleCount} of {images.length}
+                </p>
+              </motion.div>
+            )}
+          </>
         )}
       </div>
 
