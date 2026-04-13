@@ -8,7 +8,7 @@ import {
   Newspaper, Radio, FileText, CalendarDays, Mic2,
   Target, TreePine, DollarSign, Building2, Smartphone,
   SatelliteDish, HeartHandshake, TrendingUp, AlertTriangle,
-  Lightbulb, Info, Phone, Mail, Clock, Send, Loader2, Linkedin
+  Lightbulb, Info, Phone, Mail, Clock, Send, Loader2, Linkedin, Images
 } from "lucide-react";
 import { Link } from "wouter";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import HeroCanvas from "@/components/HeroCanvas";
 import RotatingGlobe from "@/components/RotatingGlobe";
+import GallerySection from "@/components/GallerySection";
 
 // Constants & Data
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
@@ -194,6 +195,7 @@ const RESOURCES_FAQ_LINKS = [
 const ABOUT_COMPANY_LINKS = [
   { label: "Our Mission", href: "#about", icon: <Target className="w-4 h-4 text-primary" />, desc: "Reducing emissions, empowering farmers" },
   { label: "Company Overview", href: "#about", icon: <BookOpen className="w-4 h-4 text-accent" />, desc: "Esoko spinout · 17 years of field infrastructure" },
+  { label: "Gallery", href: "#gallery", icon: <Images className="w-4 h-4 text-primary" />, desc: "Our impact in photos — field, farm & community" },
   { label: "Market Opportunity", href: "#market-opportunity", icon: <TrendingUp className="w-4 h-4 text-secondary" />, desc: "Africa holds 30%+ of global removal potential" },
   { label: "Partners & Certifications", href: "#about", icon: <HeartHandshake className="w-4 h-4 text-primary" />, desc: "Open Forest Protocol & Verra" },
 ];
@@ -1161,6 +1163,8 @@ function AboutSection() {
             </motion.div>
           </div>
         </div>
+
+        <GallerySection />
 
         {/* ── Market Opportunity ── */}
         <div id="market-opportunity" className="mt-28 pt-24 border-t border-border">

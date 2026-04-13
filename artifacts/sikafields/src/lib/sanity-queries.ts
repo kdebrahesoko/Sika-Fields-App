@@ -56,3 +56,31 @@ export const RELATED_ARTICLES_QUERY = `
     publishedAt
   }
 `;
+
+export const GALLERY_IMAGES_QUERY = `
+  *[_type == "galleryImage"] | order(featured desc, publishedAt desc)[0...12] {
+    _id,
+    title,
+    category,
+    description,
+    "imageUrl": image.asset->url,
+    "alt": image.alt,
+    location,
+    featured,
+    publishedAt
+  }
+`;
+
+export const GALLERY_IMAGES_BY_CATEGORY_QUERY = `
+  *[_type == "galleryImage" && category == $category] | order(featured desc, publishedAt desc)[0...12] {
+    _id,
+    title,
+    category,
+    description,
+    "imageUrl": image.asset->url,
+    "alt": image.alt,
+    location,
+    featured,
+    publishedAt
+  }
+`;
