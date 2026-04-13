@@ -158,7 +158,7 @@ export default function GallerySection() {
                   <ChevronDown className="w-4 h-4" />
                 </button>
                 <p className="text-gray-400 text-xs font-['Inter',sans-serif]">
-                  Showing {visibleCount} of {images.length}
+                  Showing {Math.min(visibleCount, images.length)} of {images.length}
                 </p>
               </motion.div>
             )}
