@@ -1,7 +1,6 @@
 import type { Article } from "@/data/articles";
 import { ARTICLES as baseArticles } from "@/data/articles";
 
-const PUBLISHED_KEY = "sf-published-posts";
 const HANDOFF_KEY = "sf-ai-draft-handoff";
 
 export function kindLabel(kind: Article["kind"]): string {
@@ -11,53 +10,17 @@ export function kindLabel(kind: Article["kind"]): string {
 }
 
 /**
- * Generate a slug that won't collide with base articles or other local posts.
- * Appends -2, -3, … if needed.
+ * Generate a slug that won't collide with the bundled sample articles.
+ * The API server performs the authoritative dedup against Sanity at publish
+ * time; this is just a UX nicety so the slug field looks reasonable.
  */
-export function ensureUniqueSlug(slug: string, ignoreId?: string): string {
+export function ensureUniqueSlug(slug: string): string {
   const taken = new Set<string>();
   baseArticles.forEach((a) => taken.add(a.slug));
-  loadPublishedPosts().forEach((p) => {
-    if (p.id !== ignoreId) taken.add(p.slug);
-  });
   if (!taken.has(slug)) return slug;
   let i = 2;
   while (taken.has(`${slug}-${i}`)) i++;
   return `${slug}-${i}`;
-}
-
-export function loadPublishedPosts(): Article[] {
-  try {
-    const raw = localStorage.getItem(PUBLISHED_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as Article[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-export function savePublishedPost(article: Article): Article {
-  const posts = loadPublishedPosts();
-  const without = posts.filter((p) => p.slug !== article.slug);
-  const next = [article, ...without];
-  try {
-    localStorage.setItem(PUBLISHED_KEY, JSON.stringify(next));
-    window.dispatchEvent(new CustomEvent("sf-published-changed"));
-  } catch {
-    // localStorage unavailable
-  }
-  return article;
-}
-
-export function deletePublishedPost(slug: string): void {
-  const posts = loadPublishedPosts().filter((p) => p.slug !== slug);
-  try {
-    localStorage.setItem(PUBLISHED_KEY, JSON.stringify(posts));
-    window.dispatchEvent(new CustomEvent("sf-published-changed"));
-  } catch {
-    // localStorage unavailable
-  }
 }
 
 export interface AiDraftHandoff {

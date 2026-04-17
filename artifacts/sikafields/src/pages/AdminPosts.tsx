@@ -1,14 +1,25 @@
 import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Copy, Check, Eye, ExternalLink, Palette,
   LayoutDashboard, Calendar, Clock, Loader2, BookOpen, Plus,
+  Trash2, AlertCircle,
 } from "lucide-react";
-import { type Article } from "@/data/articles";
+import { ARTICLES, type Article } from "@/data/articles";
 import { useAllArticles } from "@/hooks/useArticles";
 import { isSanityConfigured } from "@/lib/sanity";
 import { AuthorAvatar, tagStyle } from "@/lib/article-shared";
+
+const API_BASE = "/api";
+
+// Posts bundled into the source (artifacts/sikafields/src/data/articles.ts)
+// can't be deleted via the API. Everything else is server-managed in Sanity.
+const BUNDLED_ARTICLE_IDS: ReadonlySet<string> = new Set(ARTICLES.map((a) => a.id));
+function isServerManaged(id: string): boolean {
+  return !BUNDLED_ARTICLE_IDS.has(id);
+}
 
 type TemplateId = "standard" | "hero" | "visual";
 
@@ -94,10 +105,14 @@ const TEMPLATE_THUMBNAILS: Record<TemplateId, React.ReactNode> = {
 };
 
 function PostCard({ article, index }: { article: Article; index: number }) {
+  const queryClient = useQueryClient();
   const [activeTemplate, setActiveTemplate] = useState<TemplateId>(
     () => readStoredTemplate(article.slug) ?? article.template ?? "standard"
   );
   const [copied, setCopied] = useState(false);
+  const [deleteState, setDeleteState] = useState<"idle" | "confirm" | "deleting" | "deleted">("idle");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const canDelete = isServerManaged(article.id);
 
   const cc = article.coverColor ?? "#16a34a";
   const shareUrl = `https://sikafields.com/articles/${article.slug}`;
@@ -120,6 +135,29 @@ function PostCard({ article, index }: { article: Article; index: number }) {
     [article.slug],
   );
 
+  const performDelete = useCallback(async () => {
+    setDeleteState("deleting");
+    setDeleteError(null);
+    try {
+      const res = await fetch(`${API_BASE}/admin/posts/${encodeURIComponent(article.id)}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? `Delete failed (${res.status})`);
+      }
+      setDeleteState("deleted");
+      await queryClient.invalidateQueries({ queryKey: ["articles"] });
+      await queryClient.invalidateQueries({ queryKey: ["events"] });
+      await queryClient.invalidateQueries({ queryKey: ["article"] });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Delete failed";
+      setDeleteError(message);
+      setDeleteState("idle");
+    }
+  }, [article.id, queryClient]);
+
   const copyLink = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -140,7 +178,9 @@ function PostCard({ article, index }: { article: Article; index: number }) {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col"
+      className={`bg-white rounded-2xl border border-border overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all flex flex-col ${
+        deleteState === "deleted" ? "opacity-50 grayscale pointer-events-none" : ""
+      }`}
     >
       {/* Cover strip */}
       <div
@@ -299,7 +339,57 @@ function PostCard({ article, index }: { article: Article; index: number }) {
                 <ExternalLink className="w-3 h-3" />
               </a>
             )}
+            {canDelete && (
+              <button
+                onClick={() => setDeleteState("confirm")}
+                title="Delete post"
+                className="flex items-center justify-center px-2 py-1.5 rounded-xl border border-border text-muted-foreground hover:border-red-300 hover:text-red-600 hover:bg-red-50 transition-all"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
           </div>
+
+          {deleteError && (
+            <div className="flex items-start gap-1.5 text-[10px] text-red-600 bg-red-50 border border-red-100 rounded-lg px-2 py-1.5">
+              <AlertCircle className="w-3 h-3 mt-0.5 shrink-0" />
+              <span>{deleteError}</span>
+            </div>
+          )}
+
+          {deleteState === "confirm" && (
+            <div className="rounded-xl border border-red-200 bg-red-50/70 px-3 py-2.5 space-y-2">
+              <p className="text-[11px] font-semibold text-red-900 leading-snug">
+                Permanently delete this post for everyone?
+              </p>
+              <div className="flex gap-1.5">
+                <button
+                  onClick={performDelete}
+                  className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg bg-red-600 text-white text-[11px] font-bold hover:bg-red-700 transition-colors"
+                >
+                  <Trash2 className="w-3 h-3" /> Yes, delete
+                </button>
+                <button
+                  onClick={() => setDeleteState("idle")}
+                  className="flex-1 px-2 py-1.5 rounded-lg border border-border text-[11px] font-semibold text-muted-foreground hover:bg-white transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {deleteState === "deleting" && (
+            <div className="flex items-center justify-center gap-2 text-[11px] font-semibold text-muted-foreground py-1">
+              <Loader2 className="w-3 h-3 animate-spin" /> Deleting…
+            </div>
+          )}
+
+          {deleteState === "deleted" && (
+            <div className="flex items-center justify-center gap-2 text-[11px] font-semibold text-emerald-700 py-1">
+              <Check className="w-3 h-3" /> Deleted
+            </div>
+          )}
         </div>
       </div>
     </motion.div>

@@ -298,6 +298,46 @@ router.post("/", express.json({ limit: "1mb" }), async (req: Request, res: Respo
 // List posts — GET /admin/posts
 // ──────────────────────────────────────────────────────────────
 
+// ──────────────────────────────────────────────────────────────
+// Delete post — DELETE /admin/posts/:id
+// ──────────────────────────────────────────────────────────────
+
+router.delete("/:id", async (req: Request, res: Response) => {
+  const id = String(req.params.id ?? "");
+  if (!id || !/^[A-Za-z0-9._-]+$/.test(id)) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
+  const client = getSanityWriteClient();
+  if (!client) {
+    res.status(503).json({
+      error: "Sanity is not configured. Set SANITY_PROJECT_ID and SANITY_WRITE_TOKEN secrets to enable publishing.",
+      code: "sanity_not_configured",
+    });
+    return;
+  }
+  try {
+    const existing = await client.fetch<{ _type?: string } | null>(
+      `*[_id == $id][0]{ _type }`,
+      { id },
+    );
+    if (!existing) {
+      res.status(404).json({ error: "Post not found" });
+      return;
+    }
+    if (!existing._type || !["blog", "news", "event"].includes(existing._type)) {
+      res.status(400).json({ error: "Refusing to delete non-post document" });
+      return;
+    }
+    await client.delete(id);
+    res.json({ ok: true, id });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Delete failed";
+    console.error("Sanity delete error:", e);
+    res.status(500).json({ error: message });
+  }
+});
+
 router.get("/", async (_req: Request, res: Response) => {
   const client = getSanityWriteClient();
   if (!client) {
