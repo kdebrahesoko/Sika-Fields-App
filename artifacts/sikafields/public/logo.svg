@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 90" width="360" height="90">
+  <defs>
+    <linearGradient id="leaf-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+    <linearGradient id="accent-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  <g transform="translate(8 8)">
+    <circle cx="37" cy="37" r="36" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1.5"/>
+    <path d="M37 16 C 22 16, 14 28, 14 40 C 14 52, 24 60, 37 60 C 50 60, 60 52, 60 40 C 60 28, 52 16, 37 16 Z" fill="url(#leaf-grad)"/>
+    <path d="M37 60 L 37 22 M 37 30 L 26 28 M 37 38 L 48 36 M 37 46 L 26 44" stroke="#fefce8" stroke-width="1.6" stroke-linecap="round" fill="none" opacity="0.85"/>
+    <circle cx="55" cy="22" r="6.5" fill="url(#accent-grad)"/>
+  </g>
+  <g transform="translate(98 0)" font-family="'Sora', system-ui, -apple-system, sans-serif" font-weight="700">
+    <text x="0" y="55" font-size="34" fill="#14532d" letter-spacing="-0.5">Sika<tspan fill="#ea580c">Fie</tspan>lds</text>
+    <text x="2" y="74" font-size="11" fill="#65a30d" font-weight="500" letter-spacing="2.5">CARBON · CLIMATE · COMMUNITY</text>
+  </g>
+</svg>

@@ -176,6 +176,35 @@ A floating AI chat widget powered by OpenAI via Replit AI Integrations (no API k
 
 **System prompt:** Configures the assistant as "Sika", knowledgeable about SikaFields' programs (farmer enrollment, carbon credits, MRV, ESG), Ghana/India/Dubai operations, pricing ($15+/tonne), contact info.
 
+### Authentication & Admin Access (Clerk)
+
+Clerk powers all admin authentication for SikaFields. The home page and public marketing pages remain open to everyone — only the `/admin/*` area is protected.
+
+**Setup**
+- Auth pane in the workspace toolbar manages Clerk app branding, OAuth providers, and email templates.
+- Env vars (auto-provisioned): `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`.
+- **Public sign-up is invite-only.** Disable open sign-ups in the Clerk dashboard ("Restrictions" → "Sign-up mode: Restricted"). Users can only join via invitations sent from `/admin/users`.
+
+**First admin (bootstrap)**
+1. Sign up at `/sign-up` (or have Clerk send yourself an invitation).
+2. In the Auth pane → Users → open your user → set Public metadata to `{"role": "admin"}`.
+3. Visit `/admin/users` to invite teammates with `user` or `admin` roles directly from the UI.
+
+**Roles**
+- Stored in Clerk `publicMetadata.role` (`"admin"` | `"user"`).
+- Client check: `useIsAdmin()` hook in `src/lib/auth.tsx`.
+- Server check: `requireAdmin` middleware in `artifacts/api-server/src/middlewares/requireAdmin.ts` (calls `clerkClient.users.getUser(userId)` to read metadata — never trusts the JWT alone).
+
+**Routes**
+- `/sign-in`, `/sign-up` — themed Clerk components in `src/pages/SignIn.tsx`.
+- `/admin/posts`, `/admin/new-post`, `/admin/users` — wrapped in `<RequireAdmin>` (`src/lib/auth.tsx`).
+- Server admin API: `GET/POST/PATCH/DELETE /api/admin/users[...]` in `artifacts/api-server/src/routes/admin.ts`.
+
+**Navbar (`src/pages/Landing.tsx`)**
+- Signed-out users see a "Log In" button.
+- Signed-in users see an avatar dropdown; admins get "Manage Posts" + "Manage Users" links.
+- All sign-in state is gated with Clerk's `<Show when="signed-in">` / `<Show when="signed-out">`.
+
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.

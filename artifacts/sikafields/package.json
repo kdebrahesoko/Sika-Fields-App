@@ -75,6 +75,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "@clerk/react": "^6.4.1",
     "@sanity/client": "^7.20.0",
     "@types/d3": "^7.4.3",
     "@workspace/integrations-openai-ai-react": "workspace:*",

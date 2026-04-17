@@ -10,10 +10,13 @@ import {
   SatelliteDish, HeartHandshake, TrendingUp, AlertTriangle,
   Lightbulb, Info, Phone, Mail, Clock, Send, Loader2, Linkedin, Images
 } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
+import { Show, useUser, useClerk } from "@clerk/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useIsAdmin } from "@/lib/auth";
+import { LogOut, UserCircle } from "lucide-react";
 import HeroCanvas from "@/components/HeroCanvas";
 import RotatingGlobe from "@/components/RotatingGlobe";
 import GallerySection from "@/components/GallerySection";
@@ -286,6 +289,168 @@ function MobileAccordion({ label, children, isOpen, setOpen }: {
   );
 }
 
+function NavbarAuthSlot({ scrolled, isOpen, setOpen }: {
+  scrolled: boolean;
+  isOpen: boolean;
+  setOpen: (v: boolean) => void;
+}) {
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const { isAdmin } = useIsAdmin();
+  const [, navigate] = useLocation();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [isOpen, setOpen]);
+
+  return (
+    <>
+      <Show when="signed-out">
+        <button
+          onClick={() => navigate("/sign-in")}
+          className={cn(
+            "font-semibold px-3 py-2 text-sm transition-colors",
+            scrolled ? "text-foreground/70 hover:text-foreground" : "text-white hover:text-white/80"
+          )}
+        >
+          Log In
+        </button>
+      </Show>
+      <Show when="signed-in">
+        <div className="relative" ref={ref}>
+          <button
+            onClick={() => setOpen(!isOpen)}
+            className={cn(
+              "flex items-center gap-2 rounded-full transition-all",
+              scrolled ? "hover:ring-2 hover:ring-primary/30" : "hover:ring-2 hover:ring-white/30"
+            )}
+          >
+            {user?.imageUrl ? (
+              <img src={user.imageUrl} alt={user.firstName ?? "User"} className="w-9 h-9 rounded-full object-cover ring-2 ring-white shadow-sm" />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-sm">
+                {(user?.firstName?.[0] ?? user?.primaryEmailAddress?.emailAddress?.[0] ?? "U").toUpperCase()}
+              </div>
+            )}
+          </button>
+          <AnimatePresence>
+            {isOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.96 }}
+                transition={{ duration: 0.15 }}
+                className="absolute right-0 top-full mt-2 w-64 bg-white border border-border rounded-2xl shadow-xl overflow-hidden z-50"
+              >
+                <div className="px-4 py-3 border-b border-border bg-muted/40">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {[user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Signed in"}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user?.primaryEmailAddress?.emailAddress}
+                  </p>
+                  {isAdmin && (
+                    <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                      Admin
+                    </span>
+                  )}
+                </div>
+                {isAdmin && (
+                  <>
+                    <button
+                      onClick={() => { setOpen(false); navigate("/admin/posts"); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted hover:text-primary transition-colors text-left"
+                    >
+                      <Newspaper className="w-4 h-4 text-primary" />
+                      Manage Posts
+                    </button>
+                    <button
+                      onClick={() => { setOpen(false); navigate("/admin/users"); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-muted hover:text-primary transition-colors text-left border-t border-border"
+                    >
+                      <UserCircle className="w-4 h-4 text-accent" />
+                      Manage Users
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => { setOpen(false); void signOut(); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-red-50 hover:text-red-600 transition-colors text-left border-t border-border"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </Show>
+    </>
+  );
+}
+
+function MobileAuthSlot({ onClose }: { onClose: () => void }) {
+  const { user } = useUser();
+  const { signOut } = useClerk();
+  const { isAdmin } = useIsAdmin();
+  const [, navigate] = useLocation();
+
+  return (
+    <>
+      <Show when="signed-out">
+        <button
+          onClick={() => { onClose(); navigate("/sign-in"); }}
+          className="w-full p-3 hover:bg-muted rounded-xl font-medium text-left flex items-center gap-2"
+        >
+          <UserCircle className="w-4 h-4 text-primary" />
+          Log In
+        </button>
+      </Show>
+      <Show when="signed-in">
+        <div className="px-3 py-3 border border-border rounded-xl bg-muted/30">
+          <div className="flex items-center gap-3 mb-2">
+            {user?.imageUrl ? (
+              <img src={user.imageUrl} alt="" className="w-9 h-9 rounded-full object-cover" />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">
+                {(user?.firstName?.[0] ?? "U").toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold truncate">
+                {[user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Account"}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">{user?.primaryEmailAddress?.emailAddress}</p>
+            </div>
+          </div>
+          {isAdmin && (
+            <div className="space-y-1 mt-2">
+              <button onClick={() => { onClose(); navigate("/admin/posts"); }} className="w-full text-left flex items-center gap-2 p-2 rounded-lg hover:bg-white text-sm font-medium">
+                <Newspaper className="w-4 h-4 text-primary" /> Manage Posts
+              </button>
+              <button onClick={() => { onClose(); navigate("/admin/users"); }} className="w-full text-left flex items-center gap-2 p-2 rounded-lg hover:bg-white text-sm font-medium">
+                <UserCircle className="w-4 h-4 text-accent" /> Manage Users
+              </button>
+            </div>
+          )}
+          <button
+            onClick={() => { onClose(); void signOut(); }}
+            className="w-full mt-2 flex items-center justify-center gap-2 p-2 rounded-lg border border-border hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-sm font-semibold transition-colors"
+          >
+            <LogOut className="w-4 h-4" /> Sign Out
+          </button>
+        </div>
+      </Show>
+    </>
+  );
+}
+
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -474,30 +639,11 @@ function Navbar() {
             <Languages className="w-4 h-4" />
             <span className="font-medium">EN</span>
           </div>
-          <DesktopDropdown label="Log In" isOpen={loginOpen} setOpen={(v) => { if (v) openDropdown("login"); else setLoginOpen(false); }} buttonClassName={cn("font-semibold", !scrolled && "text-white hover:text-white")}>
-            <a
-              href="#"
-              className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors"
-              onClick={() => setLoginOpen(false)}
-            >
-              <Sprout className="w-4 h-4 text-primary" />
-              <div>
-                <div className="font-medium">Farmers</div>
-                <div className="text-xs text-muted-foreground">Access your carbon dashboard</div>
-              </div>
-            </a>
-            <a
-              href="#"
-              className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border"
-              onClick={() => setLoginOpen(false)}
-            >
-              <Building2 className="w-4 h-4 text-accent" />
-              <div>
-                <div className="font-medium">Employees</div>
-                <div className="text-xs text-muted-foreground">SikaFields staff portal</div>
-              </div>
-            </a>
-          </DesktopDropdown>
+          <NavbarAuthSlot
+            scrolled={scrolled}
+            isOpen={loginOpen}
+            setOpen={(v) => { if (v) openDropdown("login"); else setLoginOpen(false); }}
+          />
           <Button className="font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30">Get Started</Button>
         </div>
 
@@ -575,14 +721,7 @@ function Navbar() {
             </MobileAccordion>
 
             <div className="mt-4 pt-4 border-t border-border space-y-2">
-              <MobileAccordion label="Log In" isOpen={mobileLoginOpen} setOpen={setMobileLoginOpen}>
-                <a href="#" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={closeAll}>
-                  <Sprout className="w-4 h-4 text-primary" /> Farmers
-                </a>
-                <a href="#" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={closeAll}>
-                  <Building2 className="w-4 h-4 text-accent" /> Employees
-                </a>
-              </MobileAccordion>
+              <MobileAuthSlot onClose={closeAll} />
               <Button className="w-full">Get Started</Button>
             </div>
           </motion.div>
