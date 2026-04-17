@@ -1,12 +1,13 @@
 import { useState, useCallback, useEffect, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Plus, Trash2, FileText, ImageIcon, LayoutGrid,
   Type, AlignLeft, Quote, List, Check, Copy, ExternalLink,
   Eye, X, RotateCcw, ChevronUp, ChevronDown, PenLine, LayoutDashboard,
   Send, CheckCircle2, Loader2, Calendar, MapPin, Globe2, Repeat, Upload, Wand2,
-  AlertCircle,
+  AlertCircle, Ticket,
 } from "lucide-react";
 import { type Article, type ArticleBlock, type EventDetails } from "@/data/articles";
 import { isSanityConfigured } from "@/lib/sanity";
@@ -37,6 +38,7 @@ interface DraftEvent {
   endDate: string;
   location: string;
   virtualLink: string;
+  registerUrl: string;
   recurrence: "none" | "weekly" | "monthly";
   recurrenceEnd: string;
 }
@@ -103,6 +105,7 @@ const DEFAULT_EVENT: DraftEvent = {
   endDate: "",
   location: "",
   virtualLink: "",
+  registerUrl: "",
   recurrence: "none",
   recurrenceEnd: "",
 };
@@ -133,7 +136,7 @@ function wordCount(draft: Draft): number {
 }
 
 function eventToDetails(e: DraftEvent): EventDetails | undefined {
-  if (!e.date && !e.location && !e.virtualLink) return undefined;
+  if (!e.date && !e.location && !e.virtualLink && !e.registerUrl) return undefined;
   const out: EventDetails = { date: e.date };
   if (e.endDate) out.endDate = e.endDate;
   if (e.location) out.location = e.location;
@@ -541,6 +544,7 @@ function LivePreview({ draft }: { draft: Draft }) {
 
 export default function AdminComposerPage() {
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [draft, setDraft] = useState<Draft>(loadDraft);
   const [mobileTab, setMobileTab] = useState<"form" | "preview">("form");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -701,6 +705,7 @@ export default function AdminComposerPage() {
               endDate: draft.event.endDate || undefined,
               location: draft.event.location || undefined,
               virtualLink: draft.event.virtualLink || undefined,
+              registerUrl: draft.event.registerUrl || undefined,
               recurrence: draft.event.recurrence,
               recurrenceEnd: draft.event.recurrenceEnd || undefined,
             }
@@ -720,6 +725,10 @@ export default function AdminComposerPage() {
       }
       setPublishState("published");
       clearDraftStorage();
+      // Invalidate cached lists so the new post shows up immediately on /admin/posts
+      await queryClient.invalidateQueries({ queryKey: ["articles"] });
+      await queryClient.invalidateQueries({ queryKey: ["events"] });
+      await queryClient.invalidateQueries({ queryKey: ["article"] });
       setTimeout(() => {
         setLocation("/admin/posts");
       }, 700);
@@ -728,7 +737,7 @@ export default function AdminComposerPage() {
       setPublishError(message);
       setPublishState("idle");
     }
-  }, [canPublish, draft, setLocation]);
+  }, [canPublish, draft, setLocation, queryClient]);
 
   const projectId = import.meta.env.VITE_SANITY_PROJECT_ID as string | undefined;
   const sanityUrl =
@@ -867,6 +876,9 @@ export default function AdminComposerPage() {
                 </Field>
                 <Field label={<span className="flex items-center gap-1"><Globe2 className="w-3 h-3" /> Virtual link (optional)</span>}>
                   <input type="url" className={inputCls} placeholder="https://meet.google.com/…" value={draft.event.virtualLink} onChange={(e) => updateEvent({ virtualLink: e.target.value })} />
+                </Field>
+                <Field label={<span className="flex items-center gap-1"><Ticket className="w-3 h-3" /> Registration link (optional)</span>} hint="Where attendees go to register or RSVP — shown on the event card.">
+                  <input type="url" className={inputCls} placeholder="https://sikafields.com/events/register" value={draft.event.registerUrl} onChange={(e) => updateEvent({ registerUrl: e.target.value })} />
                 </Field>
                 <Field label={<span className="flex items-center gap-1"><Repeat className="w-3 h-3" /> Recurrence</span>}>
                   <div className="flex rounded-xl border border-border overflow-hidden">

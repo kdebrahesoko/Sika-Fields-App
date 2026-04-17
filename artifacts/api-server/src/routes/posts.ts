@@ -216,6 +216,18 @@ function validateCreate(body: CreatePostBody): string | null {
   return null;
 }
 
+async function ensureUniqueSlugServer(client: ReturnType<typeof getSanityWriteClient>, slug: string): Promise<string> {
+  if (!client) return slug;
+  const exists = await client.fetch<string[]>(
+    `*[_type in ["blog","news","event"] && slug.current match $pattern].slug.current`,
+    { pattern: `${slug}*` },
+  );
+  if (!exists.includes(slug)) return slug;
+  let i = 2;
+  while (exists.includes(`${slug}-${i}`)) i += 1;
+  return `${slug}-${i}`;
+}
+
 router.post("/", express.json({ limit: "1mb" }), async (req: Request, res: Response) => {
   const body = (req.body ?? {}) as CreatePostBody;
   const err = validateCreate(body);
@@ -239,10 +251,12 @@ router.post("/", express.json({ limit: "1mb" }), async (req: Request, res: Respo
     ? { _type: "image" as const, asset: { _type: "reference" as const, _ref: body.coverImageAssetId } }
     : undefined;
 
+  const finalSlug = await ensureUniqueSlugServer(client, body.slug);
+
   const doc: Record<string, unknown> = {
     _type,
     title: body.title.trim(),
-    slug: { _type: "slug", current: body.slug },
+    slug: { _type: "slug", current: finalSlug },
     publishedAt: new Date().toISOString(),
     tags: body.tags ?? [],
     content: portable,
@@ -272,7 +286,7 @@ router.post("/", express.json({ limit: "1mb" }), async (req: Request, res: Respo
 
   try {
     const created = await client.create(doc as { _type: string } & Record<string, unknown>);
-    res.status(201).json({ id: created._id, slug: body.slug, kind: body.kind });
+    res.status(201).json({ id: created._id, slug: finalSlug, kind: body.kind });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Create failed";
     console.error("Sanity create error:", e);
