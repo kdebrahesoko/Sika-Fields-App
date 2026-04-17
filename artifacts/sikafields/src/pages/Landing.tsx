@@ -186,7 +186,8 @@ const IMPACT_LINKS = [
 
 const RESOURCES_LINKS = [
   { label: "Articles & Updates", href: "/articles", icon: <Newspaper className="w-4 h-4 text-primary" />, desc: "Guides, insights and platform announcements" },
-  { label: "Events, Webinars & Podcasts", href: "#resources", icon: <CalendarDays className="w-4 h-4 text-accent" />, desc: "Join live sessions, workshops and audio episodes from the field" },
+  { label: "Events Calendar", href: "/events", icon: <CalendarDays className="w-4 h-4 text-accent" />, desc: "Upcoming field days, buyer briefings and webinars by date" },
+  { label: "Webinars & Podcasts", href: "#resources", icon: <Radio className="w-4 h-4 text-accent" />, desc: "Live sessions and audio episodes from the field" },
   { label: "Regulations & Standards", href: "#resources", icon: <FileText className="w-4 h-4 text-secondary" />, desc: "MRV frameworks and compliance guides" },
   { label: "Newsletters", href: "#resources", icon: <Radio className="w-4 h-4 text-accent" />, desc: "Monthly market insights to your inbox" },
 ];

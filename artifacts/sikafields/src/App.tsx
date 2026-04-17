@@ -8,6 +8,7 @@ import FAQPage from "@/pages/FAQ";
 import ContactPage from "@/pages/Contact";
 import AdvisoryPage from "@/pages/Advisory";
 import ArticlesPage from "@/pages/Articles";
+import EventsPage from "@/pages/Events";
 import ArticleDetailPage from "@/pages/ArticleDetail";
 import PostStudioPage from "@/pages/PostStudio";
 import AdminComposerPage from "@/pages/AdminComposer";
@@ -97,6 +98,7 @@ function Router() {
       <Route path="/contact" component={ContactPage} />
       <Route path="/advisory" component={AdvisoryPage} />
       <Route path="/articles" component={ArticlesPage} />
+      <Route path="/events" component={EventsPage} />
       <Route path="/articles/:slug/studio" component={PostStudioPage} />
       <Route path="/articles/:slug" component={ArticleDetailPage} />
       <Route path="/sign-in/*?" component={SignInPage} />

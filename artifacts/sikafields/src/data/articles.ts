@@ -798,6 +798,103 @@ export const ARTICLES: Article[] = [
       },
     ],
   },
+  {
+    id: "evt-1",
+    slug: "field-day-northern-region-may-2026",
+    kind: "event",
+    template: "standard",
+    title: "Field Day: MRV in the Northern Region",
+    excerpt:
+      "Spend a day in the field with our MRV team — see soil sampling, satellite ground-truth, and farmer onboarding live across enrolled plots near Tamale.",
+    coverColor: "#16a34a",
+    author: {
+      name: "SikaFields Field Operations",
+      role: "Ghana Team",
+      bgPos: "0% 6%",
+      bgSize: "320% 265%",
+      imgFile: "leadership-team",
+    },
+    tags: ["Ghana", "MRV", "Farmers"],
+    publishedAt: "Apr 10, 2026",
+    readTime: 2,
+    event: {
+      date: "2026-05-22T08:30:00Z",
+      endDate: "2026-05-22T15:30:00Z",
+      location: "Tamale, Northern Region, Ghana",
+      recurrence: "none",
+    },
+    content: [
+      {
+        type: "p",
+        text: "Walk a working SikaFields plot with the field team. We will demonstrate the full MRV workflow — soil sampling, satellite cross-verification, farmer onboarding, and plot mapping — across our enrolled landscape near Tamale.",
+      },
+    ],
+  },
+  {
+    id: "evt-2",
+    slug: "buyer-briefing-webinar-april-2026",
+    kind: "event",
+    template: "standard",
+    title: "Buyer Briefing: Verra-Aligned Removal Credits From Africa",
+    excerpt:
+      "A 45-minute live briefing for ESG procurement teams on what makes our African removal credits high-integrity, with live Q&A.",
+    coverColor: "#0891b2",
+    author: {
+      name: "SikaFields Commercial Team",
+      role: "Buyer Relations",
+      bgPos: "47% 82%",
+      bgSize: "320% 265%",
+      imgFile: "leadership-team",
+    },
+    tags: ["Buyers", "ESG", "Verra"],
+    publishedAt: "Mar 28, 2026",
+    readTime: 2,
+    event: {
+      date: "2026-04-23T15:00:00Z",
+      endDate: "2026-04-23T15:45:00Z",
+      virtualLink: "https://sikafields.com/webinars/buyer-briefing-april-2026",
+      recurrence: "none",
+    },
+    content: [
+      {
+        type: "p",
+        text: "Join our commercial team for a 45-minute walkthrough of our removal-credit pipeline, methodology stack, and offtake terms — followed by open Q&A.",
+      },
+    ],
+  },
+  {
+    id: "evt-3",
+    slug: "weekly-farmer-office-hours",
+    kind: "event",
+    template: "standard",
+    title: "Weekly Farmer Office Hours",
+    excerpt:
+      "Open call every Thursday for enrolled farmers to ask the field team about plot status, payments, and the next MRV visit.",
+    coverColor: "#15803d",
+    author: {
+      name: "SikaFields Field Operations",
+      role: "Ghana Team",
+      bgPos: "0% 6%",
+      bgSize: "320% 265%",
+      imgFile: "leadership-team",
+    },
+    tags: ["Farmers", "Ghana"],
+    publishedAt: "Apr 02, 2026",
+    readTime: 1,
+    event: {
+      date: "2026-04-30T13:00:00Z",
+      endDate: "2026-04-30T14:00:00Z",
+      virtualLink: "https://sikafields.com/office-hours",
+      recurrence: "weekly",
+      recurrenceEnd: "2026-12-31T14:00:00Z",
+    },
+    content: [
+      {
+        type: "p",
+        text: "Drop in any Thursday afternoon. The field team answers live questions on plot status, payments, MRV visits, and onboarding timelines.",
+      },
+    ],
+  },
 ];
 
 export function getArticleBySlug(slug: string): Article | undefined {
