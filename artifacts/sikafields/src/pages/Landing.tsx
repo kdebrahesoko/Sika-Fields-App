@@ -380,7 +380,7 @@ function NavbarAuthSlot({ scrolled, isOpen, setOpen }: {
                   </>
                 )}
                 <button
-                  onClick={() => { setOpen(false); void signOut(); }}
+                  onClick={() => { setOpen(false); void signOut({ redirectUrl: import.meta.env.BASE_URL || "/" }); }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm hover:bg-red-50 hover:text-red-600 transition-colors text-left border-t border-border"
                 >
                   <LogOut className="w-4 h-4" />
@@ -440,7 +440,7 @@ function MobileAuthSlot({ onClose }: { onClose: () => void }) {
             </div>
           )}
           <button
-            onClick={() => { onClose(); void signOut(); }}
+            onClick={() => { onClose(); void signOut({ redirectUrl: import.meta.env.BASE_URL || "/" }); }}
             className="w-full mt-2 flex items-center justify-center gap-2 p-2 rounded-lg border border-border hover:bg-red-50 hover:text-red-600 hover:border-red-200 text-sm font-semibold transition-colors"
           >
             <LogOut className="w-4 h-4" /> Sign Out
