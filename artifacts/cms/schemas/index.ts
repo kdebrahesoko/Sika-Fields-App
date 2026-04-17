@@ -1,7 +1,7 @@
 import { author } from "./author";
 import { blog } from "./blog";
 import { news } from "./news";
-import { event } from "./event";
 import { galleryImage } from "./gallery";
+import { event } from "./event";
 
-export const schemaTypes = [author, blog, news, event, galleryImage];
+export const schemaTypes = [author, blog, news, galleryImage, event];

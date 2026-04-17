@@ -89,6 +89,27 @@ export const GALLERY_IMAGES_QUERY = `
   }
 `;
 
+export const ALL_EVENTS_QUERY = `
+  *[_type == "event"] | order(startsAt desc) {
+    _id,
+    title,
+    "slug": slug.current,
+    format,
+    summary,
+    "coverImage": coverImage.asset->url,
+    "coverAlt": coverImage.alt,
+    startsAt,
+    endsAt,
+    durationMinutes,
+    location,
+    host,
+    registerUrl,
+    mediaUrl,
+    tags,
+    featured
+  }
+`;
+
 export const GALLERY_IMAGES_BY_CATEGORY_QUERY = `
   *[_type == "galleryImage" && category == $category] | order(featured desc, publishedAt desc)[0...12] {
     _id,

@@ -21,6 +21,7 @@ import { LogOut, UserCircle } from "lucide-react";
 import HeroCanvas from "@/components/HeroCanvas";
 import RotatingGlobe from "@/components/RotatingGlobe";
 import GallerySection from "@/components/GallerySection";
+import EventsSection from "@/components/EventsSection";
 
 // Constants & Data
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
@@ -3343,6 +3344,7 @@ export default function LandingPage() {
         <LeadershipSection />
         <TrustWallSection />
         <FieldDispatchesSection />
+        <EventsSection />
         <ProblemSection />
         <HowItWorks />
         <ImpactMapSection />

@@ -3,7 +3,7 @@ import { CalendarIcon } from "@sanity/icons";
 
 export const event = defineType({
   name: "event",
-  title: "Events",
+  title: "Event / Webinar / Podcast",
   type: "document",
   icon: CalendarIcon,
   fields: [
@@ -21,18 +21,34 @@ export const event = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: "format",
+      title: "Format",
+      type: "string",
+      options: {
+        list: [
+          { title: "Live Event", value: "event" },
+          { title: "Webinar", value: "webinar" },
+          { title: "Podcast Episode", value: "podcast" },
+        ],
+        layout: "radio",
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
       name: "summary",
       title: "Summary",
       type: "text",
       rows: 3,
-      validation: (Rule) => Rule.max(300),
+      validation: (Rule) => Rule.max(400),
     }),
     defineField({
       name: "coverImage",
-      title: "Cover Image",
+      title: "Cover Art",
       type: "image",
       options: { hotspot: true },
-      fields: [defineField({ name: "alt", title: "Alt Text", type: "string" })],
+      fields: [
+        defineField({ name: "alt", title: "Alt Text", type: "string" }),
+      ],
     }),
     defineField({
       name: "author",
@@ -41,26 +57,55 @@ export const event = defineType({
       to: [{ type: "author" }],
     }),
     defineField({
-      name: "eventDate",
-      title: "Start date / time",
+      name: "startsAt",
+      title: "Starts At",
       type: "datetime",
+      description:
+        "When the live session begins, when the webinar was recorded, or the podcast publish date.",
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: "endDate",
-      title: "End date / time",
+      name: "endsAt",
+      title: "Ends At",
       type: "datetime",
+      description: "Optional — only used for live events to show end time.",
+    }),
+    defineField({
+      name: "durationMinutes",
+      title: "Duration (minutes)",
+      type: "number",
+      description: "Length in minutes — used for podcasts and on-demand webinars.",
+      validation: (Rule) => Rule.min(1).max(600),
     }),
     defineField({
       name: "location",
       title: "Location",
       type: "string",
-      description: "In-person location, e.g. 'Accra Head Office'.",
+      description: "City / venue for live events, or 'Online' for webinars.",
     }),
     defineField({
       name: "virtualLink",
       title: "Virtual link",
       type: "url",
+      description: "Optional join link for virtual sessions.",
+    }),
+    defineField({
+      name: "host",
+      title: "Host / Speaker",
+      type: "string",
+    }),
+    defineField({
+      name: "registerUrl",
+      title: "Register / RSVP URL",
+      type: "url",
+      description: "For upcoming events and webinars — link to the registration page.",
+    }),
+    defineField({
+      name: "mediaUrl",
+      title: "Media URL",
+      type: "url",
+      description:
+        "For podcasts: a direct audio file URL (mp3) for inline playback. For on-demand webinars: a YouTube/Vimeo or hosted player link.",
     }),
     defineField({
       name: "recurrence",
@@ -82,16 +127,22 @@ export const event = defineType({
       type: "date",
     }),
     defineField({
-      name: "publishedAt",
-      title: "Published At",
-      type: "datetime",
-      initialValue: () => new Date().toISOString(),
-    }),
-    defineField({
       name: "tags",
       title: "Tags",
       type: "array",
       of: [{ type: "string" }],
+    }),
+    defineField({
+      name: "featured",
+      title: "Featured",
+      type: "boolean",
+      initialValue: false,
+    }),
+    defineField({
+      name: "publishedAt",
+      title: "Published At",
+      type: "datetime",
+      initialValue: () => new Date().toISOString(),
     }),
     defineField({
       name: "content",
@@ -119,23 +170,30 @@ export const event = defineType({
   preview: {
     select: {
       title: "title",
-      eventDate: "eventDate",
-      location: "location",
+      format: "format",
       media: "coverImage",
+      startsAt: "startsAt",
+      location: "location",
     },
-    prepare({ title, eventDate, location, media }) {
-      const date = eventDate
-        ? new Date(eventDate).toLocaleString("en-GB", {
+    prepare({ title, format, media, startsAt, location }) {
+      const date = startsAt
+        ? new Date(startsAt).toLocaleString("en-GB", {
             day: "numeric",
             month: "short",
             year: "numeric",
             hour: "2-digit",
             minute: "2-digit",
           })
-        : "TBD";
+        : "Unscheduled";
+      const formatLabel =
+        format === "podcast"
+          ? "Podcast"
+          : format === "webinar"
+            ? "Webinar"
+            : "Event";
       return {
         title,
-        subtitle: `${date}${location ? ` · ${location}` : ""}`,
+        subtitle: `${formatLabel} · ${date}${location ? ` · ${location}` : ""}`,
         media,
       };
     },
