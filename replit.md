@@ -183,10 +183,10 @@ Clerk powers all admin authentication for SikaFields. The home page and public m
 **Setup**
 - Auth pane in the workspace toolbar manages Clerk app branding, OAuth providers, and email templates.
 - Env vars (auto-provisioned): `CLERK_SECRET_KEY`, `CLERK_PUBLISHABLE_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`.
-- **Public sign-up is invite-only.** Disable open sign-ups in the Clerk dashboard ("Restrictions" → "Sign-up mode: Restricted"). Users can only join via invitations sent from `/admin/users`.
+- **Public sign-up is invite-only (enforced).** The Clerk instance has `restrictions.allowlist = true` with an empty allowlist (set via `PATCH /v1/instance/restrictions`), which is Clerk's "Sign-up mode: Restricted" mechanism. Strangers visiting `/sign-up` cannot self-register. Existing users can still sign in (`allowlist_blocklist_disabled_on_sign_in = true`), and invitations created from `/admin/users` bypass the allowlist. To reopen public sign-ups, flip `allowlist` back to `false` in the Clerk dashboard ("Restrictions") or via the API. _Last verified: 2026-04-17 via `GET /v1/instance/restrictions` → `{"allowlist":true,"blocklist":false,"allowlist_blocklist_disabled_on_sign_in":true}`._
 
 **First admin (bootstrap)**
-1. Sign up at `/sign-up` (or have Clerk send yourself an invitation).
+1. Receive an invitation at `/sign-up` (open self-sign-up is disabled — see above).
 2. In the Auth pane → Users → open your user → set Public metadata to `{"role": "admin"}`.
 3. Visit `/admin/users` to invite teammates with `user` or `admin` roles directly from the UI.
 
