@@ -5,10 +5,11 @@ import {
   Leaf, Globe, Wind, Sprout, ArrowRight, X, Menu,
   CheckCircle2, LineChart, ShieldCheck, MapPin,
   ChevronRight, Languages, BarChart2, Users, BookOpen,
-  Newspaper, Radio, FileText, CalendarDays, Mic2,
+  Newspaper, Radio, FileText, CalendarDays,
   Target, TreePine, DollarSign, Building2, Smartphone,
   SatelliteDish, HeartHandshake, TrendingUp, AlertTriangle,
-  Lightbulb, Info, Phone, Mail, Clock, Send, Loader2, Linkedin, Images
+  Lightbulb, Info, Phone, Mail, Clock, Send, Loader2, Linkedin, Images,
+  LayoutDashboard
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
@@ -184,9 +185,8 @@ const IMPACT_LINKS = [
 
 const RESOURCES_LINKS = [
   { label: "Articles & Updates", href: "/articles", icon: <Newspaper className="w-4 h-4 text-primary" />, desc: "Guides, insights and platform announcements" },
-  { label: "Events & Webinars", href: "#resources", icon: <CalendarDays className="w-4 h-4 text-accent" />, desc: "Join live sessions and workshops" },
+  { label: "Events, Webinars & Podcasts", href: "#resources", icon: <CalendarDays className="w-4 h-4 text-accent" />, desc: "Join live sessions, workshops and audio episodes from the field" },
   { label: "Regulations & Standards", href: "#resources", icon: <FileText className="w-4 h-4 text-secondary" />, desc: "MRV frameworks and compliance guides" },
-  { label: "Podcasts", href: "#resources", icon: <Mic2 className="w-4 h-4 text-primary" />, desc: "Stories from the field" },
   { label: "Newsletters", href: "#resources", icon: <Radio className="w-4 h-4 text-accent" />, desc: "Monthly market insights to your inbox" },
 ];
 
@@ -464,6 +464,7 @@ function Navbar() {
   const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [mobileLoginOpen, setMobileLoginOpen] = useState(false);
+  const { isAdmin } = useIsAdmin();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -631,6 +632,23 @@ function Navbar() {
                 </span>
               </a>
             ))}
+            {isAdmin && (
+              <>
+                <div className="px-4 py-2 border-t border-border bg-accent/5">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-accent">Admin</p>
+                </div>
+                <Link href="/admin/posts"
+                  className="flex items-start gap-3 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border/50"
+                  onClick={() => setResourcesOpen(false)}
+                >
+                  <span className="mt-0.5"><LayoutDashboard className="w-4 h-4 text-accent" /></span>
+                  <span>
+                    <span className="font-medium block">Manage posts</span>
+                    <span className="text-xs text-muted-foreground">Author and publish articles, podcasts and webinars</span>
+                  </span>
+                </Link>
+              </>
+            )}
           </DesktopDropdown>
         </div>
 
@@ -718,6 +736,19 @@ function Navbar() {
                   {item.icon} {item.label}
                 </a>
               ))}
+              {isAdmin && (
+                <>
+                  <div className="px-3 pt-2 pb-1">
+                    <p className="text-xs font-bold uppercase tracking-widest text-accent">Admin</p>
+                  </div>
+                  <Link href="/admin/posts"
+                    className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary"
+                    onClick={closeAll}
+                  >
+                    <LayoutDashboard className="w-4 h-4 text-accent" /> Manage posts
+                  </Link>
+                </>
+              )}
             </MobileAccordion>
 
             <div className="mt-4 pt-4 border-t border-border space-y-2">
