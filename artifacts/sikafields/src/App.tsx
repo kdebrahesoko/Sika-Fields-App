@@ -12,6 +12,8 @@ import ArticleDetailPage from "@/pages/ArticleDetail";
 import PostStudioPage from "@/pages/PostStudio";
 import AdminComposerPage from "@/pages/AdminComposer";
 import AdminPostsPage from "@/pages/AdminPosts";
+import NewPostHubPage from "@/pages/NewPostHub";
+import NewPostAIPage from "@/pages/NewPostAI";
 import AdminUsersPage from "@/pages/AdminUsers";
 import { SignInPage, SignUpPage } from "@/pages/SignIn";
 import { RequireAdmin } from "@/lib/auth";
@@ -106,7 +108,17 @@ function Router() {
       </Route>
       <Route path="/admin/new-post">
         <RequireAdmin>
+          <NewPostHubPage />
+        </RequireAdmin>
+      </Route>
+      <Route path="/admin/new-post/scratch">
+        <RequireAdmin>
           <AdminComposerPage />
+        </RequireAdmin>
+      </Route>
+      <Route path="/admin/new-post/ai">
+        <RequireAdmin>
+          <NewPostAIPage />
         </RequireAdmin>
       </Route>
       <Route path="/admin/users">

@@ -115,7 +115,7 @@ function ArticleCard({ article, index }: { article: Article; index: number }) {
             className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
             style={{ backgroundColor: cc }}
           >
-            {article.kind === "news" ? "News" : "Article"}
+            {article.kind === "event" ? "Event" : article.kind === "news" ? "News" : "Article"}
           </span>
           {article.tags.slice(0, 1).map((t) => (
             <TagBadge key={t} tag={t} small />
@@ -256,7 +256,7 @@ function FeaturedCard({ article }: { article: Article }) {
 
 export default function ArticlesPage() {
   const [search, setSearch] = useState("");
-  const [activeKind, setActiveKind] = useState<"all" | "article" | "news">("all");
+  const [activeKind, setActiveKind] = useState<"all" | "article" | "news" | "event">("all");
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
   const { data: articles = [], isLoading } = useAllArticles();
@@ -350,7 +350,7 @@ export default function ArticlesPage() {
       <div className="border-b border-border bg-white sticky top-16 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 overflow-x-auto scrollbar-none">
           <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-          {(["all", "article", "news"] as const).map((k) => (
+          {(["all", "article", "news", "event"] as const).map((k) => (
             <button
               key={k}
               onClick={() => { setActiveKind(k); setActiveTag(null); }}
@@ -363,7 +363,8 @@ export default function ArticlesPage() {
               {k === "all" && <BookOpen className="w-3 h-3" />}
               {k === "article" && <BookOpen className="w-3 h-3" />}
               {k === "news" && <Newspaper className="w-3 h-3" />}
-              {k === "all" ? "All" : k === "article" ? "Articles" : "News"}
+              {k === "event" && <Calendar className="w-3 h-3" />}
+              {k === "all" ? "All" : k === "article" ? "Articles" : k === "news" ? "News" : "Events"}
             </button>
           ))}
           <div className="w-px h-4 bg-border shrink-0 mx-1" />

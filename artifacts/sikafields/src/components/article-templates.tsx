@@ -177,7 +177,7 @@ function RelatedCard({ article }: { article: Article }) {
           className="absolute bottom-3 left-4 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full text-white z-10"
           style={{ backgroundColor: cc }}
         >
-          {article.kind === "news" ? "News" : "Article"}
+          {article.kind === "event" ? "Event" : article.kind === "news" ? "News" : "Article"}
         </span>
       </div>
       <div className="p-4">
@@ -350,7 +350,7 @@ export function StandardTemplate({
                 className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
                 style={{ backgroundColor: cc }}
               >
-                {article.kind === "news" ? "News Update" : "Article"}
+                {article.kind === "event" ? "Event" : article.kind === "news" ? "News Update" : "Article"}
               </span>
               {article.tags.map((t) => {
                 const s = tagStyle(t);
@@ -484,7 +484,7 @@ export function HeroTemplate({
                 className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full text-white"
                 style={{ backgroundColor: cc }}
               >
-                {article.kind === "news" ? "News Update" : "Article"}
+                {article.kind === "event" ? "Event" : article.kind === "news" ? "News Update" : "Article"}
               </span>
               {article.tags.map((t) => (
                 <span

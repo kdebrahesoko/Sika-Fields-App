@@ -31,10 +31,19 @@ export type ArticleAuthor = {
   imgFile?: "leadership-team" | "advisory-board" | "dr-kwame";
 };
 
+export type EventDetails = {
+  date: string;
+  endDate?: string;
+  location?: string;
+  virtualLink?: string;
+  recurrence?: "none" | "weekly" | "monthly";
+  recurrenceEnd?: string;
+};
+
 export type Article = {
   id: string;
   slug: string;
-  kind: "article" | "news";
+  kind: "article" | "news" | "event";
   template?: "standard" | "hero" | "visual";
   title: string;
   excerpt: string;
@@ -44,6 +53,7 @@ export type Article = {
   author: ArticleAuthor;
   tags: string[];
   newsCategory?: "announcement" | "market" | "regulation" | "press";
+  event?: EventDetails;
   publishedAt: string;
   readTime: number;
   featured?: boolean;

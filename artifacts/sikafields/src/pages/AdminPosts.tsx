@@ -162,7 +162,7 @@ function PostCard({ article, index }: { article: Article; index: number }) {
             className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full text-white"
             style={{ backgroundColor: cc }}
           >
-            {article.kind === "news" ? "News" : "Article"}
+            {article.kind === "event" ? "Event" : article.kind === "news" ? "News" : "Article"}
           </span>
           {article.featured && (
             <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-500 text-white">
@@ -357,6 +357,12 @@ export default function AdminPostsPage() {
                 {articles.filter((a) => a.kind === "news").length}
               </span>{" "}
               news
+            </span>
+            <span>
+              <span className="font-bold text-foreground">
+                {articles.filter((a) => a.kind === "event").length}
+              </span>{" "}
+              events
             </span>
             <span>
               <span className="font-bold text-foreground">
