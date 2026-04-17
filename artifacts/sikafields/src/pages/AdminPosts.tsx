@@ -104,7 +104,9 @@ function PostCard({ article, index }: { article: Article; index: number }) {
   const projectId = import.meta.env.VITE_SANITY_PROJECT_ID as string | undefined;
   const cmsUrl =
     isSanityConfigured && projectId
-      ? `https://${projectId}.sanity.studio/structure/blog;${article.id}`
+      ? `https://${projectId}.sanity.studio/structure/${
+          article.kind === "event" ? "event" : article.kind === "news" ? "news" : "blog"
+        };${article.id}`
       : null;
 
   const selectTemplate = useCallback(
