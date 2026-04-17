@@ -291,15 +291,15 @@ export default function ArticlesPage() {
     <div className="min-h-screen bg-background font-sans">
       {/* Top bar */}
       <div className="border-b border-border bg-background/95 backdrop-blur sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to SikaFields
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors min-w-0">
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span className="truncate"><span className="sm:hidden">Back</span><span className="hidden sm:inline">Back to SikaFields</span></span>
           </Link>
-          <img src="/sikafields-logo-new.png" alt="SikaFields" className="h-8 object-contain" />
+          <img src="/sikafields-logo-new.png" alt="SikaFields" className="h-7 sm:h-8 object-contain shrink-0" />
           <Link
             href="/admin/posts"
-            className="flex items-center gap-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors w-36 justify-end"
+            className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors sm:w-36 justify-end shrink-0"
           >
             <LayoutDashboard className="w-4 h-4" />
             <span className="hidden sm:inline">Manage posts</span>

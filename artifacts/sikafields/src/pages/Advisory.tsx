@@ -277,13 +277,13 @@ export default function AdvisoryPage() {
     <div className="min-h-screen bg-background font-sans">
       {/* Simple top bar */}
       <div className="border-b border-border bg-background/95 backdrop-blur sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-4 h-4" />
-            Back to SikaFields
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors min-w-0">
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span className="truncate"><span className="sm:hidden">Back</span><span className="hidden sm:inline">Back to SikaFields</span></span>
           </Link>
-          <img src="/sikafields-logo-new.png" alt="SikaFields" className="h-8 object-contain" />
-          <div className="w-28" />
+          <img src="/sikafields-logo-new.png" alt="SikaFields" className="h-7 sm:h-8 object-contain shrink-0" />
+          <div className="hidden sm:block w-28" />
         </div>
       </div>
 

@@ -561,13 +561,13 @@ export default function FAQPage() {
 
       {/* ── Navbar ── */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/60 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/sikafields-logo-new.png" alt="SikaFields" className="h-9 w-auto" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-2 shrink-0">
+            <img src="/sikafields-logo-new.png" alt="SikaFields" className="h-7 sm:h-9 w-auto" />
           </Link>
-          <Link href="/" className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+          <Link href="/" className="flex items-center gap-1.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-primary transition-colors shrink-0">
             <ArrowLeft className="w-4 h-4" />
-            Back to Home
+            <span className="sm:hidden">Back</span><span className="hidden sm:inline">Back to Home</span>
           </Link>
         </div>
       </header>

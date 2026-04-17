@@ -1266,15 +1266,17 @@ function AboutSection() {
               viewport={{ once: true }}
               className="space-y-5"
             >
-              <div className="rounded-3xl overflow-hidden border border-border shadow-lg" style={{ aspectRatio: "16/9" }}>
+              <div className="rounded-3xl overflow-hidden border border-border shadow-lg bg-black" style={{ aspectRatio: "16/9" }}>
                 <iframe
                   width="100%"
                   height="100%"
-                  src="https://www.youtube.com/embed/9EgGW_rXwqo?rel=0&modestbranding=1"
-                  title="Carbon Credits and Smallholder Farmers"
+                  src="https://www.youtube.com/embed/jDBGpNDeRr8?autoplay=1&mute=1&loop=1&playlist=jDBGpNDeRr8&playsinline=1&rel=0&modestbranding=1&controls=1"
+                  title="SikaFields Company Overview"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
-                  style={{ display: "block", width: "100%", height: "100%" }}
+                  loading="lazy"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  style={{ display: "block", width: "100%", height: "100%", border: 0 }}
                 />
               </div>
 
@@ -1364,7 +1366,7 @@ function AboutSection() {
                   <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center mb-6">
                     {p.icon}
                   </div>
-                  <p className="text-5xl font-display font-black mb-2 tracking-tight">{p.value}</p>
+                  <p className="text-4xl sm:text-5xl font-display font-black mb-2 tracking-tight">{p.value}</p>
                   <p className="font-bold text-base mb-3">{p.label}</p>
                   <p className="text-white/65 text-sm leading-relaxed">{p.sub}</p>
                 </div>
