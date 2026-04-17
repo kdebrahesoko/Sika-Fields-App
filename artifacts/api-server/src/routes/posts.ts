@@ -1,10 +1,21 @@
 import { Router, type IRouter, type Request, type Response } from "express";
+import express from "express";
 import { openai } from "@workspace/integrations-openai-ai-server";
 import { requireAdmin } from "../middlewares/requireAdmin";
+import {
+  getSanityWriteClient,
+  toPortableText,
+  uploadImageBuffer,
+  type ComposerBlock,
+} from "../lib/sanity-write";
 
 const router: IRouter = Router();
 
 router.use(requireAdmin);
+
+// ──────────────────────────────────────────────────────────────
+// AI draft generator (existing)
+// ──────────────────────────────────────────────────────────────
 
 interface DraftRequestBody {
   kind?: "article" | "news" | "event";
@@ -51,7 +62,7 @@ Return your response as STRICT JSON matching this exact shape — no markdown fe
 
 If kind is not "event", omit the event object.`;
 
-router.post("/draft", async (req: Request, res: Response) => {
+router.post("/draft", express.json(), async (req: Request, res: Response) => {
   const body = (req.body ?? {}) as DraftRequestBody;
   const kind = body.kind ?? "event";
   const topic = (body.topic ?? "").trim();
@@ -125,6 +136,161 @@ Return STRICT JSON only.`;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("AI draft error:", err);
+    res.status(500).json({ error: message });
+  }
+});
+
+// ──────────────────────────────────────────────────────────────
+// Image upload — POST /admin/posts/upload  (binary stream)
+// ──────────────────────────────────────────────────────────────
+
+const MAX_UPLOAD_BYTES = 6 * 1024 * 1024;
+
+router.post(
+  "/upload",
+  express.raw({ type: ["image/*"], limit: MAX_UPLOAD_BYTES }),
+  async (req: Request, res: Response) => {
+    try {
+      const buf = req.body as Buffer | undefined;
+      if (!buf || !Buffer.isBuffer(buf) || buf.length === 0) {
+        res.status(400).json({ error: "Empty body. POST raw image bytes with an image/* Content-Type." });
+        return;
+      }
+      const contentType = req.headers["content-type"] ?? "image/jpeg";
+      const filename = (req.headers["x-filename"] as string | undefined) ?? "upload";
+      const client = getSanityWriteClient();
+      if (!client) {
+        res.status(503).json({ error: "Image upload requires Sanity to be configured (set SANITY_PROJECT_ID and SANITY_WRITE_TOKEN)." });
+        return;
+      }
+      const asset = await uploadImageBuffer(buf, String(contentType), String(filename));
+      res.json({ asset });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Upload failed";
+      console.error("Upload error:", err);
+      res.status(500).json({ error: message });
+    }
+  },
+);
+
+// ──────────────────────────────────────────────────────────────
+// Create post — POST /admin/posts  (article | news | event)
+// ──────────────────────────────────────────────────────────────
+
+interface CreatePostBody {
+  kind: "article" | "news" | "event";
+  title: string;
+  slug: string;
+  excerpt?: string;
+  authorName?: string;
+  authorRole?: string;
+  tags?: string[];
+  template?: "standard" | "hero" | "visual";
+  coverImageAssetId?: string;
+  coverImageUrl?: string;
+  coverColor?: string;
+  content: ComposerBlock[];
+  event?: {
+    date: string;
+    endDate?: string;
+    location?: string;
+    virtualLink?: string;
+    recurrence?: "none" | "weekly" | "monthly";
+    recurrenceEnd?: string;
+  };
+}
+
+function validateCreate(body: CreatePostBody): string | null {
+  if (!body.kind || !["article", "news", "event"].includes(body.kind)) return "kind must be article|news|event";
+  if (!body.title || body.title.trim().length < 3) return "title is required (min 3 chars)";
+  if (!body.slug || !/^[a-z0-9-]+$/.test(body.slug)) return "slug must be lowercase letters, digits, dashes";
+  if (!Array.isArray(body.content) || body.content.length === 0) return "content must have at least one block";
+  if (body.kind === "event") {
+    if (!body.event?.date) return "event.date is required for events";
+  }
+  return null;
+}
+
+router.post("/", express.json({ limit: "1mb" }), async (req: Request, res: Response) => {
+  const body = (req.body ?? {}) as CreatePostBody;
+  const err = validateCreate(body);
+  if (err) {
+    res.status(400).json({ error: err });
+    return;
+  }
+
+  const client = getSanityWriteClient();
+  if (!client) {
+    res.status(503).json({
+      error: "Sanity is not configured. Set SANITY_PROJECT_ID and SANITY_WRITE_TOKEN secrets to enable publishing.",
+      code: "sanity_not_configured",
+    });
+    return;
+  }
+
+  const _type = body.kind === "event" ? "event" : body.kind === "news" ? "news" : "blog";
+  const portable = toPortableText(body.content);
+  const coverImage = body.coverImageAssetId
+    ? { _type: "image" as const, asset: { _type: "reference" as const, _ref: body.coverImageAssetId } }
+    : undefined;
+
+  const doc: Record<string, unknown> = {
+    _type,
+    title: body.title.trim(),
+    slug: { _type: "slug", current: body.slug },
+    publishedAt: new Date().toISOString(),
+    tags: body.tags ?? [],
+    content: portable,
+  };
+  if (body.excerpt) {
+    if (_type === "blog") doc.excerpt = body.excerpt;
+    else doc.summary = body.excerpt;
+  }
+  if (coverImage) doc.coverImage = coverImage;
+  if (body.template) doc.template = body.template;
+  if (body.coverColor) doc.coverColor = body.coverColor;
+  if (body.authorName) doc.authorInline = { name: body.authorName, role: body.authorRole ?? "" };
+
+  if (_type === "event" && body.event) {
+    doc.eventDate = body.event.date;
+    if (body.event.endDate) doc.endDate = body.event.endDate;
+    if (body.event.location) doc.location = body.event.location;
+    if (body.event.virtualLink) doc.virtualLink = body.event.virtualLink;
+    doc.recurrence = body.event.recurrence ?? "none";
+    if (body.event.recurrenceEnd) doc.recurrenceEnd = body.event.recurrenceEnd;
+  }
+
+  try {
+    const created = await client.create(doc as { _type: string } & Record<string, unknown>);
+    res.status(201).json({ id: created._id, slug: body.slug, kind: body.kind });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Create failed";
+    console.error("Sanity create error:", e);
+    res.status(500).json({ error: message });
+  }
+});
+
+// ──────────────────────────────────────────────────────────────
+// List posts — GET /admin/posts
+// ──────────────────────────────────────────────────────────────
+
+router.get("/", async (_req: Request, res: Response) => {
+  const client = getSanityWriteClient();
+  if (!client) {
+    res.json({ posts: [], sanityConfigured: false });
+    return;
+  }
+  try {
+    const posts = await client.fetch<unknown[]>(
+      `*[_type in ["blog","news","event"]] | order(coalesce(publishedAt, _createdAt) desc)[0...100] {
+        _id, _type, title, "slug": slug.current,
+        "excerpt": coalesce(excerpt, summary),
+        publishedAt, eventDate, location
+      }`,
+    );
+    res.json({ posts, sanityConfigured: true });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "List failed";
     res.status(500).json({ error: message });
   }
 });

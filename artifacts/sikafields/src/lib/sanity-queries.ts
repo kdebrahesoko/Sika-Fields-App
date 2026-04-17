@@ -1,32 +1,41 @@
 export const ALL_ARTICLES_QUERY = `
-  *[_type in ["blog", "news"]] | order(publishedAt desc) {
+  *[_type in ["blog", "news", "event"]] | order(coalesce(publishedAt, eventDate) desc) {
     _id,
     _type,
     title,
     "slug": slug.current,
     "excerpt": coalesce(excerpt, summary),
     "coverImage": coverImage.asset->url,
+    coverColor,
     "author": author->{
       name,
       role,
       "photo": photo.asset->url
     },
+    authorInline,
     tags,
     category,
     featured,
     template,
-    publishedAt
+    publishedAt,
+    eventDate,
+    endDate,
+    location,
+    virtualLink,
+    recurrence,
+    recurrenceEnd
   }
 `;
 
 export const ARTICLE_BY_SLUG_QUERY = `
-  *[_type in ["blog", "news"] && slug.current == $slug][0] {
+  *[_type in ["blog", "news", "event"] && slug.current == $slug][0] {
     _id,
     _type,
     title,
     "slug": slug.current,
     "excerpt": coalesce(excerpt, summary),
     "coverImage": coverImage.asset->url,
+    coverColor,
     "author": author->{
       name,
       role,
@@ -34,17 +43,24 @@ export const ARTICLE_BY_SLUG_QUERY = `
       linkedin,
       "photo": photo.asset->url
     },
+    authorInline,
     tags,
     category,
     featured,
     template,
     publishedAt,
+    eventDate,
+    endDate,
+    location,
+    virtualLink,
+    recurrence,
+    recurrenceEnd,
     content
   }
 `;
 
 export const RELATED_ARTICLES_QUERY = `
-  *[_type in ["blog", "news"] && slug.current != $slug && count(tags[@ in $tags]) > 0] | order(publishedAt desc)[0...3] {
+  *[_type in ["blog", "news", "event"] && slug.current != $slug && count(tags[@ in $tags]) > 0] | order(coalesce(publishedAt, eventDate) desc)[0...3] {
     _id,
     _type,
     title,
@@ -52,8 +68,10 @@ export const RELATED_ARTICLES_QUERY = `
     "excerpt": coalesce(excerpt, summary),
     "coverImage": coverImage.asset->url,
     "author": author->{ name, role },
+    authorInline,
     tags,
-    publishedAt
+    publishedAt,
+    eventDate
   }
 `;
 

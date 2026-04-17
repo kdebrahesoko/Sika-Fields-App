@@ -33,6 +33,13 @@ export default defineConfig({
                   .title("News & Updates")
                   .filter('_type == "news"')
               ),
+            S.listItem()
+              .title("Events")
+              .child(
+                S.documentList()
+                  .title("Events")
+                  .filter('_type == "event"')
+              ),
             S.divider(),
             S.listItem()
               .title("Authors")

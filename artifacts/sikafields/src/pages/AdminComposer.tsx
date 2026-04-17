@@ -6,6 +6,7 @@ import {
   Type, AlignLeft, Quote, List, Check, Copy, ExternalLink,
   Eye, X, RotateCcw, ChevronUp, ChevronDown, PenLine, LayoutDashboard,
   Send, CheckCircle2, Loader2, Calendar, MapPin, Globe2, Repeat, Upload, Wand2,
+  AlertCircle,
 } from "lucide-react";
 import { type Article, type ArticleBlock, type EventDetails } from "@/data/articles";
 import { isSanityConfigured } from "@/lib/sanity";
@@ -15,7 +16,9 @@ import {
   HeroTemplate,
   VisualTemplate,
 } from "@/components/article-templates";
-import { savePublishedPost, consumeAiDraftHandoff, ensureUniqueSlug } from "@/lib/published-posts";
+import { consumeAiDraftHandoff, ensureUniqueSlug } from "@/lib/published-posts";
+
+const API_BASE = "/api";
 
 type TemplateId = "standard" | "hero" | "visual";
 type BlockType = "p" | "h2" | "quote" | "list";
@@ -38,6 +41,11 @@ interface DraftEvent {
   recurrenceEnd: string;
 }
 
+interface CoverImageState {
+  url: string;
+  assetId?: string;
+}
+
 interface Draft {
   title: string;
   slug: string;
@@ -48,7 +56,7 @@ interface Draft {
   authorName: string;
   authorRole: string;
   coverColor: string;
-  coverImage: string;
+  coverImage: CoverImageState | null;
   tags: string[];
   content: DraftBlock[];
   event: DraftEvent;
@@ -135,7 +143,7 @@ function eventToDetails(e: DraftEvent): EventDetails | undefined {
   return out;
 }
 
-function draftToArticle(draft: Draft, idOverride?: string): Article {
+function draftToArticle(draft: Draft): Article {
   const wc = wordCount(draft);
   const content: ArticleBlock[] = draft.content.map((block): ArticleBlock => {
     if (block.type === "list") return { type: "list", items: block.items.filter((i) => i.trim()) };
@@ -147,7 +155,7 @@ function draftToArticle(draft: Draft, idOverride?: string): Article {
   });
 
   return {
-    id: idOverride ?? "draft",
+    id: "draft",
     slug: draft.slug || "draft-post",
     kind: draft.kind,
     template: draft.template,
@@ -155,7 +163,7 @@ function draftToArticle(draft: Draft, idOverride?: string): Article {
     excerpt: draft.excerpt || "Your excerpt will appear here.",
     content,
     coverColor: draft.coverColor,
-    coverImage: draft.coverImage || undefined,
+    coverImage: draft.coverImage?.url,
     author: {
       name: draft.authorName || "Admin",
       role: draft.authorRole || "",
@@ -181,7 +189,7 @@ const DEFAULT_DRAFT: Draft = {
   authorName: "",
   authorRole: "",
   coverColor: "#16a34a",
-  coverImage: "",
+  coverImage: null,
   tags: [],
   content: [],
   event: DEFAULT_EVENT,
@@ -196,6 +204,7 @@ function loadDraft(): Draft {
         ...DEFAULT_DRAFT,
         ...parsed,
         event: { ...DEFAULT_EVENT, ...(parsed.event ?? {}) },
+        coverImage: parsed.coverImage ?? null,
       };
     }
   } catch {
@@ -404,14 +413,18 @@ function TagInput({ tags, onChange }: { tags: string[]; onChange: (t: string[]) 
   );
 }
 
-function ImageUploadField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+interface UploadResponse {
+  asset: { assetId: string; ref: string; url: string };
+}
+
+function ImageUploadField({ value, onChange }: { value: CoverImageState | null; onChange: (v: CoverImageState | null) => void }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const onFile = (file: File | null) => {
+  const onFile = async (file: File | null) => {
     if (!file) return;
-    if (file.size > 4 * 1024 * 1024) {
-      setError("Image must be under 4 MB.");
+    if (file.size > 6 * 1024 * 1024) {
+      setError("Image must be under 6 MB.");
       return;
     }
     if (!file.type.startsWith("image/")) {
@@ -420,17 +433,29 @@ function ImageUploadField({ value, onChange }: { value: string; onChange: (v: st
     }
     setError(null);
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : "";
-      onChange(result);
+    try {
+      const buffer = await file.arrayBuffer();
+      const res = await fetch(`${API_BASE}/admin/posts/upload`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": file.type,
+          "X-Filename": file.name,
+        },
+        body: buffer,
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? `Upload failed (${res.status})`);
+      }
+      const data = (await res.json()) as UploadResponse;
+      onChange({ url: data.asset.url, assetId: data.asset.assetId });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Upload failed";
+      setError(message);
+    } finally {
       setUploading(false);
-    };
-    reader.onerror = () => {
-      setError("Could not read that file.");
-      setUploading(false);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -439,13 +464,13 @@ function ImageUploadField({ value, onChange }: { value: string; onChange: (v: st
         <input
           className={`${inputCls} flex-1`}
           placeholder="https://… or upload below"
-          value={value.startsWith("data:") ? "(uploaded image)" : value}
-          onChange={(e) => onChange(e.target.value)}
-          disabled={value.startsWith("data:")}
+          value={value?.url ?? ""}
+          onChange={(e) => onChange(e.target.value ? { url: e.target.value } : null)}
+          disabled={Boolean(value?.assetId)}
         />
         <label className="cursor-pointer flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-border text-xs font-semibold text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-all whitespace-nowrap">
           {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-          {uploading ? "Reading…" : "Upload"}
+          {uploading ? "Uploading…" : "Upload"}
           <input
             type="file"
             accept="image/*"
@@ -454,16 +479,19 @@ function ImageUploadField({ value, onChange }: { value: string; onChange: (v: st
           />
         </label>
       </div>
-      {value && (
+      {value?.url && (
         <div className="mt-2 flex items-center gap-2">
-          <img src={value} alt="Cover preview" className="w-20 h-12 object-cover rounded-md border border-border" />
-          <button onClick={() => onChange("")} className="text-[11px] font-semibold text-red-500 hover:underline">
+          <img src={value.url} alt="Cover preview" className="w-20 h-12 object-cover rounded-md border border-border" />
+          <button onClick={() => onChange(null)} className="text-[11px] font-semibold text-red-500 hover:underline">
             Remove
           </button>
+          {value.assetId && (
+            <span className="text-[10px] text-emerald-700 font-semibold">CMS asset</span>
+          )}
         </div>
       )}
       {error && <p className="text-[10px] text-red-500 mt-1">{error}</p>}
-      <p className="text-[10px] text-muted-foreground mt-1">PNG, JPG or WebP — max 4 MB. Used by Hero and Visual templates.</p>
+      <p className="text-[10px] text-muted-foreground mt-1">PNG, JPG or WebP — max 6 MB. Uploaded to the CMS asset library.</p>
     </div>
   );
 }
@@ -517,6 +545,7 @@ export default function AdminComposerPage() {
   const [mobileTab, setMobileTab] = useState<"form" | "preview">("form");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [publishState, setPublishState] = useState<"idle" | "publishing" | "published">("idle");
+  const [publishError, setPublishError] = useState<string | null>(null);
   const [aiBanner, setAiBanner] = useState(false);
 
   // AI handoff: pre-fill draft if redirected from /admin/new-post/ai
@@ -551,7 +580,6 @@ export default function AdminComposerPage() {
       return next;
     });
     setAiBanner(true);
-    // Clean the query string so refresh doesn't re-import
     window.history.replaceState({}, "", window.location.pathname);
   }, []);
 
@@ -644,24 +672,70 @@ export default function AdminComposerPage() {
   const publish = useCallback(async () => {
     if (!canPublish) return;
     setPublishState("publishing");
-    const id = `local-${Date.now().toString(36)}`;
+    setPublishError(null);
+
     const baseSlug = draft.slug || toSlug(draft.title) || "draft-post";
-    const uniqueSlug = ensureUniqueSlug(baseSlug, id);
-    const article = draftToArticle({ ...draft, slug: uniqueSlug }, id);
-    savePublishedPost(article);
-    // brief delay so the user sees the success state
-    await new Promise((r) => setTimeout(r, 600));
-    setPublishState("published");
-    clearDraftStorage();
-    setTimeout(() => {
-      setLocation(`/articles/${article.slug}`);
-    }, 700);
+    const uniqueSlug = ensureUniqueSlug(baseSlug);
+
+    const payload = {
+      kind: draft.kind,
+      title: draft.title.trim(),
+      slug: uniqueSlug,
+      excerpt: draft.excerpt.trim(),
+      authorName: draft.authorName.trim(),
+      authorRole: draft.authorRole.trim(),
+      tags: draft.tags,
+      template: draft.template,
+      coverColor: draft.coverColor,
+      coverImageAssetId: draft.coverImage?.assetId,
+      coverImageUrl: draft.coverImage?.url,
+      content: draft.content.map((b) => {
+        if (b.type === "list") return { type: "list" as const, items: b.items.filter((i) => i.trim()) };
+        if (b.type === "quote") return { type: "quote" as const, text: b.text, attribution: b.attribution || undefined };
+        return { type: b.type as "p" | "h2", text: b.text };
+      }),
+      event:
+        draft.kind === "event"
+          ? {
+              date: draft.event.date,
+              endDate: draft.event.endDate || undefined,
+              location: draft.event.location || undefined,
+              virtualLink: draft.event.virtualLink || undefined,
+              recurrence: draft.event.recurrence,
+              recurrenceEnd: draft.event.recurrenceEnd || undefined,
+            }
+          : undefined,
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/posts`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string; code?: string };
+        throw new Error(data.error ?? `Publish failed (${res.status})`);
+      }
+      setPublishState("published");
+      clearDraftStorage();
+      setTimeout(() => {
+        setLocation("/admin/posts");
+      }, 700);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Publish failed";
+      setPublishError(message);
+      setPublishState("idle");
+    }
   }, [canPublish, draft, setLocation]);
 
   const projectId = import.meta.env.VITE_SANITY_PROJECT_ID as string | undefined;
   const sanityUrl =
     isSanityConfigured && projectId
-      ? `https://${projectId}.sanity.studio/structure/${draft.kind === "news" ? "news" : "blog"}`
+      ? `https://${projectId}.sanity.studio/structure/${
+          draft.kind === "event" ? "event" : draft.kind === "news" ? "news" : "blog"
+        }`
       : null;
 
   return (
@@ -702,7 +776,6 @@ export default function AdminComposerPage() {
         </div>
       </div>
 
-      {/* AI banner */}
       {aiBanner && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-r from-emerald-50 to-amber-50 border-b border-emerald-200">
           <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
@@ -718,7 +791,20 @@ export default function AdminComposerPage() {
         </motion.div>
       )}
 
-      {/* Mobile tab strip */}
+      {publishError && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 border-b border-red-200">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            <p className="text-xs sm:text-sm text-red-900 flex-1">
+              <span className="font-bold">Publish failed.</span> {publishError}
+            </p>
+            <button onClick={() => setPublishError(null)} className="text-red-700 hover:text-red-900 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       <div className="lg:hidden bg-white border-b border-border px-4 py-2.5 flex gap-2 shrink-0">
         <button onClick={() => setMobileTab("form")} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-semibold border transition-all ${mobileTab === "form" ? "bg-primary text-white border-primary" : "border-border text-muted-foreground"}`}>
           <PenLine className="w-3.5 h-3.5" /> Form
@@ -728,12 +814,9 @@ export default function AdminComposerPage() {
         </button>
       </div>
 
-      {/* Two-panel layout */}
       <div className="flex-1 flex max-w-screen-2xl mx-auto w-full overflow-hidden">
-        {/* Left form panel */}
         <div className={`lg:flex flex-col w-full lg:w-[26rem] shrink-0 border-r border-border bg-white/60 ${mobileTab === "form" ? "flex" : "hidden"} lg:flex`}>
           <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-28">
-            {/* Post type + template */}
             <SectionCard title="Post Settings">
               <Field label="Post type">
                 <div className="flex rounded-xl border border-border overflow-hidden">
@@ -771,22 +854,21 @@ export default function AdminComposerPage() {
               </Field>
             </SectionCard>
 
-            {/* Event details */}
             {draft.kind === "event" && (
               <SectionCard title="Event Details" accent>
-                <Field label={<span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Start date / time</span> as unknown as string}>
+                <Field label={<span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> Start date / time</span>}>
                   <input type="datetime-local" className={inputCls} value={draft.event.date} onChange={(e) => updateEvent({ date: e.target.value })} />
                 </Field>
                 <Field label="End date / time (optional)">
                   <input type="datetime-local" className={inputCls} value={draft.event.endDate} onChange={(e) => updateEvent({ endDate: e.target.value })} />
                 </Field>
-                <Field label={<span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Location</span> as unknown as string}>
+                <Field label={<span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> Location</span>}>
                   <input className={inputCls} placeholder="e.g. Accra Head Office" value={draft.event.location} onChange={(e) => updateEvent({ location: e.target.value })} />
                 </Field>
-                <Field label={<span className="flex items-center gap-1"><Globe2 className="w-3 h-3" /> Virtual link (optional)</span> as unknown as string}>
+                <Field label={<span className="flex items-center gap-1"><Globe2 className="w-3 h-3" /> Virtual link (optional)</span>}>
                   <input type="url" className={inputCls} placeholder="https://meet.google.com/…" value={draft.event.virtualLink} onChange={(e) => updateEvent({ virtualLink: e.target.value })} />
                 </Field>
-                <Field label={<span className="flex items-center gap-1"><Repeat className="w-3 h-3" /> Recurrence</span> as unknown as string}>
+                <Field label={<span className="flex items-center gap-1"><Repeat className="w-3 h-3" /> Recurrence</span>}>
                   <div className="flex rounded-xl border border-border overflow-hidden">
                     {RECURRENCE_OPTIONS.map((r) => (
                       <button key={r.value} onClick={() => updateEvent({ recurrence: r.value })} className={`flex-1 py-2 text-[11px] font-bold uppercase tracking-widest transition-all ${draft.event.recurrence === r.value ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"}`}>
@@ -803,7 +885,6 @@ export default function AdminComposerPage() {
               </SectionCard>
             )}
 
-            {/* Details */}
             <SectionCard title="Details">
               <Field label="Title" hint={!draft.title.trim() ? "Required to publish." : "Slug auto-generated."}>
                 <input className={`${inputCls} ${!draft.title.trim() ? "border-amber-300 focus:border-amber-400 focus:ring-amber-200/50" : ""}`} placeholder={draft.kind === "event" ? "Event title…" : "Post title…"} value={draft.title} onChange={(e) => updateTitle(e.target.value)} />
@@ -816,7 +897,6 @@ export default function AdminComposerPage() {
               </Field>
             </SectionCard>
 
-            {/* Author */}
             <SectionCard title="Author">
               <Field label="Name">
                 <input className={inputCls} placeholder="Full name…" value={draft.authorName} onChange={(e) => update({ authorName: e.target.value })} />
@@ -826,7 +906,6 @@ export default function AdminComposerPage() {
               </Field>
             </SectionCard>
 
-            {/* Appearance */}
             <SectionCard title="Appearance">
               <Field label="Cover colour">
                 <div className="flex gap-2 flex-wrap">
@@ -840,12 +919,10 @@ export default function AdminComposerPage() {
               </Field>
             </SectionCard>
 
-            {/* Tags */}
             <SectionCard title="Tags">
               <TagInput tags={draft.tags} onChange={(tags) => update({ tags })} />
             </SectionCard>
 
-            {/* Content */}
             <SectionCard title="Content">
               {draft.content.length === 0 && (
                 <p className="text-xs text-muted-foreground italic text-center py-4">No content blocks yet. Add one below.</p>
@@ -866,7 +943,6 @@ export default function AdminComposerPage() {
           </div>
         </div>
 
-        {/* Right preview panel */}
         <div className={`lg:flex flex-1 flex-col overflow-y-auto ${mobileTab === "preview" ? "flex" : "hidden"} lg:flex`}>
           <div className="sticky top-0 z-30 bg-muted/80 backdrop-blur border-b border-border px-5 py-2 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
@@ -884,7 +960,6 @@ export default function AdminComposerPage() {
         </div>
       </div>
 
-      {/* Bottom action bar */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-border shadow-[0_-4px_20px_-12px_rgba(0,0,0,0.08)]">
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-3">
           <div className="flex-1 min-w-0">

@@ -1,4 +1,4 @@
-import type { Article, ArticleBlock } from "@/data/articles";
+import type { Article, ArticleBlock, EventDetails } from "@/data/articles";
 
 interface SanityAuthor {
   name: string;
@@ -11,6 +11,7 @@ interface SanityAuthor {
 interface SanityContentBlock {
   _type: "block" | "image";
   style?: string;
+  listItem?: string;
   children?: { text: string; marks?: string[] }[];
   asset?: { url: string };
   alt?: string;
@@ -19,32 +20,58 @@ interface SanityContentBlock {
 
 interface SanityDocument {
   _id: string;
-  _type: "blog" | "news";
+  _type: "blog" | "news" | "event";
   title: string;
   slug: string;
   excerpt?: string;
   coverImage?: string;
+  coverColor?: string;
   author?: SanityAuthor;
+  authorInline?: { name?: string; role?: string };
   tags?: string[];
   category?: string;
   featured?: boolean;
   template?: "standard" | "hero" | "visual";
   publishedAt?: string;
   content?: SanityContentBlock[];
+  eventDate?: string;
+  endDate?: string;
+  location?: string;
+  virtualLink?: string;
+  recurrence?: "none" | "weekly" | "monthly";
+  recurrenceEnd?: string;
 }
 
 function blocksToArticleBlocks(blocks: SanityContentBlock[]): ArticleBlock[] {
-  return blocks.flatMap((block): ArticleBlock[] => {
+  // Group consecutive bullet items into a single list block
+  const out: ArticleBlock[] = [];
+  let listBuf: string[] = [];
+  const flushList = () => {
+    if (listBuf.length > 0) {
+      out.push({ type: "list", items: [...listBuf] });
+      listBuf = [];
+    }
+  };
+  for (const block of blocks) {
     if (block._type === "image") {
+      flushList();
       const caption = block.alt ?? block.caption;
-      return caption ? [{ type: "p", text: `[Image: ${caption}]` }] : [];
+      if (caption) out.push({ type: "p", text: `[Image: ${caption}]` });
+      continue;
     }
     const text = (block.children ?? []).map((c) => c.text).join("");
-    if (!text.trim()) return [];
-    if (block.style === "blockquote") return [{ type: "quote", text }];
-    if (block.style === "h2" || block.style === "h3") return [{ type: "h2", text }];
-    return [{ type: "p", text }];
-  });
+    if (!text.trim()) continue;
+    if (block.listItem === "bullet") {
+      listBuf.push(text);
+      continue;
+    }
+    flushList();
+    if (block.style === "blockquote") out.push({ type: "quote", text });
+    else if (block.style === "h2" || block.style === "h3") out.push({ type: "h2", text });
+    else out.push({ type: "p", text });
+  }
+  flushList();
+  return out;
 }
 
 function wordCount(blocks: SanityContentBlock[]): number {
@@ -57,30 +84,47 @@ function wordCount(blocks: SanityContentBlock[]): number {
     .filter(Boolean).length;
 }
 
+function docToEvent(doc: SanityDocument): EventDetails | undefined {
+  if (doc._type !== "event" || !doc.eventDate) return undefined;
+  const out: EventDetails = { date: doc.eventDate };
+  if (doc.endDate) out.endDate = doc.endDate;
+  if (doc.location) out.location = doc.location;
+  if (doc.virtualLink) out.virtualLink = doc.virtualLink;
+  if (doc.recurrence && doc.recurrence !== "none") out.recurrence = doc.recurrence;
+  if (doc.recurrenceEnd) out.recurrenceEnd = doc.recurrenceEnd;
+  return out;
+}
+
 export function sanityDocToArticle(doc: SanityDocument): Article {
-  const publishedDate = doc.publishedAt
-    ? new Date(doc.publishedAt).toLocaleDateString("en-GB", {
+  const dateSource = doc.publishedAt ?? doc.eventDate;
+  const publishedDate = dateSource
+    ? new Date(dateSource).toLocaleDateString("en-GB", {
         day: "numeric",
         month: "short",
         year: "numeric",
       })
     : "Draft";
 
+  const author = {
+    name: doc.author?.name ?? doc.authorInline?.name ?? "SikaFields Team",
+    role: doc.author?.role ?? doc.authorInline?.role ?? "",
+    bio: doc.author?.bio,
+    photo: doc.author?.photo,
+  };
+
+  const kind: Article["kind"] =
+    doc._type === "event" ? "event" : doc._type === "news" ? "news" : "article";
+
   return {
     id: doc._id,
-    kind: doc._type === "news" ? "news" : "article",
+    kind,
     template: doc.template ?? "standard",
     title: doc.title,
     slug: doc.slug,
     excerpt: doc.excerpt ?? "",
     coverImage: doc.coverImage,
-    coverColor: "#16a34a",
-    author: {
-      name: doc.author?.name ?? "SikaFields Team",
-      role: doc.author?.role ?? "",
-      bio: doc.author?.bio,
-      photo: doc.author?.photo,
-    },
+    coverColor: doc.coverColor ?? "#16a34a",
+    author,
     publishedAt: publishedDate,
     readTime: doc.content
       ? Math.max(1, Math.ceil(wordCount(doc.content) / 200))
@@ -88,5 +132,6 @@ export function sanityDocToArticle(doc: SanityDocument): Article {
     tags: doc.tags ?? [],
     featured: doc.featured ?? false,
     content: doc.content ? blocksToArticleBlocks(doc.content) : [],
+    event: docToEvent(doc),
   };
 }
