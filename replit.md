@@ -190,6 +190,8 @@ Clerk powers all admin authentication for SikaFields. The home page and public m
 2. In the Auth pane → Users → open your user → set Public metadata to `{"role": "admin"}`.
 3. Visit `/admin/users` to invite teammates with `user` or `admin` roles directly from the UI.
 
+> Status: `sikafield1@gmail.com` (`user_3CTubHjAojSxIMc9Os7M9ft5naH`) was bootstrapped as the first admin via the Clerk Backend API (`PATCH /v1/users/{id}/metadata`). Subsequent admins should be added through `/admin/users`.
+
 **Roles**
 - Stored in Clerk `publicMetadata.role` (`"admin"` | `"user"`).
 - Client check: `useIsAdmin()` hook in `src/lib/auth.tsx`.
