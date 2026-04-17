@@ -195,6 +195,11 @@ interface CreatePostBody {
     endDate?: string;
     location?: string;
     virtualLink?: string;
+    format?: "event" | "webinar" | "podcast";
+    host?: string;
+    registerUrl?: string;
+    mediaUrl?: string;
+    durationMinutes?: number;
     recurrence?: "none" | "weekly" | "monthly";
     recurrenceEnd?: string;
   };
@@ -252,10 +257,15 @@ router.post("/", express.json({ limit: "1mb" }), async (req: Request, res: Respo
   if (body.authorName) doc.authorInline = { name: body.authorName, role: body.authorRole ?? "" };
 
   if (_type === "event" && body.event) {
-    doc.eventDate = body.event.date;
-    if (body.event.endDate) doc.endDate = body.event.endDate;
+    doc.format = body.event.format ?? "event";
+    doc.startsAt = body.event.date;
+    if (body.event.endDate) doc.endsAt = body.event.endDate;
     if (body.event.location) doc.location = body.event.location;
     if (body.event.virtualLink) doc.virtualLink = body.event.virtualLink;
+    if (body.event.host) doc.host = body.event.host;
+    if (body.event.registerUrl) doc.registerUrl = body.event.registerUrl;
+    if (body.event.mediaUrl) doc.mediaUrl = body.event.mediaUrl;
+    if (body.event.durationMinutes) doc.durationMinutes = body.event.durationMinutes;
     doc.recurrence = body.event.recurrence ?? "none";
     if (body.event.recurrenceEnd) doc.recurrenceEnd = body.event.recurrenceEnd;
   }
@@ -282,10 +292,10 @@ router.get("/", async (_req: Request, res: Response) => {
   }
   try {
     const posts = await client.fetch<unknown[]>(
-      `*[_type in ["blog","news","event"]] | order(coalesce(publishedAt, _createdAt) desc)[0...100] {
+      `*[_type in ["blog","news","event"]] | order(coalesce(publishedAt, startsAt, _createdAt) desc)[0...100] {
         _id, _type, title, "slug": slug.current,
         "excerpt": coalesce(excerpt, summary),
-        publishedAt, eventDate, location
+        publishedAt, format, startsAt, location
       }`,
     );
     res.json({ posts, sanityConfigured: true });

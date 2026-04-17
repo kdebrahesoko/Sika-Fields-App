@@ -1,5 +1,5 @@
 export const ALL_ARTICLES_QUERY = `
-  *[_type in ["blog", "news", "event"]] | order(coalesce(publishedAt, eventDate) desc) {
+  *[_type in ["blog", "news", "event"]] | order(coalesce(publishedAt, startsAt) desc) {
     _id,
     _type,
     title,
@@ -18,10 +18,14 @@ export const ALL_ARTICLES_QUERY = `
     featured,
     template,
     publishedAt,
-    eventDate,
-    endDate,
+    format,
+    startsAt,
+    endsAt,
     location,
     virtualLink,
+    host,
+    registerUrl,
+    mediaUrl,
     recurrence,
     recurrenceEnd
   }
@@ -49,10 +53,14 @@ export const ARTICLE_BY_SLUG_QUERY = `
     featured,
     template,
     publishedAt,
-    eventDate,
-    endDate,
+    format,
+    startsAt,
+    endsAt,
     location,
     virtualLink,
+    host,
+    registerUrl,
+    mediaUrl,
     recurrence,
     recurrenceEnd,
     content
@@ -60,7 +68,7 @@ export const ARTICLE_BY_SLUG_QUERY = `
 `;
 
 export const RELATED_ARTICLES_QUERY = `
-  *[_type in ["blog", "news", "event"] && slug.current != $slug && count(tags[@ in $tags]) > 0] | order(coalesce(publishedAt, eventDate) desc)[0...3] {
+  *[_type in ["blog", "news", "event"] && slug.current != $slug && count(tags[@ in $tags]) > 0] | order(coalesce(publishedAt, startsAt) desc)[0...3] {
     _id,
     _type,
     title,
@@ -71,7 +79,7 @@ export const RELATED_ARTICLES_QUERY = `
     authorInline,
     tags,
     publishedAt,
-    eventDate
+    startsAt
   }
 `;
 

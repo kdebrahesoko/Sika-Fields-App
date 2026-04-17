@@ -34,10 +34,14 @@ interface SanityDocument {
   template?: "standard" | "hero" | "visual";
   publishedAt?: string;
   content?: SanityContentBlock[];
-  eventDate?: string;
-  endDate?: string;
+  format?: "event" | "webinar" | "podcast";
+  startsAt?: string;
+  endsAt?: string;
   location?: string;
   virtualLink?: string;
+  host?: string;
+  registerUrl?: string;
+  mediaUrl?: string;
   recurrence?: "none" | "weekly" | "monthly";
   recurrenceEnd?: string;
 }
@@ -85,9 +89,9 @@ function wordCount(blocks: SanityContentBlock[]): number {
 }
 
 function docToEvent(doc: SanityDocument): EventDetails | undefined {
-  if (doc._type !== "event" || !doc.eventDate) return undefined;
-  const out: EventDetails = { date: doc.eventDate };
-  if (doc.endDate) out.endDate = doc.endDate;
+  if (doc._type !== "event" || !doc.startsAt) return undefined;
+  const out: EventDetails = { date: doc.startsAt };
+  if (doc.endsAt) out.endDate = doc.endsAt;
   if (doc.location) out.location = doc.location;
   if (doc.virtualLink) out.virtualLink = doc.virtualLink;
   if (doc.recurrence && doc.recurrence !== "none") out.recurrence = doc.recurrence;
@@ -96,7 +100,7 @@ function docToEvent(doc: SanityDocument): EventDetails | undefined {
 }
 
 export function sanityDocToArticle(doc: SanityDocument): Article {
-  const dateSource = doc.publishedAt ?? doc.eventDate;
+  const dateSource = doc.publishedAt ?? doc.startsAt;
   const publishedDate = dateSource
     ? new Date(dateSource).toLocaleDateString("en-GB", {
         day: "numeric",
