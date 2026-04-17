@@ -742,10 +742,14 @@ function Navbar() {
                     <p className="text-xs font-bold uppercase tracking-widest text-accent">Admin</p>
                   </div>
                   <Link href="/admin/posts"
-                    className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary"
+                    className="flex items-start gap-3 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary"
                     onClick={closeAll}
                   >
-                    <LayoutDashboard className="w-4 h-4 text-accent" /> Manage posts
+                    <LayoutDashboard className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+                    <span>
+                      <span className="font-medium block text-foreground">Manage posts</span>
+                      <span className="text-xs text-muted-foreground">Author and publish articles, podcasts and webinars</span>
+                    </span>
                   </Link>
                 </>
               )}
