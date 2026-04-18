@@ -49,7 +49,7 @@ export function WarmFieldNotes() {
         style={{ background: 'rgba(247,239,225,0.92)', backdropFilter: 'blur(8px)', borderBottom: `1.5px solid ${OCHRE_LIGHT}` }}
       >
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
-          <a href="#" className="flex items-center gap-1.5 text-sm font-semibold shrink-0" style={{ color: COCOA }}>
+          <a href="/admin/posts" className="flex items-center gap-1.5 text-sm font-semibold shrink-0" style={{ color: COCOA }}>
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Posts</span>
           </a>
@@ -62,7 +62,7 @@ export function WarmFieldNotes() {
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <a href="#" className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: COCOA }}>
+            <a href="/admin/posts" className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: COCOA }}>
               <LayoutDashboard className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">All posts</span>
             </a>
@@ -102,7 +102,7 @@ export function WarmFieldNotes() {
           {/* Scratch */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
             <a
-              href="#"
+              href="/admin/posts"
               className="group block h-full p-7 sm:p-9 transition-all hover:-translate-y-1.5"
               style={{
                 background: '#fffaf0',
@@ -151,7 +151,7 @@ export function WarmFieldNotes() {
           {/* AI */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.12 }}>
             <a
-              href="#"
+              href="/admin/posts"
               className="group block h-full p-7 sm:p-9 transition-all hover:-translate-y-1.5 relative overflow-hidden"
               style={{
                 background: `linear-gradient(160deg, #fff3d9 0%, #fffaf0 60%, #fde6c2 100%)`,

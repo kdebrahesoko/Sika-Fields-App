@@ -31,7 +31,7 @@ export function QuietEditorial() {
       {/* Top bar */}
       <div className="sticky top-0 z-40 shrink-0" style={{ background: PAPER, borderBottom: `1px solid ${RULE}` }}>
         <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
-          <a href="#" className="flex items-center gap-1.5 text-[13px] font-medium shrink-0" style={{ color: MUTED }}>
+          <a href="/admin/posts" className="flex items-center gap-1.5 text-[13px] font-medium shrink-0" style={{ color: MUTED }}>
             <ArrowLeft className="w-4 h-4" />
             <span className="hidden sm:inline">Posts</span>
           </a>
@@ -44,7 +44,7 @@ export function QuietEditorial() {
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <a href="#" className="flex items-center gap-1.5 text-xs font-medium" style={{ color: MUTED }}>
+            <a href="/admin/posts" className="flex items-center gap-1.5 text-xs font-medium" style={{ color: MUTED }}>
               <LayoutDashboard className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">All posts</span>
             </a>
@@ -82,7 +82,7 @@ export function QuietEditorial() {
         <div className="grid md:grid-cols-2 gap-px" style={{ background: RULE, border: `1px solid ${RULE}` }}>
           {/* Scratch */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
-            <a href="#" className="group block h-full p-8 sm:p-10" style={{ background: PAPER }}>
+            <a href="/admin/posts" className="group block h-full p-8 sm:p-10" style={{ background: PAPER }}>
               <div className="flex items-center gap-3 mb-6">
                 <span style={{ color: ACCENT, fontFamily: SERIF, fontStyle: 'italic', fontSize: 14 }}>
                   No. 01 — Manual
@@ -117,7 +117,7 @@ export function QuietEditorial() {
 
           {/* AI */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.12 }}>
-            <a href="#" className="group block h-full p-8 sm:p-10" style={{ background: PAPER }}>
+            <a href="/admin/posts" className="group block h-full p-8 sm:p-10" style={{ background: PAPER }}>
               <div className="flex items-center gap-3 mb-6">
                 <span style={{ color: ACCENT, fontFamily: SERIF, fontStyle: 'italic', fontSize: 14 }}>
                   No. 02 — Assisted
