@@ -5,8 +5,10 @@ import { requireAdmin } from "../middlewares/requireAdmin";
 import {
   getSanityWriteClient,
   toPortableText,
+  fromPortableText,
   uploadImageBuffer,
   type ComposerBlock,
+  type SanityBlock,
 } from "../lib/sanity-write";
 
 const router: IRouter = Router();
@@ -290,6 +292,234 @@ router.post("/", express.json({ limit: "1mb" }), async (req: Request, res: Respo
   } catch (e) {
     const message = e instanceof Error ? e.message : "Create failed";
     console.error("Sanity create error:", e);
+    res.status(500).json({ error: message });
+  }
+});
+
+// ──────────────────────────────────────────────────────────────
+// Load a single post for editing — GET /admin/posts/:id
+// ──────────────────────────────────────────────────────────────
+
+interface RawSanityPost {
+  _id: string;
+  _type: "blog" | "news" | "event";
+  title?: string;
+  slug?: string;
+  excerpt?: string;
+  summary?: string;
+  template?: "standard" | "hero" | "visual";
+  coverColor?: string;
+  tags?: string[];
+  authorInline?: { name?: string; role?: string };
+  coverImageAssetId?: string;
+  coverImageUrl?: string;
+  content?: SanityBlock[];
+  format?: "event" | "webinar" | "podcast";
+  startsAt?: string;
+  endsAt?: string;
+  location?: string;
+  virtualLink?: string;
+  host?: string;
+  registerUrl?: string;
+  mediaUrl?: string;
+  durationMinutes?: number;
+  recurrence?: "none" | "weekly" | "monthly";
+  recurrenceEnd?: string;
+}
+
+router.get("/:id", async (req: Request, res: Response) => {
+  const id = String(req.params.id ?? "");
+  if (!id || !/^[A-Za-z0-9._-]+$/.test(id)) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
+  const client = getSanityWriteClient();
+  if (!client) {
+    res.status(503).json({
+      error: "Sanity is not configured. Set SANITY_PROJECT_ID and SANITY_WRITE_TOKEN secrets to enable editing.",
+      code: "sanity_not_configured",
+    });
+    return;
+  }
+  try {
+    const doc = await client.fetch<RawSanityPost | null>(
+      `*[_id == $id][0]{
+        _id, _type, title, "slug": slug.current,
+        excerpt, summary, template, coverColor, tags, authorInline,
+        "coverImageAssetId": coverImage.asset._ref,
+        "coverImageUrl": coverImage.asset->url,
+        content,
+        format, startsAt, endsAt, location, virtualLink, host,
+        registerUrl, mediaUrl, durationMinutes, recurrence, recurrenceEnd
+      }`,
+      { id },
+    );
+    if (!doc) {
+      res.status(404).json({ error: "Post not found" });
+      return;
+    }
+    if (!["blog", "news", "event"].includes(doc._type)) {
+      res.status(400).json({ error: "Not an editable post document" });
+      return;
+    }
+    const kind: "article" | "news" | "event" =
+      doc._type === "event" ? "event" : doc._type === "news" ? "news" : "article";
+    const post = {
+      id: doc._id,
+      kind,
+      title: doc.title ?? "",
+      slug: doc.slug ?? "",
+      excerpt: doc.excerpt ?? doc.summary ?? "",
+      template: doc.template ?? "standard",
+      coverColor: doc.coverColor ?? "",
+      tags: doc.tags ?? [],
+      authorName: doc.authorInline?.name ?? "",
+      authorRole: doc.authorInline?.role ?? "",
+      coverImage: doc.coverImageAssetId
+        ? { assetId: doc.coverImageAssetId, url: doc.coverImageUrl ?? "" }
+        : null,
+      content: fromPortableText(doc.content),
+      event:
+        doc._type === "event"
+          ? {
+              date: doc.startsAt ?? "",
+              endDate: doc.endsAt ?? "",
+              location: doc.location ?? "",
+              virtualLink: doc.virtualLink ?? "",
+              registerUrl: doc.registerUrl ?? "",
+              recurrence: doc.recurrence ?? "none",
+              recurrenceEnd: doc.recurrenceEnd ?? "",
+            }
+          : null,
+    };
+    res.json({ post });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Load failed";
+    console.error("Sanity load error:", e);
+    res.status(500).json({ error: message });
+  }
+});
+
+// ──────────────────────────────────────────────────────────────
+// Update a post — PATCH /admin/posts/:id
+// ──────────────────────────────────────────────────────────────
+
+router.patch("/:id", express.json({ limit: "1mb" }), async (req: Request, res: Response) => {
+  const id = String(req.params.id ?? "");
+  if (!id || !/^[A-Za-z0-9._-]+$/.test(id)) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
+  const body = (req.body ?? {}) as CreatePostBody;
+  const err = validateCreate(body);
+  if (err) {
+    res.status(400).json({ error: err });
+    return;
+  }
+  const client = getSanityWriteClient();
+  if (!client) {
+    res.status(503).json({
+      error: "Sanity is not configured. Set SANITY_PROJECT_ID and SANITY_WRITE_TOKEN secrets to enable editing.",
+      code: "sanity_not_configured",
+    });
+    return;
+  }
+
+  try {
+    const existing = await client.fetch<{ _type?: string; slug?: string } | null>(
+      `*[_id == $id][0]{ _type, "slug": slug.current }`,
+      { id },
+    );
+    if (!existing) {
+      res.status(404).json({ error: "Post not found" });
+      return;
+    }
+    if (!existing._type || !["blog", "news", "event"].includes(existing._type)) {
+      res.status(400).json({ error: "Refusing to update non-post document" });
+      return;
+    }
+    const expectedType = body.kind === "event" ? "event" : body.kind === "news" ? "news" : "blog";
+    if (existing._type !== expectedType) {
+      res.status(400).json({ error: "Cannot change post type when editing. Delete and recreate instead." });
+      return;
+    }
+
+    // If slug changed, ensure new one is unique (excluding this doc).
+    let finalSlug = body.slug;
+    if (body.slug !== existing.slug) {
+      const taken = await client.fetch<string[]>(
+        `*[_type in ["blog","news","event"] && _id != $id && slug.current match $pattern].slug.current`,
+        { id, pattern: `${body.slug}*` },
+      );
+      if (taken.includes(body.slug)) {
+        let i = 2;
+        while (taken.includes(`${body.slug}-${i}`)) i += 1;
+        finalSlug = `${body.slug}-${i}`;
+      }
+    }
+
+    const portable = toPortableText(body.content);
+    const set: Record<string, unknown> = {
+      title: body.title.trim(),
+      slug: { _type: "slug", current: finalSlug },
+      tags: body.tags ?? [],
+      content: portable,
+    };
+    const unset: string[] = [];
+
+    if (body.excerpt) {
+      if (existing._type === "blog") set.excerpt = body.excerpt;
+      else set.summary = body.excerpt;
+    } else {
+      unset.push(existing._type === "blog" ? "excerpt" : "summary");
+    }
+
+    if (body.coverImageAssetId) {
+      set.coverImage = { _type: "image", asset: { _type: "reference", _ref: body.coverImageAssetId } };
+    } else {
+      unset.push("coverImage");
+    }
+
+    if (body.template) set.template = body.template;
+    if (body.coverColor) set.coverColor = body.coverColor;
+    else unset.push("coverColor");
+
+    if (body.authorName) {
+      set.authorInline = { name: body.authorName, role: body.authorRole ?? "" };
+    } else {
+      unset.push("authorInline");
+    }
+
+    if (existing._type === "event" && body.event) {
+      set.format = body.event.format ?? "event";
+      set.startsAt = body.event.date;
+      if (body.event.endDate) set.endsAt = body.event.endDate;
+      else unset.push("endsAt");
+      if (body.event.location) set.location = body.event.location;
+      else unset.push("location");
+      if (body.event.virtualLink) set.virtualLink = body.event.virtualLink;
+      else unset.push("virtualLink");
+      if (body.event.host) set.host = body.event.host;
+      else unset.push("host");
+      if (body.event.registerUrl) set.registerUrl = body.event.registerUrl;
+      else unset.push("registerUrl");
+      if (body.event.mediaUrl) set.mediaUrl = body.event.mediaUrl;
+      else unset.push("mediaUrl");
+      if (body.event.durationMinutes) set.durationMinutes = body.event.durationMinutes;
+      else unset.push("durationMinutes");
+      set.recurrence = body.event.recurrence ?? "none";
+      if (body.event.recurrenceEnd) set.recurrenceEnd = body.event.recurrenceEnd;
+      else unset.push("recurrenceEnd");
+    }
+
+    let patch = client.patch(id).set(set);
+    if (unset.length > 0) patch = patch.unset(unset);
+    await patch.commit();
+
+    res.json({ id, slug: finalSlug, kind: body.kind });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Update failed";
+    console.error("Sanity patch error:", e);
     res.status(500).json({ error: message });
   }
 });

@@ -90,6 +90,43 @@ export function toPortableText(blocks: ComposerBlock[]): SanityBlock[] {
   return out;
 }
 
+/**
+ * Convert Sanity portable text blocks back into composer blocks.
+ * Consecutive bullet items are grouped into a single list block.
+ * Quote blocks of the form "text — attribution" are split back out.
+ */
+export function fromPortableText(blocks: SanityBlock[] | undefined | null): ComposerBlock[] {
+  if (!Array.isArray(blocks)) return [];
+  const out: ComposerBlock[] = [];
+  let listBuf: string[] = [];
+  const flushList = () => {
+    if (listBuf.length > 0) {
+      out.push({ type: "list", items: [...listBuf] });
+      listBuf = [];
+    }
+  };
+  for (const b of blocks) {
+    if (!b || b._type !== "block") continue;
+    const text = (b.children ?? []).map((c) => c?.text ?? "").join("");
+    if (b.listItem === "bullet") {
+      listBuf.push(text);
+      continue;
+    }
+    flushList();
+    if (b.style === "blockquote") {
+      const m = text.match(/^(.*?)\s+—\s+(.+)$/);
+      if (m) out.push({ type: "quote", text: m[1], attribution: m[2] });
+      else out.push({ type: "quote", text });
+    } else if (b.style === "h2" || b.style === "h3") {
+      out.push({ type: "h2", text });
+    } else {
+      out.push({ type: "p", text });
+    }
+  }
+  flushList();
+  return out;
+}
+
 export interface UploadedAsset {
   assetId: string;
   ref: string; // image-<id>-<dim>-<ext> for Sanity image schema

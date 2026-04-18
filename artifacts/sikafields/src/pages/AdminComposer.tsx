@@ -542,18 +542,124 @@ function LivePreview({ draft }: { draft: Draft }) {
 
 // --- Main page ---
 
+interface ServerPostBlock {
+  type: "p" | "h2" | "quote" | "list";
+  text?: string;
+  attribution?: string;
+  items?: string[];
+}
+
+interface ServerPostPayload {
+  id: string;
+  kind: Kind;
+  title: string;
+  slug: string;
+  excerpt: string;
+  template: TemplateId;
+  coverColor: string;
+  tags: string[];
+  authorName: string;
+  authorRole: string;
+  coverImage: { assetId: string; url: string } | null;
+  content: ServerPostBlock[];
+  event: {
+    date: string;
+    endDate: string;
+    location: string;
+    virtualLink: string;
+    registerUrl: string;
+    recurrence: "none" | "weekly" | "monthly";
+    recurrenceEnd: string;
+  } | null;
+}
+
+function serverBlockToDraftBlock(b: ServerPostBlock): DraftBlock {
+  const base = newBlock(b.type);
+  if (b.type === "list") return { ...base, items: b.items?.length ? b.items : [""] };
+  if (b.type === "quote") return { ...base, text: b.text ?? "", attribution: b.attribution ?? "" };
+  return { ...base, text: b.text ?? "" };
+}
+
+function serverPostToDraft(p: ServerPostPayload): Draft {
+  return {
+    title: p.title,
+    slug: p.slug,
+    slugManual: true,
+    kind: p.kind,
+    template: p.template ?? "standard",
+    excerpt: p.excerpt,
+    authorName: p.authorName,
+    authorRole: p.authorRole,
+    coverColor: p.coverColor || "#16a34a",
+    coverImage: p.coverImage,
+    tags: p.tags ?? [],
+    content: (p.content ?? []).map(serverBlockToDraftBlock),
+    event: p.event
+      ? {
+          date: p.event.date,
+          endDate: p.event.endDate,
+          location: p.event.location,
+          virtualLink: p.event.virtualLink,
+          registerUrl: p.event.registerUrl,
+          recurrence: p.event.recurrence,
+          recurrenceEnd: p.event.recurrenceEnd,
+        }
+      : DEFAULT_EVENT,
+  };
+}
+
 export default function AdminComposerPage() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const [draft, setDraft] = useState<Draft>(loadDraft);
+  // Determine edit mode synchronously so we don't briefly hydrate from the
+  // localStorage "new post" draft when arriving via ?edit=<id>.
+  const editId = (() => {
+    if (typeof window === "undefined") return null;
+    const v = new URLSearchParams(window.location.search).get("edit");
+    return v && /^[A-Za-z0-9._-]+$/.test(v) ? v : null;
+  })();
+  const [draft, setDraft] = useState<Draft>(() => (editId ? DEFAULT_DRAFT : loadDraft()));
   const [mobileTab, setMobileTab] = useState<"form" | "preview">("form");
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [publishState, setPublishState] = useState<"idle" | "publishing" | "published">("idle");
   const [publishError, setPublishError] = useState<string | null>(null);
   const [aiBanner, setAiBanner] = useState(false);
+  const [editLoading, setEditLoading] = useState<boolean>(Boolean(editId));
+  const [editLoadError, setEditLoadError] = useState<string | null>(null);
+  const isEditing = Boolean(editId);
+
+  // Load existing post when in edit mode.
+  useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/admin/posts/${encodeURIComponent(editId)}`, {
+          credentials: "include",
+        });
+        if (!res.ok) {
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(data.error ?? `Load failed (${res.status})`);
+        }
+        const data = (await res.json()) as { post: ServerPostPayload };
+        if (cancelled) return;
+        setDraft(serverPostToDraft(data.post));
+        setEditLoading(false);
+      } catch (e) {
+        if (cancelled) return;
+        const message = e instanceof Error ? e.message : "Failed to load post";
+        setEditLoadError(message);
+        setEditLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [editId]);
 
   // AI handoff: pre-fill draft if redirected from /admin/new-post/ai
   useEffect(() => {
+    if (editId) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("from") !== "ai") return;
     const handoff = consumeAiDraftHandoff();
@@ -587,21 +693,31 @@ export default function AdminComposerPage() {
     window.history.replaceState({}, "", window.location.pathname);
   }, []);
 
+  // While editing an existing post we deliberately don't write to the
+  // localStorage "new post" draft — those slots are reserved for the
+  // create-from-scratch flow.
+  const persistDraft = useCallback(
+    (next: Draft) => {
+      if (!isEditing) saveDraft(next);
+    },
+    [isEditing],
+  );
+
   const update = useCallback((patch: Partial<Draft>) => {
     setDraft((prev) => {
       const next = { ...prev, ...patch };
-      saveDraft(next);
+      persistDraft(next);
       return next;
     });
-  }, []);
+  }, [persistDraft]);
 
   const updateEvent = useCallback((patch: Partial<DraftEvent>) => {
     setDraft((prev) => {
       const next = { ...prev, event: { ...prev.event, ...patch } };
-      saveDraft(next);
+      persistDraft(next);
       return next;
     });
-  }, []);
+  }, [persistDraft]);
 
   const updateTitle = useCallback((title: string) => {
     setDraft((prev) => {
@@ -610,34 +726,34 @@ export default function AdminComposerPage() {
         title,
         slug: prev.slugManual ? prev.slug : toSlug(title),
       };
-      saveDraft(next);
+      persistDraft(next);
       return next;
     });
-  }, []);
+  }, [persistDraft]);
 
   const addBlock = useCallback((type: BlockType) => {
     setDraft((prev) => {
       const next = { ...prev, content: [...prev.content, newBlock(type)] };
-      saveDraft(next);
+      persistDraft(next);
       return next;
     });
-  }, []);
+  }, [persistDraft]);
 
   const updateBlock = useCallback((id: string, block: DraftBlock) => {
     setDraft((prev) => {
       const next = { ...prev, content: prev.content.map((b) => (b.id === id ? block : b)) };
-      saveDraft(next);
+      persistDraft(next);
       return next;
     });
-  }, []);
+  }, [persistDraft]);
 
   const removeBlock = useCallback((id: string) => {
     setDraft((prev) => {
       const next = { ...prev, content: prev.content.filter((b) => b.id !== id) };
-      saveDraft(next);
+      persistDraft(next);
       return next;
     });
-  }, []);
+  }, [persistDraft]);
 
   const moveBlock = useCallback((id: string, dir: -1 | 1) => {
     setDraft((prev) => {
@@ -648,10 +764,10 @@ export default function AdminComposerPage() {
       if (target < 0 || target >= arr.length) return prev;
       [arr[idx], arr[target]] = [arr[target], arr[idx]];
       const next = { ...prev, content: arr };
-      saveDraft(next);
+      persistDraft(next);
       return next;
     });
-  }, []);
+  }, [persistDraft]);
 
   const clearDraft = useCallback(() => {
     clearDraftStorage();
@@ -679,7 +795,10 @@ export default function AdminComposerPage() {
     setPublishError(null);
 
     const baseSlug = draft.slug || toSlug(draft.title) || "draft-post";
-    const uniqueSlug = ensureUniqueSlug(baseSlug);
+    // When editing, the server scopes uniqueness checks to "other documents",
+    // so we should NOT pre-suffix the slug — that would needlessly rename the
+    // post on every save.
+    const uniqueSlug = isEditing ? baseSlug : ensureUniqueSlug(baseSlug);
 
     const payload = {
       kind: draft.kind,
@@ -713,19 +832,23 @@ export default function AdminComposerPage() {
     };
 
     try {
-      const res = await fetch(`${API_BASE}/admin/posts`, {
-        method: "POST",
+      const url = isEditing
+        ? `${API_BASE}/admin/posts/${encodeURIComponent(editId!)}`
+        : `${API_BASE}/admin/posts`;
+      const method = isEditing ? "PATCH" : "POST";
+      const res = await fetch(url, {
+        method,
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string; code?: string };
-        throw new Error(data.error ?? `Publish failed (${res.status})`);
+        throw new Error(data.error ?? `${isEditing ? "Update" : "Publish"} failed (${res.status})`);
       }
       setPublishState("published");
-      clearDraftStorage();
-      // Invalidate cached lists so the new post shows up immediately on /admin/posts
+      if (!isEditing) clearDraftStorage();
+      // Invalidate cached lists so the change shows up immediately everywhere.
       await queryClient.invalidateQueries({ queryKey: ["articles"] });
       await queryClient.invalidateQueries({ queryKey: ["events"] });
       await queryClient.invalidateQueries({ queryKey: ["article"] });
@@ -733,19 +856,24 @@ export default function AdminComposerPage() {
         setLocation("/admin/posts");
       }, 700);
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Publish failed";
+      const message = e instanceof Error ? e.message : `${isEditing ? "Update" : "Publish"} failed`;
       setPublishError(message);
       setPublishState("idle");
     }
-  }, [canPublish, draft, setLocation, queryClient]);
+  }, [canPublish, draft, setLocation, queryClient, isEditing, editId]);
 
   const projectId = import.meta.env.VITE_SANITY_PROJECT_ID as string | undefined;
-  const sanityUrl =
+  const sanityBase =
     isSanityConfigured && projectId
       ? `https://${projectId}.sanity.studio/structure/${
           draft.kind === "event" ? "event" : draft.kind === "news" ? "news" : "blog"
         }`
       : null;
+  const sanityUrl = sanityBase
+    ? isEditing && editId
+      ? `${sanityBase};${editId}`
+      : sanityBase
+    : null;
 
   return (
     <div className="min-h-screen bg-muted/30 font-sans flex flex-col">
@@ -760,12 +888,12 @@ export default function AdminComposerPage() {
           <div className="flex items-center gap-2 min-w-0">
             <PenLine className="w-4 h-4 text-primary shrink-0" />
             <p className="text-sm font-semibold text-foreground truncate">
-              <span className="text-primary">Compose</span>
+              <span className="text-primary">{isEditing ? "Edit" : "Compose"}</span>
               <span className="text-muted-foreground hidden sm:inline"> · {KIND_OPTIONS.find((k) => k.value === draft.kind)?.label}</span>
             </p>
           </div>
           <div className="ml-auto flex items-center gap-3">
-            {showClearConfirm ? (
+            {!isEditing && (showClearConfirm ? (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground hidden sm:inline">Clear draft?</span>
                 <button onClick={clearDraft} className="text-xs font-bold text-red-500 hover:underline">Yes, clear</button>
@@ -776,7 +904,7 @@ export default function AdminComposerPage() {
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Clear</span>
               </button>
-            )}
+            ))}
             <Link href="/admin/posts" className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors" title="Manage all posts">
               <LayoutDashboard className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">All posts</span>
@@ -784,6 +912,35 @@ export default function AdminComposerPage() {
           </div>
         </div>
       </div>
+
+      {isEditing && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-r from-sky-50 to-emerald-50 border-b border-sky-200">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
+            <PenLine className="w-4 h-4 text-sky-700 shrink-0" />
+            <p className="text-xs sm:text-sm text-sky-900 flex-1">
+              <span className="font-bold">Editing existing post.</span>{" "}
+              <span className="hidden sm:inline">
+                {editLoading ? "Loading current content…" : "Saving will update the live post for everyone."}
+              </span>
+            </p>
+            {editLoading && <Loader2 className="w-4 h-4 text-sky-700 animate-spin" />}
+          </div>
+        </motion.div>
+      )}
+
+      {editLoadError && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 border-b border-red-200">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            <p className="text-xs sm:text-sm text-red-900 flex-1">
+              <span className="font-bold">Couldn't load post.</span> {editLoadError}
+            </p>
+            <Link href="/admin/posts" className="text-xs font-bold text-red-700 hover:underline">
+              Back to posts
+            </Link>
+          </div>
+        </motion.div>
+      )}
 
       {aiBanner && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-gradient-to-r from-emerald-50 to-amber-50 border-b border-emerald-200">
@@ -827,13 +984,17 @@ export default function AdminComposerPage() {
         <div className={`lg:flex flex-col w-full lg:w-[26rem] shrink-0 border-r border-border bg-white/60 ${mobileTab === "form" ? "flex" : "hidden"} lg:flex`}>
           <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-28">
             <SectionCard title="Post Settings">
-              <Field label="Post type">
-                <div className="flex rounded-xl border border-border overflow-hidden">
+              <Field
+                label="Post type"
+                hint={isEditing ? "Post type can't change once published — delete and recreate to switch." : undefined}
+              >
+                <div className={`flex rounded-xl border border-border overflow-hidden ${isEditing ? "opacity-60" : ""}`}>
                   {KIND_OPTIONS.map((k) => (
                     <button
                       key={k.value}
-                      onClick={() => update({ kind: k.value })}
-                      className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest transition-all ${draft.kind === k.value ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"}`}
+                      onClick={() => !isEditing && update({ kind: k.value })}
+                      disabled={isEditing}
+                      className={`flex-1 py-2 text-xs font-bold uppercase tracking-widest transition-all ${draft.kind === k.value ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"} ${isEditing ? "cursor-not-allowed" : ""}`}
                     >
                       {k.label}
                     </button>
@@ -979,7 +1140,7 @@ export default function AdminComposerPage() {
               {draft.title || <span className="text-muted-foreground italic">Untitled Post</span>}
             </p>
             <p className="text-[10px] text-muted-foreground">
-              Draft saved · {draft.content.length} blocks · {wordCount(draft)} words
+              {isEditing ? "Editing live post" : "Draft saved"} · {draft.content.length} blocks · {wordCount(draft)} words
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -1000,9 +1161,9 @@ export default function AdminComposerPage() {
                   : "bg-gradient-to-br from-emerald-600 to-emerald-800 text-white hover:shadow-lg hover:-translate-y-0.5"
               }`}
             >
-              {publishState === "publishing" && (<><Loader2 className="w-4 h-4 animate-spin" /> Publishing…</>)}
-              {publishState === "published" && (<><CheckCircle2 className="w-4 h-4" /> Published</>)}
-              {publishState === "idle" && (<><Send className="w-4 h-4" /> <span className="hidden sm:inline">Publish post</span><span className="sm:hidden">Publish</span></>)}
+              {publishState === "publishing" && (<><Loader2 className="w-4 h-4 animate-spin" /> {isEditing ? "Saving…" : "Publishing…"}</>)}
+              {publishState === "published" && (<><CheckCircle2 className="w-4 h-4" /> {isEditing ? "Saved" : "Published"}</>)}
+              {publishState === "idle" && (<><Send className="w-4 h-4" /> <span className="hidden sm:inline">{isEditing ? "Save changes" : "Publish post"}</span><span className="sm:hidden">{isEditing ? "Save" : "Publish"}</span></>)}
             </button>
           </div>
         </div>

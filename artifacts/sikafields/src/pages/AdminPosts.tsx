@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Copy, Check, Eye, ExternalLink, Palette,
   LayoutDashboard, Calendar, Clock, Loader2, BookOpen, Plus,
-  Trash2, AlertCircle,
+  Trash2, AlertCircle, Pencil,
 } from "lucide-react";
 import { ARTICLES, type Article } from "@/data/articles";
 import { useAllArticles } from "@/hooks/useArticles";
@@ -112,7 +112,10 @@ function PostCard({ article, index }: { article: Article; index: number }) {
   const [copied, setCopied] = useState(false);
   const [deleteState, setDeleteState] = useState<"idle" | "confirm" | "deleting" | "deleted">("idle");
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const canDelete = isServerManaged(article.id);
+  // Bundled (in-source) posts can't be edited or deleted via the API —
+  // those operations need a server-managed Sanity document.
+  const isEditable = isServerManaged(article.id);
+  const canDelete = isEditable;
 
   const cc = article.coverColor ?? "#16a34a";
   const shareUrl = `https://sikafields.com/articles/${article.slug}`;
@@ -302,13 +305,34 @@ function PostCard({ article, index }: { article: Article; index: number }) {
 
         {/* Actions */}
         <div className="flex flex-col gap-1.5 mt-auto">
-          <Link
-            href={`/articles/${article.slug}/studio`}
-            className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-colors"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            Open Post Studio
-          </Link>
+          {isEditable ? (
+            <div className="flex gap-1.5">
+              <Link
+                href={`/admin/new-post/scratch?edit=${encodeURIComponent(article.id)}`}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-colors"
+                title="Edit this post in the in-app composer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                Edit
+              </Link>
+              <Link
+                href={`/articles/${article.slug}/studio`}
+                className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all"
+                title="Open the visual studio (template & layout preview)"
+              >
+                <Eye className="w-3.5 h-3.5" />
+                Studio
+              </Link>
+            </div>
+          ) : (
+            <Link
+              href={`/articles/${article.slug}/studio`}
+              className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-colors"
+            >
+              <Eye className="w-3.5 h-3.5" />
+              Open Post Studio
+            </Link>
+          )}
           <div className="flex gap-1.5">
             <Link
               href={`/articles/${article.slug}`}
