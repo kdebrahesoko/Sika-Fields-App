@@ -17,7 +17,10 @@ export const modules: ModuleMap = {
   "./components/mockups/leadership/SwimLanes.tsx": () => import("../components/mockups/leadership/SwimLanes.tsx"),
   "./components/mockups/leadership/TerritoryMap.tsx": () => import("../components/mockups/leadership/TerritoryMap.tsx"),
   "./components/mockups/leadership/TrustWall.tsx": () => import("../components/mockups/leadership/TrustWall.tsx"),
+  "./components/mockups/new-post-hub/AccessibleReadable.tsx": () => import("../components/mockups/new-post-hub/AccessibleReadable.tsx"),
+  "./components/mockups/new-post-hub/AffordanceForward.tsx": () => import("../components/mockups/new-post-hub/AffordanceForward.tsx"),
   "./components/mockups/new-post-hub/ClimateConsole.tsx": () => import("../components/mockups/new-post-hub/ClimateConsole.tsx"),
+  "./components/mockups/new-post-hub/HierarchyFirst.tsx": () => import("../components/mockups/new-post-hub/HierarchyFirst.tsx"),
   "./components/mockups/new-post-hub/QuietEditorial.tsx": () => import("../components/mockups/new-post-hub/QuietEditorial.tsx"),
   "./components/mockups/new-post-hub/WarmFieldNotes.tsx": () => import("../components/mockups/new-post-hub/WarmFieldNotes.tsx")
 };
