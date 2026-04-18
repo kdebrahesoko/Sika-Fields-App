@@ -21,6 +21,9 @@ interface SanityContentBlock {
 interface SanityDocument {
   _id: string;
   _type: "blog" | "news" | "event";
+  _updatedAt?: string;
+  lastEditedAt?: string;
+  lastEditedBy?: { id?: string; name?: string };
   title: string;
   slug: string;
   excerpt?: string;
@@ -119,6 +122,11 @@ export function sanityDocToArticle(doc: SanityDocument): Article {
   const kind: Article["kind"] =
     doc._type === "event" ? "event" : doc._type === "news" ? "news" : "article";
 
+  const lastEditedAt = doc.lastEditedAt ?? doc._updatedAt;
+  const lastEdited = lastEditedAt
+    ? { at: lastEditedAt, byName: doc.lastEditedBy?.name }
+    : undefined;
+
   return {
     id: doc._id,
     kind,
@@ -137,5 +145,6 @@ export function sanityDocToArticle(doc: SanityDocument): Article {
     featured: doc.featured ?? false,
     content: doc.content ? blocksToArticleBlocks(doc.content) : [],
     event: docToEvent(doc),
+    lastEdited,
   };
 }

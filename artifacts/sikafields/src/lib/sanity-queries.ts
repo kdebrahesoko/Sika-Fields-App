@@ -2,6 +2,9 @@ export const ALL_ARTICLES_QUERY = `
   *[_type in ["blog", "news", "event"]] | order(coalesce(publishedAt, startsAt) desc) {
     _id,
     _type,
+    _updatedAt,
+    lastEditedAt,
+    lastEditedBy,
     title,
     "slug": slug.current,
     "excerpt": coalesce(excerpt, summary),

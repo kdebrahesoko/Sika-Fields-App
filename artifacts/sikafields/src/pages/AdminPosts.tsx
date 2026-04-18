@@ -5,12 +5,30 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft, Copy, Check, Eye, ExternalLink, Palette,
   LayoutDashboard, Calendar, Clock, Loader2, BookOpen, Plus,
-  Trash2, AlertCircle, Pencil,
+  Trash2, AlertCircle, Pencil, History,
 } from "lucide-react";
 import { ARTICLES, type Article } from "@/data/articles";
 import { useAllArticles } from "@/hooks/useArticles";
 import { isSanityConfigured } from "@/lib/sanity";
 import { AuthorAvatar, tagStyle } from "@/lib/article-shared";
+import { RevisionHistoryDialog } from "@/components/RevisionHistoryDialog";
+
+function formatLastEdited(iso: string): string {
+  const then = new Date(iso).getTime();
+  const diff = Math.max(0, Date.now() - then);
+  const min = Math.floor(diff / 60000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 30) return `${day}d ago`;
+  return new Date(iso).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 const API_BASE = "/api";
 
@@ -112,6 +130,7 @@ function PostCard({ article, index }: { article: Article; index: number }) {
   const [copied, setCopied] = useState(false);
   const [deleteState, setDeleteState] = useState<"idle" | "confirm" | "deleting" | "deleted">("idle");
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   // Bundled (in-source) posts can't be edited or deleted via the API —
   // those operations need a server-managed Sanity document.
   const isEditable = isServerManaged(article.id);
@@ -238,6 +257,19 @@ function PostCard({ article, index }: { article: Article; index: number }) {
               {article.readTime}m read
             </span>
           </div>
+          {article.lastEdited && (
+            <p
+              className="mt-1.5 text-[10px] text-muted-foreground flex items-center gap-1"
+              title={new Date(article.lastEdited.at).toLocaleString()}
+            >
+              <Pencil className="w-2.5 h-2.5 shrink-0" />
+              Edited {formatLastEdited(article.lastEdited.at)}
+              {" by "}
+              {article.lastEdited.byName ?? (
+                <span className="italic">unknown editor</span>
+              )}
+            </p>
+          )}
         </div>
 
         {/* Tags */}
@@ -363,6 +395,15 @@ function PostCard({ article, index }: { article: Article; index: number }) {
                 <ExternalLink className="w-3 h-3" />
               </a>
             )}
+            {isEditable && (
+              <button
+                onClick={() => setHistoryOpen(true)}
+                title="View revision history"
+                className="flex items-center justify-center px-2 py-1.5 rounded-xl border border-border text-muted-foreground hover:border-primary/40 hover:text-primary transition-all"
+              >
+                <History className="w-3 h-3" />
+              </button>
+            )}
             {canDelete && (
               <button
                 onClick={() => setDeleteState("confirm")}
@@ -373,6 +414,14 @@ function PostCard({ article, index }: { article: Article; index: number }) {
               </button>
             )}
           </div>
+          {isEditable && (
+            <RevisionHistoryDialog
+              open={historyOpen}
+              onClose={() => setHistoryOpen(false)}
+              postId={article.id}
+              postTitle={article.title}
+            />
+          )}
 
           {deleteError && (
             <div className="flex items-start gap-1.5 text-[10px] text-red-600 bg-red-50 border border-red-100 rounded-lg px-2 py-1.5">

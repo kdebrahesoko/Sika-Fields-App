@@ -1,7 +1,8 @@
 import { Router, type IRouter, type Request, type Response } from "express";
 import express from "express";
+import { clerkClient } from "@clerk/express";
 import { openai } from "@workspace/integrations-openai-ai-server";
-import { requireAdmin } from "../middlewares/requireAdmin";
+import { requireAdmin, type AdminRequest } from "../middlewares/requireAdmin";
 import {
   getSanityWriteClient,
   toPortableText,
@@ -14,6 +15,32 @@ import {
 const router: IRouter = Router();
 
 router.use(requireAdmin);
+
+// ──────────────────────────────────────────────────────────────
+// Editor metadata helper — used to stamp posts with who edited
+// ──────────────────────────────────────────────────────────────
+
+interface EditorMeta {
+  id: string;
+  name: string;
+}
+
+async function getEditorMeta(req: AdminRequest): Promise<EditorMeta | null> {
+  const id = req.userId;
+  if (!id) return null;
+  try {
+    const u = await clerkClient.users.getUser(id);
+    const first = (u.firstName ?? "").trim();
+    const last = (u.lastName ?? "").trim();
+    const fullName = [first, last].filter(Boolean).join(" ").trim();
+    const email = u.emailAddresses?.[0]?.emailAddress ?? "";
+    const name = fullName || email || "Admin";
+    return { id, name };
+  } catch (err) {
+    console.warn("Could not load editor meta:", err);
+    return { id, name: "Admin" };
+  }
+}
 
 // ──────────────────────────────────────────────────────────────
 // AI draft generator (existing)
@@ -272,6 +299,12 @@ router.post("/", express.json({ limit: "1mb" }), async (req: Request, res: Respo
   if (body.coverColor) doc.coverColor = body.coverColor;
   if (body.authorName) doc.authorInline = { name: body.authorName, role: body.authorRole ?? "" };
 
+  const editor = await getEditorMeta(req as AdminRequest);
+  if (editor) {
+    doc.lastEditedBy = editor;
+    doc.lastEditedAt = new Date().toISOString();
+  }
+
   if (_type === "event" && body.event) {
     doc.format = body.event.format ?? "event";
     doc.startsAt = body.event.date;
@@ -512,6 +545,12 @@ router.patch("/:id", express.json({ limit: "1mb" }), async (req: Request, res: R
       else unset.push("recurrenceEnd");
     }
 
+    const editor = await getEditorMeta(req as AdminRequest);
+    if (editor) {
+      set.lastEditedBy = editor;
+      set.lastEditedAt = new Date().toISOString();
+    }
+
     let patch = client.patch(id).set(set);
     if (unset.length > 0) patch = patch.unset(unset);
     await patch.commit();
@@ -567,6 +606,175 @@ router.delete("/:id", async (req: Request, res: Response) => {
     res.status(500).json({ error: message });
   }
 });
+
+// ──────────────────────────────────────────────────────────────
+// Revision history — list & restore
+// ──────────────────────────────────────────────────────────────
+
+interface SanityTransaction {
+  id: string;
+  timestamp: string;
+  author?: string;
+  documentIDs?: string[];
+}
+
+interface RevisionItem {
+  id: string;
+  timestamp: string;
+  authorName?: string;
+}
+
+router.get("/:id/revisions", async (req: Request, res: Response) => {
+  const id = String(req.params.id ?? "");
+  if (!id || !/^[A-Za-z0-9._-]+$/.test(id)) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
+  const client = getSanityWriteClient();
+  if (!client) {
+    res.status(503).json({
+      error: "Sanity is not configured.",
+      code: "sanity_not_configured",
+    });
+    return;
+  }
+  const dataset = process.env.SANITY_DATASET ?? "production";
+  try {
+    // Sanity History API returns newline-delimited JSON of transactions.
+    const raw = await client.request<unknown>({
+      url: `/data/history/${dataset}/transactions/${id}?excludeContent=true&limit=50`,
+    });
+    const text = typeof raw === "string" ? raw : "";
+    const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+    const txs: SanityTransaction[] = [];
+    for (const line of lines) {
+      try {
+        txs.push(JSON.parse(line) as SanityTransaction);
+      } catch {
+        // skip malformed lines
+      }
+    }
+    // Newest first; cap at 25 to keep the picker manageable.
+    txs.sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
+    const revisions: RevisionItem[] = txs.slice(0, 25).map((t) => ({
+      id: t.id,
+      timestamp: t.timestamp,
+    }));
+    res.json({ revisions });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Failed to load history";
+    // The history API requires a paid plan / certain dataset configurations;
+    // degrade gracefully so the UI can show a friendly message.
+    console.warn("Sanity history error:", e);
+    res.status(200).json({ revisions: [], warning: message });
+  }
+});
+
+interface HistoricalDoc {
+  _id: string;
+  _type?: string;
+  _rev?: string;
+  _createdAt?: string;
+  _updatedAt?: string;
+  [k: string]: unknown;
+}
+
+async function fetchHistoricalDoc(
+  client: NonNullable<ReturnType<typeof getSanityWriteClient>>,
+  id: string,
+  revisionId: string,
+): Promise<HistoricalDoc | null> {
+  const dataset = process.env.SANITY_DATASET ?? "production";
+  const result = await client.request<{ documents?: HistoricalDoc[] } | HistoricalDoc>({
+    url: `/data/history/${dataset}/documents/${id}?revision=${encodeURIComponent(revisionId)}`,
+  });
+  if (result && typeof result === "object") {
+    if ("documents" in result && Array.isArray(result.documents)) {
+      return result.documents[0] ?? null;
+    }
+    if ("_id" in result) return result as HistoricalDoc;
+  }
+  return null;
+}
+
+router.post(
+  "/:id/restore",
+  express.json({ limit: "256kb" }),
+  async (req: Request, res: Response) => {
+    const id = String(req.params.id ?? "");
+    if (!id || !/^[A-Za-z0-9._-]+$/.test(id)) {
+      res.status(400).json({ error: "invalid id" });
+      return;
+    }
+    const body = (req.body ?? {}) as { revisionId?: string };
+    const revisionId = String(body.revisionId ?? "");
+    if (!revisionId || !/^[A-Za-z0-9._-]+$/.test(revisionId)) {
+      res.status(400).json({ error: "revisionId is required" });
+      return;
+    }
+    const client = getSanityWriteClient();
+    if (!client) {
+      res.status(503).json({
+        error: "Sanity is not configured.",
+        code: "sanity_not_configured",
+      });
+      return;
+    }
+    try {
+      const existing = await client.fetch<{ _type?: string } | null>(
+        `*[_id == $id][0]{ _type }`,
+        { id },
+      );
+      if (!existing) {
+        res.status(404).json({ error: "Post not found" });
+        return;
+      }
+      if (!existing._type || !["blog", "news", "event"].includes(existing._type)) {
+        res.status(400).json({ error: "Refusing to restore non-post document" });
+        return;
+      }
+
+      const historical = await fetchHistoricalDoc(client, id, revisionId);
+      if (!historical) {
+        res.status(404).json({ error: "Revision not found" });
+        return;
+      }
+      if (historical._type !== existing._type) {
+        res.status(400).json({ error: "Revision belongs to a different document type" });
+        return;
+      }
+
+      // Strip system fields the server controls; keep _id so createOrReplace
+      // overwrites the live document in place.
+      const {
+        _rev: _r,
+        _createdAt: _c,
+        _updatedAt: _u,
+        ...rest
+      } = historical;
+
+      const editor = await getEditorMeta(req as AdminRequest);
+      const replacement: HistoricalDoc & { _id: string; _type: string } = {
+        ...(rest as HistoricalDoc),
+        _id: id,
+        _type: existing._type,
+        lastEditedAt: new Date().toISOString(),
+      };
+      if (editor) {
+        replacement.lastEditedBy = editor;
+      }
+
+      await client.createOrReplace(
+        replacement as { _id: string; _type: string } & Record<string, unknown>,
+      );
+      res.json({ ok: true, id, revisionId });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Restore failed";
+      console.error("Sanity restore error:", e);
+      res.status(500).json({ error: message });
+    }
+  },
+);
 
 router.get("/", async (_req: Request, res: Response) => {
   const client = getSanityWriteClient();

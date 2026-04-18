@@ -7,8 +7,9 @@ import {
   Type, AlignLeft, Quote, List, Check, Copy, ExternalLink,
   Eye, X, RotateCcw, ChevronUp, ChevronDown, PenLine, LayoutDashboard,
   Send, CheckCircle2, Loader2, Calendar, MapPin, Globe2, Repeat, Upload, Wand2,
-  AlertCircle, Ticket,
+  AlertCircle, Ticket, History,
 } from "lucide-react";
+import { RevisionHistoryDialog } from "@/components/RevisionHistoryDialog";
 import { type Article, type ArticleBlock, type EventDetails } from "@/data/articles";
 import { isSanityConfigured } from "@/lib/sanity";
 import { tagStyle } from "@/lib/article-shared";
@@ -626,13 +627,16 @@ export default function AdminComposerPage() {
   const [aiBanner, setAiBanner] = useState(false);
   const [editLoading, setEditLoading] = useState<boolean>(Boolean(editId));
   const [editLoadError, setEditLoadError] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const isEditing = Boolean(editId);
 
-  // Load existing post when in edit mode.
-  useEffect(() => {
-    if (!editId) return;
-    let cancelled = false;
-    (async () => {
+  // Load existing post — extracted so we can call again after a restore so
+  // the composer reflects the rolled-back content immediately.
+  const loadEditingPost = useCallback(
+    async (signal?: { cancelled: boolean }) => {
+      if (!editId) return;
+      setEditLoading(true);
+      setEditLoadError(null);
       try {
         const res = await fetch(`${API_BASE}/admin/posts/${encodeURIComponent(editId)}`, {
           credentials: "include",
@@ -642,20 +646,27 @@ export default function AdminComposerPage() {
           throw new Error(data.error ?? `Load failed (${res.status})`);
         }
         const data = (await res.json()) as { post: ServerPostPayload };
-        if (cancelled) return;
+        if (signal?.cancelled) return;
         setDraft(serverPostToDraft(data.post));
         setEditLoading(false);
       } catch (e) {
-        if (cancelled) return;
+        if (signal?.cancelled) return;
         const message = e instanceof Error ? e.message : "Failed to load post";
         setEditLoadError(message);
         setEditLoading(false);
       }
-    })();
+    },
+    [editId],
+  );
+
+  useEffect(() => {
+    if (!editId) return;
+    const signal = { cancelled: false };
+    void loadEditingPost(signal);
     return () => {
-      cancelled = true;
+      signal.cancelled = true;
     };
-  }, [editId]);
+  }, [editId, loadEditingPost]);
 
   // AI handoff: pre-fill draft if redirected from /admin/new-post/ai
   useEffect(() => {
@@ -1145,6 +1156,17 @@ export default function AdminComposerPage() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <CopyJsonButton draft={draft} />
+            {isEditing && editId && (
+              <button
+                type="button"
+                onClick={() => setHistoryOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all"
+                title="View revision history"
+              >
+                <History className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">History</span>
+              </button>
+            )}
             {sanityUrl && (
               <a href={sanityUrl} target="_blank" rel="noopener noreferrer" className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-primary/40 transition-all" title="Open in Sanity CMS">
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -1168,6 +1190,18 @@ export default function AdminComposerPage() {
           </div>
         </div>
       </div>
+
+      {isEditing && editId && (
+        <RevisionHistoryDialog
+          open={historyOpen}
+          onClose={() => setHistoryOpen(false)}
+          postId={editId}
+          postTitle={draft.title || "Untitled Post"}
+          onRestored={() => {
+            void loadEditingPost();
+          }}
+        />
+      )}
     </div>
   );
 }

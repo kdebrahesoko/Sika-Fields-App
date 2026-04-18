@@ -57,6 +57,7 @@ export type Article = {
   publishedAt: string;
   readTime: number;
   featured?: boolean;
+  lastEdited?: { at: string; byName?: string };
 };
 
 export const ARTICLES: Article[] = [
