@@ -336,6 +336,7 @@ router.post("/", express.json({ limit: "1mb" }), async (req: Request, res: Respo
 interface RawSanityPost {
   _id: string;
   _type: "blog" | "news" | "event";
+  _updatedAt?: string;
   title?: string;
   slug?: string;
   excerpt?: string;
@@ -377,7 +378,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   try {
     const doc = await client.fetch<RawSanityPost | null>(
       `*[_id == $id][0]{
-        _id, _type, title, "slug": slug.current,
+        _id, _type, _updatedAt, title, "slug": slug.current,
         excerpt, summary, template, coverColor, tags, authorInline,
         "coverImageAssetId": coverImage.asset._ref,
         "coverImageUrl": coverImage.asset->url,
@@ -399,6 +400,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       doc._type === "event" ? "event" : doc._type === "news" ? "news" : "article";
     const post = {
       id: doc._id,
+      updatedAt: doc._updatedAt ?? "",
       kind,
       title: doc.title ?? "",
       slug: doc.slug ?? "",
@@ -443,7 +445,7 @@ router.patch("/:id", express.json({ limit: "1mb" }), async (req: Request, res: R
     res.status(400).json({ error: "invalid id" });
     return;
   }
-  const body = (req.body ?? {}) as CreatePostBody;
+  const body = (req.body ?? {}) as CreatePostBody & { baseUpdatedAt?: string };
   const err = validateCreate(body);
   if (err) {
     res.status(400).json({ error: err });
@@ -459,8 +461,8 @@ router.patch("/:id", express.json({ limit: "1mb" }), async (req: Request, res: R
   }
 
   try {
-    const existing = await client.fetch<{ _type?: string; slug?: string } | null>(
-      `*[_id == $id][0]{ _type, "slug": slug.current }`,
+    const existing = await client.fetch<{ _type?: string; _updatedAt?: string; slug?: string } | null>(
+      `*[_id == $id][0]{ _type, _updatedAt, "slug": slug.current }`,
       { id },
     );
     if (!existing) {
@@ -469,6 +471,20 @@ router.patch("/:id", express.json({ limit: "1mb" }), async (req: Request, res: R
     }
     if (!existing._type || !["blog", "news", "event"].includes(existing._type)) {
       res.status(400).json({ error: "Refusing to update non-post document" });
+      return;
+    }
+
+    // Concurrency check: reject if the document has been modified since the
+    // composer loaded it. Prevents two admins from silently overwriting each
+    // other's edits.
+    const baseUpdatedAt = typeof body.baseUpdatedAt === "string" ? body.baseUpdatedAt : "";
+    const currentUpdatedAt = existing._updatedAt ?? "";
+    if (baseUpdatedAt && currentUpdatedAt && baseUpdatedAt !== currentUpdatedAt) {
+      res.status(409).json({
+        error: "This post was changed by someone else since you opened it. Reload to keep editing.",
+        code: "stale_edit",
+        currentUpdatedAt,
+      });
       return;
     }
     const expectedType = body.kind === "event" ? "event" : body.kind === "news" ? "news" : "blog";
@@ -553,9 +569,14 @@ router.patch("/:id", express.json({ limit: "1mb" }), async (req: Request, res: R
 
     let patch = client.patch(id).set(set);
     if (unset.length > 0) patch = patch.unset(unset);
-    await patch.commit();
+    const committed = (await patch.commit()) as { _updatedAt?: string } | undefined;
 
-    res.json({ id, slug: finalSlug, kind: body.kind });
+    res.json({
+      id,
+      slug: finalSlug,
+      kind: body.kind,
+      updatedAt: committed?._updatedAt ?? "",
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Update failed";
     console.error("Sanity patch error:", e);

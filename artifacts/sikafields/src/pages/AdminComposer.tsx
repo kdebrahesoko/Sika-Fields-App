@@ -552,6 +552,7 @@ interface ServerPostBlock {
 
 interface ServerPostPayload {
   id: string;
+  updatedAt: string;
   kind: Kind;
   title: string;
   slug: string;
@@ -628,6 +629,8 @@ export default function AdminComposerPage() {
   const [editLoading, setEditLoading] = useState<boolean>(Boolean(editId));
   const [editLoadError, setEditLoadError] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [baseUpdatedAt, setBaseUpdatedAt] = useState<string>("");
+  const [staleConflict, setStaleConflict] = useState(false);
   const isEditing = Boolean(editId);
 
   // Load existing post — extracted so we can call again after a restore so
@@ -648,6 +651,8 @@ export default function AdminComposerPage() {
         const data = (await res.json()) as { post: ServerPostPayload };
         if (signal?.cancelled) return;
         setDraft(serverPostToDraft(data.post));
+        setBaseUpdatedAt(data.post.updatedAt ?? "");
+        setStaleConflict(false);
         setEditLoading(false);
       } catch (e) {
         if (signal?.cancelled) return;
@@ -815,6 +820,7 @@ export default function AdminComposerPage() {
       kind: draft.kind,
       title: draft.title.trim(),
       slug: uniqueSlug,
+      baseUpdatedAt: isEditing ? baseUpdatedAt : undefined,
       excerpt: draft.excerpt.trim(),
       authorName: draft.authorName.trim(),
       authorRole: draft.authorRole.trim(),
@@ -854,9 +860,21 @@ export default function AdminComposerPage() {
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string; code?: string };
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          code?: string;
+          currentUpdatedAt?: string;
+        };
+        if (res.status === 409 && data.code === "stale_edit") {
+          setStaleConflict(true);
+          setPublishError(null);
+          setPublishState("idle");
+          return;
+        }
         throw new Error(data.error ?? `${isEditing ? "Update" : "Publish"} failed (${res.status})`);
       }
+      const okData = (await res.json().catch(() => ({}))) as { updatedAt?: string };
+      if (isEditing && okData.updatedAt) setBaseUpdatedAt(okData.updatedAt);
       setPublishState("published");
       if (!isEditing) clearDraftStorage();
       // Invalidate cached lists so the change shows up immediately everywhere.
@@ -871,7 +889,7 @@ export default function AdminComposerPage() {
       setPublishError(message);
       setPublishState("idle");
     }
-  }, [canPublish, draft, setLocation, queryClient, isEditing, editId]);
+  }, [canPublish, draft, setLocation, queryClient, isEditing, editId, baseUpdatedAt]);
 
   const projectId = import.meta.env.VITE_SANITY_PROJECT_ID as string | undefined;
   const sanityBase =
@@ -935,6 +953,26 @@ export default function AdminComposerPage() {
               </span>
             </p>
             {editLoading && <Loader2 className="w-4 h-4 text-sky-700 animate-spin" />}
+          </div>
+        </motion.div>
+      )}
+
+      {staleConflict && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-amber-50 border-b border-amber-200">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
+            <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
+            <p className="text-xs sm:text-sm text-amber-900 flex-1">
+              <span className="font-bold">This post was changed by someone else</span> — reload to keep editing. Saving now would overwrite their changes.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+            >
+              Reload
+            </button>
+            <button onClick={() => setStaleConflict(false)} className="text-amber-700 hover:text-amber-900 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
           </div>
         </motion.div>
       )}
