@@ -67,6 +67,20 @@ interface RevisionFetchResponse {
   revision: { id: string; timestamp: string };
 }
 
+interface AuditEntry {
+  id: string;
+  postTitle: string;
+  revisionId: string;
+  revisionTimestamp: string;
+  restoredAt: string;
+  restoredBy: { id: string; name: string };
+}
+
+interface AuditResponse {
+  entries: AuditEntry[];
+  warning?: string;
+}
+
 function relativeTime(iso: string): string {
   const then = new Date(iso).getTime();
   const now = Date.now();
@@ -181,12 +195,28 @@ export function RevisionHistoryDialog({
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [revisions, setRevisions] = useState<RevisionItem[]>([]);
+  const [audit, setAudit] = useState<AuditEntry[]>([]);
   const [warning, setWarning] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [restoringId, setRestoringId] = useState<string | null>(null);
   const [restoredId, setRestoredId] = useState<string | null>(null);
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [tab, setTab] = useState<"revisions" | "audit">("revisions");
+
+  const loadAudit = useCallback(async () => {
+    try {
+      const res = await fetch(
+        `${API_BASE}/admin/posts/${encodeURIComponent(postId)}/restore-audit`,
+        { credentials: "include" },
+      );
+      if (!res.ok) return;
+      const data = (await res.json()) as AuditResponse;
+      setAudit(data.entries ?? []);
+    } catch {
+      // Audit log is best-effort; ignore failures here.
+    }
+  }, [postId]);
 
   // Preview mode
   const [previewing, setPreviewing] = useState<RevisionItem | null>(null);
@@ -215,7 +245,8 @@ export function RevisionHistoryDialog({
     } finally {
       setLoading(false);
     }
-  }, [postId]);
+    void loadAudit();
+  }, [postId, loadAudit]);
 
   useEffect(() => {
     if (!open) return;
@@ -285,6 +316,7 @@ export function RevisionHistoryDialog({
         await queryClient.invalidateQueries({ queryKey: ["articles"] });
         await queryClient.invalidateQueries({ queryKey: ["events"] });
         await queryClient.invalidateQueries({ queryKey: ["article"] });
+        void loadAudit();
         if (onRestored) onRestored();
         // Drop out of preview mode after a successful restore so the user
         // sees the confirmed list state.
@@ -296,7 +328,7 @@ export function RevisionHistoryDialog({
         setRestoringId(null);
       }
     },
-    [postId, queryClient, onRestored],
+    [postId, queryClient, onRestored, loadAudit],
   );
 
   const inPreview = previewing !== null;
@@ -385,6 +417,32 @@ export function RevisionHistoryDialog({
               </div>
             </div>
 
+            {/* Tabs (hidden in preview mode) */}
+            {!inPreview && (
+              <div className="flex border-b border-border bg-muted/30 text-[11px] font-bold">
+                <button
+                  onClick={() => setTab("revisions")}
+                  className={`flex-1 px-4 py-2 transition-colors ${
+                    tab === "revisions"
+                      ? "text-primary border-b-2 border-primary -mb-px bg-white"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Revisions
+                </button>
+                <button
+                  onClick={() => setTab("audit")}
+                  className={`flex-1 px-4 py-2 transition-colors ${
+                    tab === "audit"
+                      ? "text-primary border-b-2 border-primary -mb-px bg-white"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Restore log {audit.length > 0 ? `(${audit.length})` : ""}
+                </button>
+              </div>
+            )}
+
             {/* Body */}
             {inPreview ? (
               <div className="flex-1 overflow-y-auto bg-white">
@@ -414,6 +472,46 @@ export function RevisionHistoryDialog({
                     <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
                     <span>{restoreError}</span>
                   </div>
+                )}
+              </div>
+            ) : tab === "audit" ? (
+              <div className="flex-1 overflow-y-auto px-5 py-3">
+                {audit.length === 0 ? (
+                  <div className="text-center py-10 text-xs text-muted-foreground">
+                    <RotateCcw className="w-8 h-8 opacity-30 mx-auto mb-2" />
+                    <p className="font-semibold text-foreground mb-1">
+                      No restores yet
+                    </p>
+                    <p className="leading-relaxed">
+                      When someone restores an older version, the action will
+                      be recorded here.
+                    </p>
+                  </div>
+                ) : (
+                  <ul className="space-y-1.5 py-1">
+                    {audit.map((entry) => (
+                      <li
+                        key={entry.id}
+                        className="rounded-xl border border-border bg-white px-3 py-2.5"
+                      >
+                        <p className="text-xs font-semibold text-foreground">
+                          {entry.restoredBy.name || "Admin"}
+                          <span className="text-muted-foreground font-normal">
+                            {" "}restored to{" "}
+                          </span>
+                          {entry.revisionTimestamp
+                            ? relativeTime(entry.revisionTimestamp)
+                            : "an earlier version"}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          {fullTimestamp(entry.restoredAt)}
+                          {entry.revisionTimestamp
+                            ? ` · source: ${fullTimestamp(entry.revisionTimestamp)}`
+                            : ""}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </div>
             ) : (

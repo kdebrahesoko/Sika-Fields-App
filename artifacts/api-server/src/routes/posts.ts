@@ -627,6 +627,85 @@ interface RevisionItem {
   authorName?: string;
 }
 
+// ──────────────────────────────────────────────────────────────
+// Restore audit log — list entries (global, or per-post)
+// ──────────────────────────────────────────────────────────────
+
+interface RestoreAuditEntry {
+  id: string;
+  postId: string;
+  postType: string;
+  postTitle: string;
+  revisionId: string;
+  revisionTimestamp: string;
+  restoredAt: string;
+  restoredBy: { id: string; name: string };
+}
+
+async function fetchRestoreAudit(
+  client: NonNullable<ReturnType<typeof getSanityWriteClient>>,
+  postId: string | null,
+  limit: number,
+): Promise<RestoreAuditEntry[]> {
+  const filter = postId ? `_type == "restoreAudit" && postId == $postId` : `_type == "restoreAudit"`;
+  const query = `*[${filter}] | order(restoredAt desc)[0...${limit}]{
+    "id": _id, postId, postType, postTitle, revisionId, revisionTimestamp,
+    restoredAt, restoredBy
+  }`;
+  const params = postId ? { postId } : {};
+  const rows = await client.fetch<Array<Partial<RestoreAuditEntry>>>(query, params);
+  return rows.map((r) => ({
+    id: String(r.id ?? ""),
+    postId: String(r.postId ?? ""),
+    postType: String(r.postType ?? ""),
+    postTitle: String(r.postTitle ?? ""),
+    revisionId: String(r.revisionId ?? ""),
+    revisionTimestamp: String(r.revisionTimestamp ?? ""),
+    restoredAt: String(r.restoredAt ?? ""),
+    restoredBy: {
+      id: String(r.restoredBy?.id ?? ""),
+      name: String(r.restoredBy?.name ?? "Admin"),
+    },
+  }));
+}
+
+router.get("/restore-audit", async (_req: Request, res: Response) => {
+  const client = getSanityWriteClient();
+  if (!client) {
+    res.json({ entries: [], sanityConfigured: false });
+    return;
+  }
+  try {
+    const entries = await fetchRestoreAudit(client, null, 100);
+    res.json({ entries });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Failed to load audit log";
+    console.warn("Audit log error:", e);
+    res.status(200).json({ entries: [], warning: message });
+  }
+});
+
+router.get("/:id/restore-audit", async (req: Request, res: Response) => {
+  const id = String(req.params.id ?? "");
+  if (!id || !/^[A-Za-z0-9._-]+$/.test(id)) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
+  const client = getSanityWriteClient();
+  if (!client) {
+    res.json({ entries: [], sanityConfigured: false });
+    return;
+  }
+  try {
+    const entries = await fetchRestoreAudit(client, id, 50);
+    res.json({ entries });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Failed to load audit log";
+    console.warn("Audit log error:", e);
+    res.status(200).json({ entries: [], warning: message });
+  }
+});
+
 router.get("/:id/revisions", async (req: Request, res: Response) => {
   const id = String(req.params.id ?? "");
   if (!id || !/^[A-Za-z0-9._-]+$/.test(id)) {
@@ -845,6 +924,11 @@ router.post(
         return;
       }
 
+      const revisionTimestamp =
+        typeof historical._updatedAt === "string" ? historical._updatedAt : "";
+      const historicalTitle =
+        typeof historical.title === "string" ? historical.title : "";
+
       // Strip system fields the server controls; keep _id so createOrReplace
       // overwrites the live document in place.
       const {
@@ -868,6 +952,24 @@ router.post(
       await client.createOrReplace(
         replacement as { _id: string; _type: string } & Record<string, unknown>,
       );
+
+      // Append a permanent audit entry so prior restores aren't lost when the
+      // post is edited again. Failures here must not break the restore.
+      try {
+        await client.create({
+          _type: "restoreAudit",
+          postId: id,
+          postType: existing._type,
+          postTitle: historicalTitle,
+          revisionId,
+          revisionTimestamp: revisionTimestamp || undefined,
+          restoredAt: new Date().toISOString(),
+          restoredBy: editor ?? { id: "", name: "Admin" },
+        });
+      } catch (auditErr) {
+        console.warn("Failed to write restore audit entry:", auditErr);
+      }
+
       res.json({ ok: true, id, revisionId });
     } catch (e) {
       const message = e instanceof Error ? e.message : "Restore failed";
