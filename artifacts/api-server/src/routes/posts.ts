@@ -336,7 +336,6 @@ router.post("/", express.json({ limit: "1mb" }), async (req: Request, res: Respo
 interface RawSanityPost {
   _id: string;
   _type: "blog" | "news" | "event";
-  _updatedAt?: string;
   title?: string;
   slug?: string;
   excerpt?: string;
@@ -361,6 +360,39 @@ interface RawSanityPost {
   recurrenceEnd?: string;
 }
 
+function rawPostToServerPayload(doc: RawSanityPost): Record<string, unknown> {
+  const kind: "article" | "news" | "event" =
+    doc._type === "event" ? "event" : doc._type === "news" ? "news" : "article";
+  return {
+    id: doc._id,
+    kind,
+    title: doc.title ?? "",
+    slug: doc.slug ?? "",
+    excerpt: doc.excerpt ?? doc.summary ?? "",
+    template: doc.template ?? "standard",
+    coverColor: doc.coverColor ?? "",
+    tags: doc.tags ?? [],
+    authorName: doc.authorInline?.name ?? "",
+    authorRole: doc.authorInline?.role ?? "",
+    coverImage: doc.coverImageAssetId
+      ? { assetId: doc.coverImageAssetId, url: doc.coverImageUrl ?? "" }
+      : null,
+    content: fromPortableText(doc.content),
+    event:
+      doc._type === "event"
+        ? {
+            date: doc.startsAt ?? "",
+            endDate: doc.endsAt ?? "",
+            location: doc.location ?? "",
+            virtualLink: doc.virtualLink ?? "",
+            registerUrl: doc.registerUrl ?? "",
+            recurrence: doc.recurrence ?? "none",
+            recurrenceEnd: doc.recurrenceEnd ?? "",
+          }
+        : null,
+  };
+}
+
 router.get("/:id", async (req: Request, res: Response) => {
   const id = String(req.params.id ?? "");
   if (!id || !/^[A-Za-z0-9._-]+$/.test(id)) {
@@ -378,7 +410,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   try {
     const doc = await client.fetch<RawSanityPost | null>(
       `*[_id == $id][0]{
-        _id, _type, _updatedAt, title, "slug": slug.current,
+        _id, _type, title, "slug": slug.current,
         excerpt, summary, template, coverColor, tags, authorInline,
         "coverImageAssetId": coverImage.asset._ref,
         "coverImageUrl": coverImage.asset->url,
@@ -396,38 +428,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       res.status(400).json({ error: "Not an editable post document" });
       return;
     }
-    const kind: "article" | "news" | "event" =
-      doc._type === "event" ? "event" : doc._type === "news" ? "news" : "article";
-    const post = {
-      id: doc._id,
-      updatedAt: doc._updatedAt ?? "",
-      kind,
-      title: doc.title ?? "",
-      slug: doc.slug ?? "",
-      excerpt: doc.excerpt ?? doc.summary ?? "",
-      template: doc.template ?? "standard",
-      coverColor: doc.coverColor ?? "",
-      tags: doc.tags ?? [],
-      authorName: doc.authorInline?.name ?? "",
-      authorRole: doc.authorInline?.role ?? "",
-      coverImage: doc.coverImageAssetId
-        ? { assetId: doc.coverImageAssetId, url: doc.coverImageUrl ?? "" }
-        : null,
-      content: fromPortableText(doc.content),
-      event:
-        doc._type === "event"
-          ? {
-              date: doc.startsAt ?? "",
-              endDate: doc.endsAt ?? "",
-              location: doc.location ?? "",
-              virtualLink: doc.virtualLink ?? "",
-              registerUrl: doc.registerUrl ?? "",
-              recurrence: doc.recurrence ?? "none",
-              recurrenceEnd: doc.recurrenceEnd ?? "",
-            }
-          : null,
-    };
-    res.json({ post });
+    res.json({ post: rawPostToServerPayload(doc) });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Load failed";
     console.error("Sanity load error:", e);
@@ -445,7 +446,7 @@ router.patch("/:id", express.json({ limit: "1mb" }), async (req: Request, res: R
     res.status(400).json({ error: "invalid id" });
     return;
   }
-  const body = (req.body ?? {}) as CreatePostBody & { baseUpdatedAt?: string };
+  const body = (req.body ?? {}) as CreatePostBody;
   const err = validateCreate(body);
   if (err) {
     res.status(400).json({ error: err });
@@ -461,8 +462,8 @@ router.patch("/:id", express.json({ limit: "1mb" }), async (req: Request, res: R
   }
 
   try {
-    const existing = await client.fetch<{ _type?: string; _updatedAt?: string; slug?: string } | null>(
-      `*[_id == $id][0]{ _type, _updatedAt, "slug": slug.current }`,
+    const existing = await client.fetch<{ _type?: string; slug?: string } | null>(
+      `*[_id == $id][0]{ _type, "slug": slug.current }`,
       { id },
     );
     if (!existing) {
@@ -471,20 +472,6 @@ router.patch("/:id", express.json({ limit: "1mb" }), async (req: Request, res: R
     }
     if (!existing._type || !["blog", "news", "event"].includes(existing._type)) {
       res.status(400).json({ error: "Refusing to update non-post document" });
-      return;
-    }
-
-    // Concurrency check: reject if the document has been modified since the
-    // composer loaded it. Prevents two admins from silently overwriting each
-    // other's edits.
-    const baseUpdatedAt = typeof body.baseUpdatedAt === "string" ? body.baseUpdatedAt : "";
-    const currentUpdatedAt = existing._updatedAt ?? "";
-    if (baseUpdatedAt && currentUpdatedAt && baseUpdatedAt !== currentUpdatedAt) {
-      res.status(409).json({
-        error: "This post was changed by someone else since you opened it. Reload to keep editing.",
-        code: "stale_edit",
-        currentUpdatedAt,
-      });
       return;
     }
     const expectedType = body.kind === "event" ? "event" : body.kind === "news" ? "news" : "blog";
@@ -569,14 +556,9 @@ router.patch("/:id", express.json({ limit: "1mb" }), async (req: Request, res: R
 
     let patch = client.patch(id).set(set);
     if (unset.length > 0) patch = patch.unset(unset);
-    const committed = (await patch.commit()) as { _updatedAt?: string } | undefined;
+    await patch.commit();
 
-    res.json({
-      id,
-      slug: finalSlug,
-      kind: body.kind,
-      updatedAt: committed?._updatedAt ?? "",
-    });
+    res.json({ id, slug: finalSlug, kind: body.kind });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Update failed";
     console.error("Sanity patch error:", e);
@@ -717,6 +699,104 @@ async function fetchHistoricalDoc(
   }
   return null;
 }
+
+// GET /admin/posts/:id/revisions/:rev — return a historical version mapped to
+// the same ServerPostPayload shape used for editing, so the composer can
+// render a read-only preview of the past version before restoring.
+router.get("/:id/revisions/:rev", async (req: Request, res: Response) => {
+  const id = String(req.params.id ?? "");
+  const revisionId = String(req.params.rev ?? "");
+  if (!id || !/^[A-Za-z0-9._-]+$/.test(id)) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
+  if (!revisionId || !/^[A-Za-z0-9._-]+$/.test(revisionId)) {
+    res.status(400).json({ error: "invalid revisionId" });
+    return;
+  }
+  const client = getSanityWriteClient();
+  if (!client) {
+    res.status(503).json({
+      error: "Sanity is not configured.",
+      code: "sanity_not_configured",
+    });
+    return;
+  }
+  try {
+    const historical = await fetchHistoricalDoc(client, id, revisionId);
+    if (!historical) {
+      res.status(404).json({ error: "Revision not found" });
+      return;
+    }
+    if (!historical._type || !["blog", "news", "event"].includes(historical._type)) {
+      res.status(400).json({ error: "Not an editable post document" });
+      return;
+    }
+
+    // The historical doc stores cover image as { asset: { _ref } }; resolve
+    // the URL separately so the preview can show the original cover.
+    let coverImageAssetId: string | undefined;
+    let coverImageUrl: string | undefined;
+    const cover = historical.coverImage as
+      | { asset?: { _ref?: string } }
+      | undefined;
+    const ref = cover?.asset?._ref;
+    if (typeof ref === "string" && ref.length > 0) {
+      coverImageAssetId = ref;
+      try {
+        const url = await client.fetch<string | null>(
+          `*[_id == $assetId][0].url`,
+          { assetId: ref },
+        );
+        if (typeof url === "string") coverImageUrl = url;
+      } catch {
+        // Best-effort: leave url empty if asset can't be resolved.
+      }
+    }
+
+    const raw: RawSanityPost = {
+      _id: historical._id,
+      _type: historical._type as "blog" | "news" | "event",
+      title: historical.title as string | undefined,
+      slug: ((historical.slug as { current?: string } | undefined)?.current) ?? undefined,
+      excerpt: historical.excerpt as string | undefined,
+      summary: historical.summary as string | undefined,
+      template: historical.template as RawSanityPost["template"],
+      coverColor: historical.coverColor as string | undefined,
+      tags: (historical.tags as string[] | undefined) ?? undefined,
+      authorInline: historical.authorInline as RawSanityPost["authorInline"],
+      coverImageAssetId,
+      coverImageUrl,
+      content: historical.content as SanityBlock[] | undefined,
+      format: historical.format as RawSanityPost["format"],
+      startsAt: historical.startsAt as string | undefined,
+      endsAt: historical.endsAt as string | undefined,
+      location: historical.location as string | undefined,
+      virtualLink: historical.virtualLink as string | undefined,
+      host: historical.host as string | undefined,
+      registerUrl: historical.registerUrl as string | undefined,
+      mediaUrl: historical.mediaUrl as string | undefined,
+      durationMinutes: historical.durationMinutes as number | undefined,
+      recurrence: historical.recurrence as RawSanityPost["recurrence"],
+      recurrenceEnd: historical.recurrenceEnd as string | undefined,
+    };
+
+    res.json({
+      post: rawPostToServerPayload(raw),
+      revision: {
+        id: revisionId,
+        timestamp:
+          (historical._updatedAt as string | undefined) ??
+          (historical._createdAt as string | undefined) ??
+          "",
+      },
+    });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Failed to load revision";
+    console.error("Sanity revision fetch error:", e);
+    res.status(500).json({ error: message });
+  }
+});
 
 router.post(
   "/:id/restore",
