@@ -43,6 +43,95 @@ async function getEditorMeta(req: AdminRequest): Promise<EditorMeta | null> {
 }
 
 // ──────────────────────────────────────────────────────────────
+// Live presence — admins see who else is editing the same post
+// ──────────────────────────────────────────────────────────────
+
+interface PresenceEntry {
+  id: string;
+  name: string;
+  imageUrl?: string;
+  lastSeen: number;
+}
+
+// Treat an editor as "still here" if we've seen a heartbeat within this window.
+// The composer pings every ~10s, so 30s gives plenty of room for one missed beat.
+const PRESENCE_TTL_MS = 30_000;
+
+// postId -> userId -> PresenceEntry
+const presenceByPost: Map<string, Map<string, PresenceEntry>> = new Map();
+
+function pruneStale(post: Map<string, PresenceEntry>): void {
+  const cutoff = Date.now() - PRESENCE_TTL_MS;
+  for (const [uid, entry] of post) {
+    if (entry.lastSeen < cutoff) post.delete(uid);
+  }
+}
+
+function listOtherEditors(postId: string, selfId: string): Array<{ id: string; name: string; imageUrl?: string }> {
+  const post = presenceByPost.get(postId);
+  if (!post) return [];
+  pruneStale(post);
+  const out: Array<{ id: string; name: string; imageUrl?: string }> = [];
+  for (const entry of post.values()) {
+    if (entry.id === selfId) continue;
+    out.push({ id: entry.id, name: entry.name, imageUrl: entry.imageUrl });
+  }
+  return out;
+}
+
+async function getPresenceMeta(req: AdminRequest): Promise<PresenceEntry | null> {
+  const id = req.userId;
+  if (!id) return null;
+  try {
+    const u = await clerkClient.users.getUser(id);
+    const first = (u.firstName ?? "").trim();
+    const last = (u.lastName ?? "").trim();
+    const fullName = [first, last].filter(Boolean).join(" ").trim();
+    const email = u.emailAddresses?.[0]?.emailAddress ?? "";
+    const name = fullName || email || "Admin";
+    return { id, name, imageUrl: u.imageUrl, lastSeen: Date.now() };
+  } catch {
+    return { id, name: "Admin", lastSeen: Date.now() };
+  }
+}
+
+router.post("/:id/presence", express.json({ limit: "4kb" }), async (req: Request, res: Response) => {
+  const id = String(req.params.id ?? "");
+  if (!id || !/^[A-Za-z0-9._-]+$/.test(id)) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
+  const meta = await getPresenceMeta(req as AdminRequest);
+  if (!meta) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  let post = presenceByPost.get(id);
+  if (!post) {
+    post = new Map();
+    presenceByPost.set(id, post);
+  }
+  post.set(meta.id, meta);
+  pruneStale(post);
+  res.json({ others: listOtherEditors(id, meta.id) });
+});
+
+router.delete("/:id/presence", async (req: Request, res: Response) => {
+  const id = String(req.params.id ?? "");
+  if (!id || !/^[A-Za-z0-9._-]+$/.test(id)) {
+    res.status(400).json({ error: "invalid id" });
+    return;
+  }
+  const selfId = (req as AdminRequest).userId;
+  const post = presenceByPost.get(id);
+  if (post && selfId) {
+    post.delete(selfId);
+    if (post.size === 0) presenceByPost.delete(id);
+  }
+  res.json({ ok: true });
+});
+
+// ──────────────────────────────────────────────────────────────
 // AI draft generator (existing)
 // ──────────────────────────────────────────────────────────────
 

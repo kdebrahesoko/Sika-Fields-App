@@ -154,6 +154,44 @@ describe("GET /api/admin/posts/:id/revisions", () => {
   });
 });
 
+describe("Presence /api/admin/posts/:id/presence", () => {
+  it("requires a session for heartbeat", async () => {
+    state.currentUserId = undefined;
+    const res = await request(app).post("/api/admin/posts/doc-event-1/presence").send({});
+    expect(res.status).toBe(401);
+  });
+
+  it("rejects malformed ids", async () => {
+    const res = await request(app).post("/api/admin/posts/has%20space/presence").send({});
+    expect(res.status).toBe(400);
+  });
+
+  it("returns no others when the current user is the only editor", async () => {
+    const res = await request(app).post("/api/admin/posts/presence-solo/presence").send({});
+    expect(res.status).toBe(200);
+    expect(res.body.others).toEqual([]);
+  });
+
+  it("lists other concurrent editors and clears them on DELETE", async () => {
+    state.currentUserId = "user_alice";
+    await request(app).post("/api/admin/posts/presence-pair/presence").send({});
+
+    state.currentUserId = "user_bob";
+    const join = await request(app).post("/api/admin/posts/presence-pair/presence").send({});
+    expect(join.status).toBe(200);
+    expect(join.body.others).toHaveLength(1);
+    expect(join.body.others[0]).toMatchObject({ id: "user_alice", name: "Ada Lovelace" });
+
+    state.currentUserId = "user_alice";
+    const leave = await request(app).delete("/api/admin/posts/presence-pair/presence");
+    expect(leave.status).toBe(200);
+
+    state.currentUserId = "user_bob";
+    const after = await request(app).post("/api/admin/posts/presence-pair/presence").send({});
+    expect(after.body.others).toEqual([]);
+  });
+});
+
 describe("POST /api/admin/posts/:id/restore", () => {
   it("returns 401 without a session", async () => {
     state.currentUserId = undefined;

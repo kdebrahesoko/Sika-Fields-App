@@ -7,7 +7,7 @@ import {
   Type, AlignLeft, Quote, List, Check, Copy, ExternalLink,
   Eye, X, RotateCcw, ChevronUp, ChevronDown, PenLine, LayoutDashboard,
   Send, CheckCircle2, Loader2, Calendar, MapPin, Globe2, Repeat, Upload, Wand2,
-  AlertCircle, Ticket, History,
+  AlertCircle, Ticket, History, Users,
 } from "lucide-react";
 import { RevisionHistoryDialog } from "@/components/RevisionHistoryDialog";
 import { type Article, type ArticleBlock, type EventDetails } from "@/data/articles";
@@ -610,6 +610,72 @@ function serverPostToDraft(p: ServerPostPayload): Draft {
   };
 }
 
+interface PresenceUser {
+  id: string;
+  name: string;
+  imageUrl?: string;
+}
+
+const PRESENCE_HEARTBEAT_MS = 10_000;
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function PresenceBar({ others }: { others: PresenceUser[] }) {
+  if (others.length === 0) return null;
+  const visible = others.slice(0, 4);
+  const extra = others.length - visible.length;
+  const summary =
+    others.length === 1
+      ? `${others[0].name} is also editing this post`
+      : `${others.length} others are editing this post`;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-violet-50 border-b border-violet-200"
+    >
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
+        <Users className="w-4 h-4 text-violet-700 shrink-0" />
+        <div className="flex -space-x-2 shrink-0">
+          {visible.map((u) =>
+            u.imageUrl ? (
+              <img
+                key={u.id}
+                src={u.imageUrl}
+                alt={u.name}
+                title={u.name}
+                className="w-7 h-7 rounded-full border-2 border-white object-cover"
+              />
+            ) : (
+              <span
+                key={u.id}
+                title={u.name}
+                className="w-7 h-7 rounded-full border-2 border-white bg-violet-200 text-violet-900 text-[10px] font-bold flex items-center justify-center"
+              >
+                {initials(u.name)}
+              </span>
+            ),
+          )}
+          {extra > 0 && (
+            <span className="w-7 h-7 rounded-full border-2 border-white bg-violet-100 text-violet-800 text-[10px] font-bold flex items-center justify-center">
+              +{extra}
+            </span>
+          )}
+        </div>
+        <p className="text-xs sm:text-sm text-violet-900 flex-1 truncate">
+          <span className="font-bold">{summary}.</span>{" "}
+          <span className="hidden sm:inline">Coordinate to avoid overwriting each other.</span>
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function AdminComposerPage() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
@@ -631,7 +697,59 @@ export default function AdminComposerPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [baseUpdatedAt, setBaseUpdatedAt] = useState<string>("");
   const [staleConflict, setStaleConflict] = useState(false);
+  const [presenceOthers, setPresenceOthers] = useState<PresenceUser[]>([]);
   const isEditing = Boolean(editId);
+
+  // Live presence: while editing, ping the server every ~10s so other admins
+  // see we're here, and clear ourselves on close. The list of *other* editors
+  // is returned by every heartbeat so the indicator stays current.
+  useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+    const url = `${API_BASE}/admin/posts/${encodeURIComponent(editId)}/presence`;
+
+    const heartbeat = async () => {
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: "{}",
+        });
+        if (!res.ok || cancelled) return;
+        const data = (await res.json()) as { others?: PresenceUser[] };
+        if (cancelled) return;
+        setPresenceOthers(Array.isArray(data.others) ? data.others : []);
+      } catch {
+        // Network blip — keep last known list; next tick will retry.
+      }
+    };
+
+    void heartbeat();
+    const interval = window.setInterval(() => {
+      void heartbeat();
+    }, PRESENCE_HEARTBEAT_MS);
+
+    const announceLeave = () => {
+      // `keepalive` lets the request finish even if the document is unloading,
+      // so this works for both SPA navigations and full page closes.
+      void fetch(url, {
+        method: "DELETE",
+        credentials: "include",
+        keepalive: true,
+      }).catch(() => {});
+    };
+
+    window.addEventListener("beforeunload", announceLeave);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("beforeunload", announceLeave);
+      announceLeave();
+      setPresenceOthers([]);
+    };
+  }, [editId]);
 
   // Load existing post — extracted so we can call again after a restore so
   // the composer reflects the rolled-back content immediately.
@@ -956,6 +1074,8 @@ export default function AdminComposerPage() {
           </div>
         </motion.div>
       )}
+
+      {isEditing && <PresenceBar others={presenceOthers} />}
 
       {staleConflict && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-amber-50 border-b border-amber-200">
