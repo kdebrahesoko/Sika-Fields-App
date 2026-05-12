@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -10,6 +10,7 @@ import {
   Check,
   Eye,
   ArrowLeft,
+  GitCompare,
 } from "lucide-react";
 import {
   StandardTemplate,
@@ -17,6 +18,11 @@ import {
   VisualTemplate,
 } from "@/components/article-templates";
 import type { Article, ArticleBlock, EventDetails } from "@/data/articles";
+import {
+  summarizeChanges,
+  type ChangeSummary,
+  type DiffPayload,
+} from "@/lib/revision-diff";
 
 const API_BASE = "/api";
 
@@ -167,6 +173,100 @@ function payloadToArticle(p: ServerPostPayload): Article {
   };
 }
 
+const TONE_CLASSES: Record<ChangeSummary["tone"], string> = {
+  added: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  removed: "bg-rose-50 text-rose-700 border-rose-200",
+  edited: "bg-sky-50 text-sky-700 border-sky-200",
+};
+
+function ChangeBadges({
+  value,
+  limit = 4,
+}: {
+  value: ChangeSummary[] | "loading" | "error" | undefined;
+  limit?: number;
+}) {
+  if (value === undefined) return null;
+  if (value === "loading") {
+    return (
+      <p className="mt-1.5 text-[10px] text-muted-foreground/70 italic">
+        Comparing…
+      </p>
+    );
+  }
+  if (value === "error") {
+    return (
+      <p className="mt-1.5 text-[10px] text-muted-foreground/70 italic">
+        Couldn't compare with the previous version
+      </p>
+    );
+  }
+  if (value.length === 0) {
+    return (
+      <p className="mt-1.5 text-[10px] text-muted-foreground/70 italic">
+        No content changes
+      </p>
+    );
+  }
+  const shown = value.slice(0, limit);
+  const overflow = value.length - shown.length;
+  return (
+    <div className="mt-1.5 flex flex-wrap gap-1">
+      {shown.map((c, i) => (
+        <span
+          key={`${c.label}-${i}`}
+          title={c.detail ?? c.label}
+          className={`text-[9.5px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md border ${TONE_CLASSES[c.tone]}`}
+        >
+          {c.label}
+        </span>
+      ))}
+      {overflow > 0 && (
+        <span
+          className="text-[9.5px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md border border-border text-muted-foreground bg-white"
+          title={value
+            .slice(limit)
+            .map((c) => c.label)
+            .join(", ")}
+        >
+          +{overflow} more
+        </span>
+      )}
+    </div>
+  );
+}
+
+function ChangeList({ summary }: { summary: ChangeSummary[] }) {
+  if (summary.length === 0) {
+    return (
+      <p className="text-[11px] text-muted-foreground italic">
+        This version is identical to the current live post.
+      </p>
+    );
+  }
+  return (
+    <ul className="space-y-1">
+      {summary.map((c, i) => (
+        <li
+          key={`${c.label}-${i}`}
+          className="flex items-start gap-2 text-[11px]"
+        >
+          <span
+            className={`mt-0.5 inline-block text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md border shrink-0 ${TONE_CLASSES[c.tone]}`}
+          >
+            {c.label}
+          </span>
+          {c.detail && (
+            <span className="text-muted-foreground leading-snug pt-0.5">
+              {c.detail}
+            </span>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function PreviewBody({ post }: { post: ServerPostPayload }) {
   const article = useMemo(() => payloadToArticle(post), [post]);
   const shareUrl = `https://sikafields.com/articles/${article.slug}`;
@@ -224,6 +324,32 @@ export function RevisionHistoryDialog({
   const [previewPost, setPreviewPost] = useState<ServerPostPayload | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
+  // Per-revision payload cache + computed change summaries for the row badges.
+  // We fetch each revision's full payload once, reuse it for the preview pane,
+  // and derive change badges by diffing each revision against the next-older
+  // one in the list.
+  const payloadCacheRef = useRef<Map<string, ServerPostPayload>>(new Map());
+  const [diffs, setDiffs] = useState<Record<string, ChangeSummary[] | "loading" | "error">>({});
+
+  const fetchPayload = useCallback(
+    async (revisionId: string): Promise<ServerPostPayload | null> => {
+      const cached = payloadCacheRef.current.get(revisionId);
+      if (cached) return cached;
+      const res = await fetch(
+        `${API_BASE}/admin/posts/${encodeURIComponent(postId)}/revisions/${encodeURIComponent(revisionId)}`,
+        { credentials: "include" },
+      );
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? `Could not load revision (${res.status})`);
+      }
+      const data = (await res.json()) as RevisionFetchResponse;
+      payloadCacheRef.current.set(revisionId, data.post);
+      return data.post;
+    },
+    [postId],
+  );
+
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
@@ -256,8 +382,63 @@ export function RevisionHistoryDialog({
     setPreviewing(null);
     setPreviewPost(null);
     setPreviewError(null);
+    payloadCacheRef.current = new Map();
+    setDiffs({});
     void load();
   }, [open, load]);
+
+  // Once the revision list lands, fetch each revision's payload (with a small
+  // concurrency cap) and compute a change summary against the next-older one.
+  // Newest-first ordering means revisions[idx+1] is "the version this row
+  // replaced". Errors per row are isolated so one bad fetch doesn't block the
+  // rest.
+  useEffect(() => {
+    if (!open || revisions.length === 0) return;
+    let cancelled = false;
+    const queue = revisions.slice();
+    const initial: Record<string, "loading"> = {};
+    for (const r of queue) initial[r.id] = "loading";
+    setDiffs((prev) => ({ ...initial, ...prev }));
+
+    const indexById = new Map(revisions.map((r, i) => [r.id, i]));
+
+    async function processOne(rev: RevisionItem) {
+      try {
+        const curr = await fetchPayload(rev.id);
+        if (cancelled || !curr) return;
+        const idx = indexById.get(rev.id) ?? 0;
+        const olderRev = revisions[idx + 1];
+        const prev = olderRev ? await fetchPayload(olderRev.id) : null;
+        if (cancelled) return;
+        const summary = summarizeChanges(
+          prev ? (prev as unknown as DiffPayload) : null,
+          curr as unknown as DiffPayload,
+        );
+        setDiffs((d) => ({ ...d, [rev.id]: summary }));
+      } catch {
+        if (!cancelled) setDiffs((d) => ({ ...d, [rev.id]: "error" }));
+      }
+    }
+
+    const CONCURRENCY = 3;
+    const workers: Promise<void>[] = [];
+    let cursor = 0;
+    for (let w = 0; w < CONCURRENCY; w++) {
+      workers.push(
+        (async () => {
+          while (!cancelled && cursor < queue.length) {
+            const next = queue[cursor++];
+            await processOne(next);
+          }
+        })(),
+      );
+    }
+    void Promise.all(workers);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open, revisions, fetchPayload]);
 
   const openPreview = useCallback(
     async (rev: RevisionItem) => {
@@ -268,23 +449,16 @@ export function RevisionHistoryDialog({
       setRestoreError(null);
       setConfirmId(null);
       try {
-        const res = await fetch(
-          `${API_BASE}/admin/posts/${encodeURIComponent(postId)}/revisions/${encodeURIComponent(rev.id)}`,
-          { credentials: "include" },
-        );
-        if (!res.ok) {
-          const data = (await res.json().catch(() => ({}))) as { error?: string };
-          throw new Error(data.error ?? `Could not load revision (${res.status})`);
-        }
-        const data = (await res.json()) as RevisionFetchResponse;
-        setPreviewPost(data.post);
+        const post = await fetchPayload(rev.id);
+        if (!post) throw new Error("Revision not found");
+        setPreviewPost(post);
       } catch (e) {
         setPreviewError(e instanceof Error ? e.message : "Could not load revision");
       } finally {
         setPreviewLoading(false);
       }
     },
-    [postId],
+    [fetchPayload],
   );
 
   const closePreview = useCallback(() => {
@@ -332,6 +506,29 @@ export function RevisionHistoryDialog({
   );
 
   const inPreview = previewing !== null;
+  const [showPreviewDiff, setShowPreviewDiff] = useState(true);
+
+  // "What would change if we restored this version" — diff is computed from
+  // the cached payloads so toggling the panel never refetches. Restoring
+  // moves state from the *current* live version back to the *previewing*
+  // version, so we pass them in that direction: any block that exists today
+  // but is missing in the older revision counts as a "removal" if you
+  // restore. Depending on `diffs` ensures the panel re-renders the moment
+  // the cache fills (otherwise it could stay stuck on "Comparing…").
+  const previewVsCurrent = useMemo<ChangeSummary[] | null>(() => {
+    if (!previewing || !previewPost) return null;
+    const currentRev = revisions[0];
+    if (!currentRev || currentRev.id === previewing.id) return [];
+    const currentPost = payloadCacheRef.current.get(currentRev.id);
+    if (!currentPost) return null;
+    return summarizeChanges(
+      currentPost as unknown as DiffPayload,
+      previewPost as unknown as DiffPayload,
+    );
+  // `diffs` is included so the memo recomputes once the background fetch
+  // populates the cache for the current revision.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previewing, previewPost, revisions, diffs]);
 
   return (
     <AnimatePresence>
@@ -392,6 +589,20 @@ export function RevisionHistoryDialog({
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                {inPreview && previewing && revisions[0]?.id !== previewing.id && (
+                  <button
+                    onClick={() => setShowPreviewDiff((v) => !v)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[11px] font-bold transition-colors ${
+                      showPreviewDiff
+                        ? "bg-sky-50 border-sky-200 text-sky-700"
+                        : "border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="Toggle the change summary panel"
+                  >
+                    <GitCompare className="w-3.5 h-3.5" />
+                    {showPreviewDiff ? "Hide changes" : "Show changes"}
+                  </button>
+                )}
                 {inPreview && previewing && (
                   <button
                     onClick={() => restore(previewing.id)}
@@ -462,6 +673,22 @@ export function RevisionHistoryDialog({
                     <div className="px-5 py-2 bg-amber-50 border-b border-amber-100 text-[11px] text-amber-900 font-semibold flex items-center gap-2">
                       <Eye className="w-3 h-3" /> Read-only preview of a historical version. Restoring will overwrite the current live post.
                     </div>
+                    {showPreviewDiff && previewing && revisions[0]?.id !== previewing.id && (
+                      <div className="px-5 py-3 bg-sky-50/50 border-b border-sky-100">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-sky-800 mb-2 flex items-center gap-1.5">
+                          <GitCompare className="w-3 h-3" />
+                          What restoring this version would change
+                        </p>
+                        {previewVsCurrent === null ? (
+                          <p className="text-[11px] text-muted-foreground italic flex items-center gap-1.5">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            Comparing with current…
+                          </p>
+                        ) : (
+                          <ChangeList summary={previewVsCurrent} />
+                        )}
+                      </div>
+                    )}
                     <div className="pointer-events-none select-text">
                       <PreviewBody post={previewPost} />
                     </div>
@@ -580,6 +807,7 @@ export function RevisionHistoryDialog({
                                 {fullTimestamp(rev.timestamp)}
                                 {rev.authorName ? ` · ${rev.authorName}` : ""}
                               </p>
+                              <ChangeBadges value={diffs[rev.id]} />
                             </button>
                             <div className="flex items-center gap-1.5 shrink-0">
                               <button
