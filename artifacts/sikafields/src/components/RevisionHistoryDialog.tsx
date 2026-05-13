@@ -21,7 +21,11 @@ import {
 import type { Article, ArticleBlock, EventDetails } from "@/data/articles";
 import {
   summarizeChanges,
+  annotateRestoredBlocks,
+  type AnnotatedBlock,
+  type BlockAnnotation,
   type ChangeSummary,
+  type DiffBlock,
   type DiffPayload,
 } from "@/lib/revision-diff";
 
@@ -142,8 +146,11 @@ function eventFromPayload(
   return out;
 }
 
-function payloadToArticle(p: ServerPostPayload): Article {
-  const content = (p.content ?? []).map(serverBlockToArticleBlock);
+function payloadToArticle(
+  p: ServerPostPayload,
+  contentOverride?: ServerPostBlock[],
+): Article {
+  const content = (contentOverride ?? p.content ?? []).map(serverBlockToArticleBlock);
   const wc = content
     .flatMap((b) => (b.type === "list" ? b.items : "text" in b ? [b.text] : []))
     .join(" ")
@@ -268,13 +275,62 @@ function ChangeList({ summary }: { summary: ChangeSummary[] }) {
   );
 }
 
-function PreviewBody({ post }: { post: ServerPostPayload }) {
-  const article = useMemo(() => payloadToArticle(post), [post]);
+function PreviewBody({
+  post,
+  currentPost,
+}: {
+  post: ServerPostPayload;
+  currentPost?: ServerPostPayload | null;
+}) {
+  // When we have the live version cached, build a merged block stream that
+  // interleaves removed-from-live blocks at their original positions so the
+  // preview can render true side-by-side-style markings (added/edited inline,
+  // removed as strike-through ghosts).
+  const { article, annotations } = useMemo(() => {
+    const isCurrent = !currentPost || currentPost === post;
+    if (isCurrent) {
+      return { article: payloadToArticle(post), annotations: undefined as BlockAnnotation[] | undefined };
+    }
+    const merged: AnnotatedBlock[] = annotateRestoredBlocks(
+      (currentPost!.content ?? []) as DiffBlock[],
+      (post.content ?? []) as DiffBlock[],
+    );
+    const mergedContent: ServerPostBlock[] = merged.map((m) => m.block as ServerPostBlock);
+    const ann: BlockAnnotation[] = merged.map((m) => m.annotation);
+    return {
+      article: payloadToArticle(post, mergedContent),
+      annotations: ann,
+    };
+  }, [post, currentPost]);
+
   const shareUrl = `https://sikafields.com/articles/${article.slug}`;
   const tpl = article.template ?? "standard";
-  if (tpl === "hero") return <HeroTemplate article={article} shareUrl={shareUrl} preview />;
-  if (tpl === "visual") return <VisualTemplate article={article} shareUrl={shareUrl} preview />;
-  return <StandardTemplate article={article} shareUrl={shareUrl} preview />;
+  if (tpl === "hero")
+    return (
+      <HeroTemplate
+        article={article}
+        shareUrl={shareUrl}
+        preview
+        blockAnnotations={annotations}
+      />
+    );
+  if (tpl === "visual")
+    return (
+      <VisualTemplate
+        article={article}
+        shareUrl={shareUrl}
+        preview
+        blockAnnotations={annotations}
+      />
+    );
+  return (
+    <StandardTemplate
+      article={article}
+      shareUrl={shareUrl}
+      preview
+      blockAnnotations={annotations}
+    />
+  );
 }
 
 export interface RevisionHistoryDialogProps {
@@ -717,7 +773,14 @@ export function RevisionHistoryDialog({
                       </div>
                     )}
                     <div className="pointer-events-none select-text">
-                      <PreviewBody post={previewPost} />
+                      <PreviewBody
+                        post={previewPost}
+                        currentPost={
+                          revisions[0] && revisions[0].id !== previewing?.id
+                            ? payloadCacheRef.current.get(revisions[0].id) ?? null
+                            : null
+                        }
+                      />
                     </div>
                   </div>
                 )}

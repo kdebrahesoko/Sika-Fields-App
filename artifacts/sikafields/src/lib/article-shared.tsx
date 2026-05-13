@@ -1,5 +1,58 @@
 import React from "react";
 import { type Article, type ArticleBlock } from "@/data/articles";
+import { type BlockAnnotation } from "@/lib/revision-diff";
+
+export type { BlockAnnotation };
+
+const ANN_LABELS: Record<Exclude<BlockAnnotation, "unchanged">, string> = {
+  added: "Added in this version",
+  removed: "Removed (would be deleted on restore)",
+  edited: "Edited",
+};
+
+const ANN_BADGE: Record<Exclude<BlockAnnotation, "unchanged">, string> = {
+  added: "bg-emerald-500 text-white",
+  removed: "bg-rose-500 text-white",
+  edited: "bg-amber-500 text-white",
+};
+
+const ANN_FRAME: Record<Exclude<BlockAnnotation, "unchanged">, string> = {
+  added: "border-l-[3px] border-emerald-500 bg-emerald-50/50",
+  removed: "border-l-[3px] border-rose-400 bg-rose-50/50",
+  edited: "border-l-[3px] border-amber-400 bg-amber-50/50",
+};
+
+/**
+ * Wraps a content block with a coloured left rule + corner pill that signals
+ * how it relates to the live post. "removed" blocks also propagate a
+ * line-through decoration via inherited CSS so any text inside the block
+ * (paragraphs, list items, quote attribution, etc.) is rendered crossed out.
+ */
+export function DiffBlockWrapper({
+  annotation,
+  children,
+}: {
+  annotation?: BlockAnnotation;
+  children: React.ReactNode;
+}) {
+  if (!annotation || annotation === "unchanged") return <>{children}</>;
+  return (
+    <div
+      data-diff={annotation}
+      className={`relative my-2 pl-3 pr-2 py-1 rounded-r-md ${ANN_FRAME[annotation]}`}
+      style={annotation === "removed" ? { textDecoration: "line-through" } : undefined}
+      title={ANN_LABELS[annotation]}
+    >
+      <span
+        className={`absolute -top-2 right-2 text-[8.5px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-full shadow-sm ${ANN_BADGE[annotation]}`}
+        style={{ textDecoration: "none" }}
+      >
+        {annotation}
+      </span>
+      {children}
+    </div>
+  );
+}
 
 export const TAG_COLORS: Record<string, { text: string; bg: string }> = {
   Education:                  { text: "#16a34a", bg: "#f0faf4" },
@@ -170,6 +223,11 @@ export function ContentBlock({
   }
 }
 
+export interface AnnotatedArticleBlock {
+  block: ArticleBlock;
+  annotation?: BlockAnnotation;
+}
+
 export function groupBySections(blocks: ArticleBlock[]): ArticleBlock[][] {
   const sections: ArticleBlock[][] = [[]];
   for (const block of blocks) {
@@ -181,26 +239,55 @@ export function groupBySections(blocks: ArticleBlock[]): ArticleBlock[][] {
   return sections.filter((s) => s.length > 0);
 }
 
+/**
+ * Variant of `groupBySections` that keeps the parallel diff annotation with
+ * each block so the VisualTemplate can render the highlighting without
+ * having to round-trip indexes.
+ */
+export function groupBySectionsAnnotated(
+  blocks: ArticleBlock[],
+  annotations?: BlockAnnotation[],
+): AnnotatedArticleBlock[][] {
+  const sections: AnnotatedArticleBlock[][] = [[]];
+  blocks.forEach((block, i) => {
+    const entry: AnnotatedArticleBlock = { block, annotation: annotations?.[i] };
+    if (block.type === "h2" && sections[sections.length - 1].length > 0) {
+      sections.push([]);
+    }
+    sections[sections.length - 1].push(entry);
+  });
+  return sections.filter((s) => s.length > 0);
+}
+
 export function VisualSection({
   section,
   idx,
   cc,
 }: {
-  section: ArticleBlock[];
+  section: ArticleBlock[] | AnnotatedArticleBlock[];
   idx: number;
   cc: string;
 }) {
-  const isAlternate = idx % 2 === 1;
-  const h2Block = section.find((b) => b.type === "h2") as
-    | { type: "h2"; text: string }
-    | undefined;
-  const bodyBlocks = section.filter((b) => b.type !== "h2");
+  // Normalise input so this component can be used both with the legacy
+  // ArticleBlock[] shape and with the new annotated section shape.
+  const items: AnnotatedArticleBlock[] = section.map((entry) =>
+    "block" in (entry as AnnotatedArticleBlock)
+      ? (entry as AnnotatedArticleBlock)
+      : { block: entry as ArticleBlock },
+  );
 
-  if (!isAlternate || !h2Block || bodyBlocks.length === 0) {
+  const isAlternate = idx % 2 === 1;
+  const h2Entry = items.find((e) => e.block.type === "h2");
+  const h2Block = h2Entry?.block as { type: "h2"; text: string } | undefined;
+  const bodyEntries = items.filter((e) => e.block.type !== "h2");
+
+  if (!isAlternate || !h2Block || bodyEntries.length === 0) {
     return (
       <div className="px-4 sm:px-8 py-8">
-        {section.map((block, i) => (
-          <ContentBlock key={i} block={block} visual />
+        {items.map((e, i) => (
+          <DiffBlockWrapper key={i} annotation={e.annotation}>
+            <ContentBlock block={e.block} visual />
+          </DiffBlockWrapper>
         ))}
       </div>
     );
@@ -218,16 +305,20 @@ export function VisualSection({
         >
           {String(Math.ceil(idx / 2)).padStart(2, "0")}
         </span>
-        <h2
-          className="text-xl md:text-2xl font-display font-bold leading-tight"
-          style={{ color: `${cc}dd` }}
-        >
-          {h2Block.text}
-        </h2>
+        <DiffBlockWrapper annotation={h2Entry?.annotation}>
+          <h2
+            className="text-xl md:text-2xl font-display font-bold leading-tight"
+            style={{ color: `${cc}dd` }}
+          >
+            {h2Block.text}
+          </h2>
+        </DiffBlockWrapper>
       </div>
       <div className="px-6 sm:px-10 py-10">
-        {bodyBlocks.map((block, i) => (
-          <ContentBlock key={i} block={block} visual />
+        {bodyEntries.map((e, i) => (
+          <DiffBlockWrapper key={i} annotation={e.annotation}>
+            <ContentBlock block={e.block} visual />
+          </DiffBlockWrapper>
         ))}
       </div>
     </div>

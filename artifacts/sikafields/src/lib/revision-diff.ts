@@ -277,3 +277,109 @@ export function summarizeChanges(
 
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// Per-block annotations (used by the inline diff highlighting in the preview)
+// ---------------------------------------------------------------------------
+
+export type BlockAnnotation = "added" | "removed" | "edited" | "unchanged";
+
+export interface AnnotatedBlock {
+  block: DiffBlock;
+  annotation: BlockAnnotation;
+}
+
+/**
+ * Compute the merged "what would change if you restored this revision" block
+ * stream. Walks the revision's content top-to-bottom, but interleaves any
+ * blocks that exist in the current live post yet are missing from this
+ * revision so they can be rendered as strike-through ghosts at roughly their
+ * original positions.
+ *
+ * Each output entry is one of:
+ *  - { block: <revision block>, annotation: "added"     } — block in revision, no match in current
+ *  - { block: <revision block>, annotation: "edited"    } — same type at a near-aligned slot, but text changed
+ *  - { block: <revision block>, annotation: "unchanged" } — exact signature match in current
+ *  - { block: <current block>,  annotation: "removed"   } — only in current; rendered as a placeholder
+ *
+ * Matching uses the same heuristic as `diffBlocks` so the row badges and the
+ * inline highlights agree on what counts as edited vs. add/remove pairs.
+ */
+export function annotateRestoredBlocks(
+  current: DiffBlock[],
+  revision: DiffBlock[],
+): AnnotatedBlock[] {
+  const cur = current ?? [];
+  const rev = revision ?? [];
+  const cSigs = cur.map(blockSignature);
+  const rSigs = rev.map(blockSignature);
+
+  // matchedR[i] = index in current that revision[i] is matched to (or -1)
+  // matchedC[j] = index in revision that current[j] is matched to (or -1)
+  const matchedR: number[] = new Array(rev.length).fill(-1);
+  const matchedC: number[] = new Array(cur.length).fill(-1);
+
+  // Pass 1: exact signature pairing in left-to-right order so unchanged blocks
+  // line up with their natural positions on both sides.
+  for (let i = 0; i < rev.length; i++) {
+    for (let j = 0; j < cur.length; j++) {
+      if (matchedC[j] !== -1) continue;
+      if (rSigs[i] === cSigs[j]) {
+        matchedR[i] = j;
+        matchedC[j] = i;
+        break;
+      }
+    }
+  }
+
+  // Pass 2: leftover blocks of the same type at compatible positions are
+  // treated as edits rather than independent add/remove pairs.
+  const editedR = new Set<number>();
+  const editedC = new Set<number>();
+  for (let i = 0; i < rev.length; i++) {
+    if (matchedR[i] !== -1) continue;
+    for (let j = 0; j < cur.length; j++) {
+      if (matchedC[j] !== -1) continue;
+      if (cur[j].type === rev[i].type) {
+        matchedR[i] = j;
+        matchedC[j] = i;
+        editedR.add(i);
+        editedC.add(j);
+        break;
+      }
+    }
+  }
+
+  const out: AnnotatedBlock[] = [];
+  let cursor = 0;
+
+  // Emit any "removed" current blocks whose original position falls before
+  // the next surviving anchor in current.
+  const flushRemovedUntil = (untilExclusive: number) => {
+    while (cursor < untilExclusive) {
+      if (matchedC[cursor] === -1) {
+        out.push({ block: cur[cursor], annotation: "removed" });
+      }
+      cursor++;
+    }
+  };
+
+  for (let i = 0; i < rev.length; i++) {
+    const matchedCurIdx = matchedR[i];
+    if (matchedCurIdx !== -1) {
+      flushRemovedUntil(matchedCurIdx);
+      out.push({
+        block: rev[i],
+        annotation: editedR.has(i) ? "edited" : "unchanged",
+      });
+      cursor = matchedCurIdx + 1;
+    } else {
+      out.push({ block: rev[i], annotation: "added" });
+    }
+  }
+
+  // Anything left at the end of `current` was removed too.
+  flushRemovedUntil(cur.length);
+
+  return out;
+}

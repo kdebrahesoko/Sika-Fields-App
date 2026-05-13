@@ -9,7 +9,8 @@ import { type Article } from "@/data/articles";
 import { isSanityConfigured } from "@/lib/sanity";
 import {
   tagStyle, AuthorAvatar, ContentBlock, AuthorBio,
-  groupBySections, VisualSection, WHATSAPP_ICON,
+  groupBySections, groupBySectionsAnnotated, VisualSection,
+  DiffBlockWrapper, WHATSAPP_ICON, type BlockAnnotation,
 } from "@/lib/article-shared";
 
 export function ReadingProgress() {
@@ -301,6 +302,13 @@ export interface TemplateProps {
   shareUrl: string;
   related?: Article[];
   preview?: boolean;
+  /**
+   * Optional per-block diff annotations parallel to `article.content`. When
+   * present, each block is wrapped in a coloured frame (added/removed/edited)
+   * — used by the revision-history preview to show inline diffs against the
+   * current live post.
+   */
+  blockAnnotations?: BlockAnnotation[];
 }
 
 export function StandardTemplate({
@@ -308,6 +316,7 @@ export function StandardTemplate({
   shareUrl,
   related = [],
   preview = false,
+  blockAnnotations,
 }: TemplateProps) {
   const cc = article.coverColor ?? "#16a34a";
 
@@ -424,7 +433,9 @@ export function StandardTemplate({
             {article.excerpt}
           </p>
           {article.content.map((block, i) => (
-            <ContentBlock key={i} block={block} />
+            <DiffBlockWrapper key={i} annotation={blockAnnotations?.[i]}>
+              <ContentBlock block={block} />
+            </DiffBlockWrapper>
           ))}
         </motion.div>
         <AuthorBio author={article.author} />
@@ -442,6 +453,7 @@ export function HeroTemplate({
   shareUrl,
   related = [],
   preview = false,
+  blockAnnotations,
 }: TemplateProps) {
   const cc = article.coverColor ?? "#16a34a";
 
@@ -547,7 +559,9 @@ export function HeroTemplate({
             {article.excerpt}
           </p>
           {article.content.map((block, i) => (
-            <ContentBlock key={i} block={block} />
+            <DiffBlockWrapper key={i} annotation={blockAnnotations?.[i]}>
+              <ContentBlock block={block} />
+            </DiffBlockWrapper>
           ))}
         </motion.div>
         <AuthorBio author={article.author} />
@@ -565,9 +579,12 @@ export function VisualTemplate({
   shareUrl,
   related = [],
   preview = false,
+  blockAnnotations,
 }: TemplateProps) {
   const cc = article.coverColor ?? "#16a34a";
-  const sections = groupBySections(article.content);
+  const sections = blockAnnotations
+    ? groupBySectionsAnnotated(article.content, blockAnnotations)
+    : groupBySections(article.content);
 
   return (
     <div className={`${preview ? "" : "min-h-screen"} bg-background font-sans`}>
