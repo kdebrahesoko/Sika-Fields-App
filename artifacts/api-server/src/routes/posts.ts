@@ -113,7 +113,38 @@ router.post("/:id/presence", express.json({ limit: "4kb" }), async (req: Request
   }
   post.set(meta.id, meta);
   pruneStale(post);
-  res.json({ others: listOtherEditors(id, meta.id) });
+
+  // Piggyback the latest server-side `_updatedAt` (and who last saved it) on
+  // the presence heartbeat. The composer compares this against the version it
+  // loaded so it can warn admins mid-typing if a co-editor just saved.
+  let updatedAt = "";
+  let lastEditedBy: { id: string; name: string } | null = null;
+  const client = getSanityWriteClient();
+  if (client) {
+    try {
+      const row = await client.fetch<{ updatedAt?: string; lastEditedBy?: { id?: string; name?: string } } | null>(
+        `*[_id == $id][0]{ "updatedAt": _updatedAt, lastEditedBy }`,
+        { id },
+      );
+      if (row) {
+        updatedAt = typeof row.updatedAt === "string" ? row.updatedAt : "";
+        if (row.lastEditedBy?.name) {
+          lastEditedBy = {
+            id: String(row.lastEditedBy.id ?? ""),
+            name: String(row.lastEditedBy.name),
+          };
+        }
+      }
+    } catch {
+      // Best-effort: a transient Sanity error shouldn't break presence.
+    }
+  }
+
+  res.json({
+    others: listOtherEditors(id, meta.id),
+    updatedAt,
+    lastEditedBy,
+  });
 });
 
 router.delete("/:id/presence", async (req: Request, res: Response) => {
@@ -425,6 +456,8 @@ router.post("/", express.json({ limit: "1mb" }), async (req: Request, res: Respo
 interface RawSanityPost {
   _id: string;
   _type: "blog" | "news" | "event";
+  _updatedAt?: string;
+  lastEditedBy?: { id?: string; name?: string };
   title?: string;
   slug?: string;
   excerpt?: string;
@@ -454,6 +487,10 @@ function rawPostToServerPayload(doc: RawSanityPost): Record<string, unknown> {
     doc._type === "event" ? "event" : doc._type === "news" ? "news" : "article";
   return {
     id: doc._id,
+    updatedAt: doc._updatedAt ?? "",
+    lastEditedBy: doc.lastEditedBy?.name
+      ? { id: String(doc.lastEditedBy.id ?? ""), name: String(doc.lastEditedBy.name) }
+      : null,
     kind,
     title: doc.title ?? "",
     slug: doc.slug ?? "",
@@ -499,7 +536,7 @@ router.get("/:id", async (req: Request, res: Response) => {
   try {
     const doc = await client.fetch<RawSanityPost | null>(
       `*[_id == $id][0]{
-        _id, _type, title, "slug": slug.current,
+        _id, _type, _updatedAt, lastEditedBy, title, "slug": slug.current,
         excerpt, summary, template, coverColor, tags, authorInline,
         "coverImageAssetId": coverImage.asset._ref,
         "coverImageUrl": coverImage.asset->url,
@@ -645,9 +682,14 @@ router.patch("/:id", express.json({ limit: "1mb" }), async (req: Request, res: R
 
     let patch = client.patch(id).set(set);
     if (unset.length > 0) patch = patch.unset(unset);
-    await patch.commit();
+    const committed = await patch.commit();
 
-    res.json({ id, slug: finalSlug, kind: body.kind });
+    const updatedAt =
+      (committed as { _updatedAt?: string })._updatedAt ??
+      (set.lastEditedAt as string | undefined) ??
+      new Date().toISOString();
+
+    res.json({ id, slug: finalSlug, kind: body.kind, updatedAt });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Update failed";
     console.error("Sanity patch error:", e);

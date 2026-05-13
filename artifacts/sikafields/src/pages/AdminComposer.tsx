@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
+import { useUser } from "@clerk/react";
 import {
   ArrowLeft, Plus, Trash2, FileText, ImageIcon, LayoutGrid,
   Type, AlignLeft, Quote, List, Check, Copy, ExternalLink,
@@ -553,6 +554,7 @@ interface ServerPostBlock {
 interface ServerPostPayload {
   id: string;
   updatedAt: string;
+  lastEditedBy: { id: string; name: string } | null;
   kind: Kind;
   title: string;
   slug: string;
@@ -679,6 +681,8 @@ function PresenceBar({ others }: { others: PresenceUser[] }) {
 export default function AdminComposerPage() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const { user } = useUser();
+  const meId = user?.id ?? "";
   // Determine edit mode synchronously so we don't briefly hydrate from the
   // localStorage "new post" draft when arriving via ?edit=<id>.
   const editId = (() => {
@@ -698,6 +702,7 @@ export default function AdminComposerPage() {
   const [baseUpdatedAt, setBaseUpdatedAt] = useState<string>("");
   const [staleConflict, setStaleConflict] = useState(false);
   const [presenceOthers, setPresenceOthers] = useState<PresenceUser[]>([]);
+  const [savedByOther, setSavedByOther] = useState<{ name: string; updatedAt: string } | null>(null);
   const isEditing = Boolean(editId);
 
   // Live presence: while editing, ping the server every ~10s so other admins
@@ -717,9 +722,34 @@ export default function AdminComposerPage() {
           body: "{}",
         });
         if (!res.ok || cancelled) return;
-        const data = (await res.json()) as { others?: PresenceUser[] };
+        const data = (await res.json()) as {
+          others?: PresenceUser[];
+          updatedAt?: string;
+          lastEditedBy?: { id: string; name: string } | null;
+        };
         if (cancelled) return;
         setPresenceOthers(Array.isArray(data.others) ? data.others : []);
+
+        // If the server's `_updatedAt` is newer than the version we loaded,
+        // a co-editor has saved while we were typing. Surface a non-blocking
+        // notice with a Reload button so admins can pull in fresh content
+        // before they invest more work into a stale view.
+        const latest = data.updatedAt ?? "";
+        // Self-saves bump `baseUpdatedAt` from the PATCH response, so the
+        // comparison usually excludes our own writes — but there's a small
+        // race window where a heartbeat can fire between Sanity committing
+        // and the PATCH response landing. Belt-and-braces: skip if the
+        // server tells us *we* are the last editor.
+        setBaseUpdatedAt((prevBase) => {
+          if (latest && prevBase && latest > prevBase) {
+            const editor = data.lastEditedBy;
+            if (!editor || !meId || editor.id !== meId) {
+              const name = editor?.name?.trim() || "Someone";
+              setSavedByOther({ name, updatedAt: latest });
+            }
+          }
+          return prevBase;
+        });
       } catch {
         // Network blip — keep last known list; next tick will retry.
       }
@@ -771,6 +801,7 @@ export default function AdminComposerPage() {
         setDraft(serverPostToDraft(data.post));
         setBaseUpdatedAt(data.post.updatedAt ?? "");
         setStaleConflict(false);
+        setSavedByOther(null);
         setEditLoading(false);
       } catch (e) {
         if (signal?.cancelled) return;
@@ -993,6 +1024,7 @@ export default function AdminComposerPage() {
       }
       const okData = (await res.json().catch(() => ({}))) as { updatedAt?: string };
       if (isEditing && okData.updatedAt) setBaseUpdatedAt(okData.updatedAt);
+      setSavedByOther(null);
       setPublishState("published");
       if (!isEditing) clearDraftStorage();
       // Invalidate cached lists so the change shows up immediately everywhere.
@@ -1076,6 +1108,29 @@ export default function AdminComposerPage() {
       )}
 
       {isEditing && <PresenceBar others={presenceOthers} />}
+
+      {savedByOther && !staleConflict && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-sky-50 border-b border-sky-200">
+          <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
+            <AlertCircle className="w-4 h-4 text-sky-700 shrink-0" />
+            <p className="text-xs sm:text-sm text-sky-900 flex-1">
+              <span className="font-bold">{savedByOther.name} just saved this post</span> — your view is now stale. Reload to pick up their changes before you keep editing.
+            </p>
+            <button
+              onClick={async () => {
+                setSavedByOther(null);
+                await loadEditingPost();
+              }}
+              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-sky-600 text-white hover:bg-sky-700 transition-colors"
+            >
+              Reload
+            </button>
+            <button onClick={() => setSavedByOther(null)} className="text-sky-700 hover:text-sky-900 transition-colors">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </motion.div>
+      )}
 
       {staleConflict && (
         <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-amber-50 border-b border-amber-200">
