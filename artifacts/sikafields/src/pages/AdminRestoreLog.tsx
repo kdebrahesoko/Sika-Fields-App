@@ -1,7 +1,9 @@
+import { useMemo, useState } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft, History, Loader2, AlertCircle, RotateCcw, User, FileText, Clock,
+  Search, X, Filter,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -73,6 +75,62 @@ export default function AdminRestoreLogPage() {
 
   const entries = data?.entries ?? [];
 
+  const [titleQuery, setTitleQuery] = useState("");
+  const [selectedRestorers, setSelectedRestorers] = useState<string[]>([]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const restorers = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; count: number }>();
+    for (const e of entries) {
+      const id = e.restoredBy.id || e.restoredBy.name || "unknown";
+      const name = e.restoredBy.name || "Admin";
+      const existing = map.get(id);
+      if (existing) existing.count += 1;
+      else map.set(id, { id, name, count: 1 });
+    }
+    return Array.from(map.values()).sort((a, b) => b.count - a.count);
+  }, [entries]);
+
+  const filteredEntries = useMemo(() => {
+    const q = titleQuery.trim().toLowerCase();
+    const fromTs = fromDate ? new Date(fromDate + "T00:00:00").getTime() : null;
+    const toTs = toDate ? new Date(toDate + "T23:59:59.999").getTime() : null;
+    return entries.filter((e) => {
+      if (q && !(e.postTitle || "").toLowerCase().includes(q)) return false;
+      if (selectedRestorers.length > 0) {
+        const id = e.restoredBy.id || e.restoredBy.name || "unknown";
+        if (!selectedRestorers.includes(id)) return false;
+      }
+      if (fromTs != null || toTs != null) {
+        const t = new Date(e.restoredAt).getTime();
+        if (Number.isNaN(t)) return false;
+        if (fromTs != null && t < fromTs) return false;
+        if (toTs != null && t > toTs) return false;
+      }
+      return true;
+    });
+  }, [entries, titleQuery, selectedRestorers, fromDate, toDate]);
+
+  const filtersActive =
+    titleQuery.trim() !== "" ||
+    selectedRestorers.length > 0 ||
+    fromDate !== "" ||
+    toDate !== "";
+
+  function toggleRestorer(id: string) {
+    setSelectedRestorers((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
+
+  function clearFilters() {
+    setTitleQuery("");
+    setSelectedRestorers([]);
+    setFromDate("");
+    setToDate("");
+  }
+
   return (
     <div className="min-h-screen bg-muted/30 font-sans flex flex-col">
       <div className="border-b border-border bg-white sticky top-0 z-30">
@@ -133,6 +191,109 @@ export default function AdminRestoreLogPage() {
           </div>
         )}
 
+        {!isLoading && !error && entries.length > 0 && (
+          <div className="mb-4 bg-white rounded-2xl border border-border p-4 space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="relative flex-1 min-w-0">
+                <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={titleQuery}
+                  onChange={(e) => setTitleQuery(e.target.value)}
+                  placeholder="Search by post title…"
+                  className="w-full pl-9 pr-9 py-2 text-sm rounded-xl border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  data-testid="input-restore-search"
+                />
+                {titleQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setTitleQuery("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    aria-label="Clear search"
+                    data-testid="button-clear-search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="font-semibold uppercase tracking-wider">From</span>
+                  <input
+                    type="date"
+                    value={fromDate}
+                    onChange={(e) => setFromDate(e.target.value)}
+                    className="px-2 py-1.5 text-xs rounded-lg border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    data-testid="input-restore-from-date"
+                  />
+                </label>
+                <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <span className="font-semibold uppercase tracking-wider">To</span>
+                  <input
+                    type="date"
+                    value={toDate}
+                    onChange={(e) => setToDate(e.target.value)}
+                    className="px-2 py-1.5 text-xs rounded-lg border border-border bg-white focus:outline-none focus:ring-2 focus:ring-primary/40"
+                    data-testid="input-restore-to-date"
+                  />
+                </label>
+              </div>
+
+              {filtersActive && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline px-2 py-1.5"
+                  data-testid="button-clear-filters"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Clear filters
+                </button>
+              )}
+            </div>
+
+            {restorers.length > 0 && (
+              <div className="flex items-start gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground pt-1.5 pr-1">
+                  <Filter className="w-3.5 h-3.5" />
+                  Restorer
+                </div>
+                {restorers.map((r) => {
+                  const active = selectedRestorers.includes(r.id);
+                  return (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => toggleRestorer(r.id)}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                        active
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-white text-foreground border-border hover:border-primary/50 hover:bg-muted/40"
+                      }`}
+                      data-testid={`chip-restorer-${r.id}`}
+                    >
+                      <User className="w-3 h-3" />
+                      <span>{r.name}</span>
+                      <span className={`text-[10px] px-1.5 rounded-full ${
+                        active ? "bg-white/20" : "bg-muted text-muted-foreground"
+                      }`}>
+                        {r.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {filtersActive && (
+              <p className="text-xs text-muted-foreground">
+                Showing <span className="font-semibold text-foreground">{filteredEntries.length}</span> of {entries.length} restores
+              </p>
+            )}
+          </div>
+        )}
+
         {!isLoading && !error && entries.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
             <RotateCcw className="w-12 h-12 text-muted-foreground opacity-30" />
@@ -144,7 +305,25 @@ export default function AdminRestoreLogPage() {
           </div>
         )}
 
-        {!isLoading && entries.length > 0 && (
+        {!isLoading && entries.length > 0 && filteredEntries.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center bg-white rounded-2xl border border-border">
+            <Search className="w-10 h-10 text-muted-foreground opacity-30" />
+            <p className="text-base font-semibold text-foreground">No matching restores</p>
+            <p className="text-sm text-muted-foreground max-w-sm">
+              Try clearing a filter or broadening your search.
+            </p>
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="mt-1 text-xs font-semibold text-primary hover:underline"
+              data-testid="button-clear-filters-empty"
+            >
+              Clear all filters
+            </button>
+          </div>
+        )}
+
+        {!isLoading && filteredEntries.length > 0 && (
           <div className="bg-white rounded-2xl border border-border overflow-hidden">
             <div className="hidden sm:grid grid-cols-12 gap-4 px-5 py-3 text-[11px] font-bold uppercase tracking-widest text-muted-foreground border-b border-border bg-muted/40">
               <div className="col-span-5">Post</div>
@@ -153,7 +332,7 @@ export default function AdminRestoreLogPage() {
               <div className="col-span-2">Restored</div>
             </div>
             <ul className="divide-y divide-border">
-              {entries.map((entry, i) => (
+              {filteredEntries.map((entry, i) => (
                 <motion.li
                   key={entry.id}
                   initial={{ opacity: 0, y: 4 }}
