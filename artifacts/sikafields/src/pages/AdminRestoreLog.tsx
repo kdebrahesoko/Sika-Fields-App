@@ -6,6 +6,7 @@ import {
   Search, X, Filter,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 interface RestoreAuditEntry {
   id: string;
@@ -151,6 +152,9 @@ export default function AdminRestoreLogPage() {
                 {" "}· {entries.length} recent restore{entries.length === 1 ? "" : "s"}
               </span>
             </p>
+          </div>
+          <div className="ml-auto">
+            <NotificationsBell />
           </div>
         </div>
       </div>

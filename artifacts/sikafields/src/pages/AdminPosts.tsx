@@ -12,6 +12,7 @@ import { useAllArticles } from "@/hooks/useArticles";
 import { isSanityConfigured } from "@/lib/sanity";
 import { AuthorAvatar, tagStyle } from "@/lib/article-shared";
 import { RevisionHistoryDialog } from "@/components/RevisionHistoryDialog";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 function formatLastEdited(iso: string): string {
   const then = new Date(iso).getTime();
@@ -586,6 +587,7 @@ export default function AdminPostsPage() {
             </p>
           </div>
           <div className="ml-auto flex items-center gap-2">
+            <NotificationsBell />
             <Link
               href="/admin/restore-log"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"

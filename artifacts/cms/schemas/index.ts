@@ -4,5 +4,6 @@ import { news } from "./news";
 import { galleryImage } from "./gallery";
 import { event } from "./event";
 import { restoreAudit } from "./restoreAudit";
+import { restoreNotification } from "./restoreNotification";
 
-export const schemaTypes = [author, blog, news, galleryImage, event, restoreAudit];
+export const schemaTypes = [author, blog, news, galleryImage, event, restoreAudit, restoreNotification];

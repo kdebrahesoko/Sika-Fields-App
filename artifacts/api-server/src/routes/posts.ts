@@ -820,6 +820,117 @@ async function fetchRestoreAudit(
   }));
 }
 
+// ──────────────────────────────────────────────────────────────
+// Restore notifications — per-recipient inbox so editors learn
+// when one of their revisions has been rolled back by someone else.
+// ──────────────────────────────────────────────────────────────
+
+interface RestoreNotificationRow {
+  id?: string;
+  postId?: string;
+  postType?: string;
+  postTitle?: string;
+  revisionId?: string;
+  revisionTimestamp?: string;
+  restoredAt?: string;
+  readAt?: string;
+  restoredBy?: { id?: string; name?: string };
+}
+
+router.get("/notifications", async (req: Request, res: Response) => {
+  const userId = (req as AdminRequest).userId;
+  if (!userId) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  const client = getSanityWriteClient();
+  if (!client) {
+    res.json({ notifications: [], unreadCount: 0, sanityConfigured: false });
+    return;
+  }
+  try {
+    const rows = await client.fetch<RestoreNotificationRow[]>(
+      `*[_type == "restoreNotification" && notifyUserId == $uid] | order(restoredAt desc)[0...50]{
+        "id": _id, postId, postType, postTitle, revisionId, revisionTimestamp,
+        restoredAt, readAt, restoredBy
+      }`,
+      { uid: userId },
+    );
+    const notifications = rows.map((r) => ({
+      id: String(r.id ?? ""),
+      postId: String(r.postId ?? ""),
+      postType: String(r.postType ?? ""),
+      postTitle: String(r.postTitle ?? ""),
+      revisionId: String(r.revisionId ?? ""),
+      revisionTimestamp: String(r.revisionTimestamp ?? ""),
+      restoredAt: String(r.restoredAt ?? ""),
+      readAt: r.readAt ? String(r.readAt) : null,
+      restoredBy: {
+        id: String(r.restoredBy?.id ?? ""),
+        name: String(r.restoredBy?.name ?? "Admin"),
+      },
+    }));
+    const unreadCount = notifications.filter((n) => !n.readAt).length;
+    res.json({ notifications, unreadCount });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Failed to load notifications";
+    console.warn("Notifications load error:", e);
+    res.status(200).json({ notifications: [], unreadCount: 0, warning: message });
+  }
+});
+
+router.post(
+  "/notifications/read",
+  express.json({ limit: "16kb" }),
+  async (req: Request, res: Response) => {
+    const userId = (req as AdminRequest).userId;
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    const client = getSanityWriteClient();
+    if (!client) {
+      res.json({ ok: true, updated: 0 });
+      return;
+    }
+    const body = (req.body ?? {}) as { ids?: unknown; all?: unknown };
+    const idList = Array.isArray(body.ids)
+      ? body.ids.filter((x): x is string => typeof x === "string" && /^[A-Za-z0-9._-]+$/.test(x))
+      : [];
+    const markAll = body.all === true;
+    const now = new Date().toISOString();
+
+    try {
+      // Always restrict to docs owned by this recipient — never let one
+      // admin clear another admin's inbox.
+      const filter = markAll
+        ? `_type == "restoreNotification" && notifyUserId == $uid && !defined(readAt)`
+        : `_type == "restoreNotification" && notifyUserId == $uid && _id in $ids`;
+      const params: Record<string, unknown> = { uid: userId };
+      if (!markAll) params.ids = idList;
+
+      const targets = await client.fetch<Array<{ _id: string }>>(
+        `*[${filter}]{ _id }`,
+        params,
+      );
+      if (targets.length === 0) {
+        res.json({ ok: true, updated: 0 });
+        return;
+      }
+      let tx = client.transaction();
+      for (const t of targets) {
+        tx = tx.patch(t._id, (p) => p.set({ readAt: now }));
+      }
+      await tx.commit({ visibility: "async" });
+      res.json({ ok: true, updated: targets.length });
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to mark read";
+      console.warn("Notifications mark-read error:", e);
+      res.status(500).json({ error: message });
+    }
+  },
+);
+
 router.get("/restore-audit", async (_req: Request, res: Response) => {
   const client = getSanityWriteClient();
   if (!client) {
@@ -1080,6 +1191,20 @@ router.post(
       const historicalTitle =
         typeof historical.title === "string" ? historical.title : "";
 
+      // The original revision's `lastEditedBy` tells us whose work is being
+      // reverted. We capture it before the createOrReplace so we can notify
+      // them that someone else rolled back their edit.
+      const revisionAuthor = (() => {
+        const raw = historical.lastEditedBy as
+          | { id?: unknown; name?: unknown }
+          | undefined;
+        if (!raw || typeof raw !== "object") return null;
+        const rid = typeof raw.id === "string" ? raw.id : "";
+        const rname = typeof raw.name === "string" ? raw.name : "";
+        if (!rid) return null;
+        return { id: rid, name: rname || "Admin" };
+      })();
+
       // Strip system fields the server controls; keep _id so createOrReplace
       // overwrites the live document in place.
       const {
@@ -1119,6 +1244,32 @@ router.post(
         });
       } catch (auditErr) {
         console.warn("Failed to write restore audit entry:", auditErr);
+      }
+
+      // Notify the revision's original author when someone else reverts
+      // their work. Skip self-restores (no point pinging yourself) and skip
+      // when we can't identify the author (older revisions pre-`lastEditedBy`).
+      if (
+        revisionAuthor &&
+        revisionAuthor.id &&
+        revisionAuthor.id !== editor?.id
+      ) {
+        try {
+          await client.create({
+            _type: "restoreNotification",
+            notifyUserId: revisionAuthor.id,
+            notifyUserName: revisionAuthor.name,
+            postId: id,
+            postType: existing._type,
+            postTitle: historicalTitle,
+            revisionId,
+            revisionTimestamp: revisionTimestamp || undefined,
+            restoredAt: new Date().toISOString(),
+            restoredBy: editor ?? { id: "", name: "Admin" },
+          });
+        } catch (notifyErr) {
+          console.warn("Failed to write restore notification:", notifyErr);
+        }
       }
 
       res.json({ ok: true, id, revisionId });
