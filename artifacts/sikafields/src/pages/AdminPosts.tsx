@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
@@ -122,7 +122,72 @@ const TEMPLATE_THUMBNAILS: Record<TemplateId, React.ReactNode> = {
   visual: <VisualThumbnail />,
 };
 
-function PostCard({ article, index }: { article: Article; index: number }) {
+interface PresenceUser {
+  id: string;
+  name: string;
+  imageUrl?: string;
+}
+type PresenceMap = Record<string, PresenceUser[]>;
+
+function initialsOf(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function PresenceStack({ editors }: { editors: PresenceUser[] }) {
+  if (editors.length === 0) return null;
+  const shown = editors.slice(0, 3);
+  const extra = editors.length - shown.length;
+  const tooltip = editors.map((e) => e.name).join(", ");
+  return (
+    <div
+      className="flex items-center gap-1.5 mt-1.5 text-[10px] font-semibold text-emerald-700"
+      title={`Currently editing: ${tooltip}`}
+    >
+      <span className="relative flex h-2 w-2 shrink-0">
+        <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+      </span>
+      <div className="flex -space-x-1.5">
+        {shown.map((e) =>
+          e.imageUrl ? (
+            <img
+              key={e.id}
+              src={e.imageUrl}
+              alt={e.name}
+              className="w-5 h-5 rounded-full border-2 border-white object-cover bg-muted"
+            />
+          ) : (
+            <span
+              key={e.id}
+              className="w-5 h-5 rounded-full border-2 border-white bg-emerald-600 text-white text-[8px] font-bold flex items-center justify-center"
+            >
+              {initialsOf(e.name)}
+            </span>
+          ),
+        )}
+        {extra > 0 && (
+          <span className="w-5 h-5 rounded-full border-2 border-white bg-muted text-foreground text-[8px] font-bold flex items-center justify-center">
+            +{extra}
+          </span>
+        )}
+      </div>
+      <span>editing now</span>
+    </div>
+  );
+}
+
+function PostCard({
+  article,
+  index,
+  editors,
+}: {
+  article: Article;
+  index: number;
+  editors: PresenceUser[];
+}) {
   const queryClient = useQueryClient();
   const [activeTemplate, setActiveTemplate] = useState<TemplateId>(
     () => readStoredTemplate(article.slug) ?? article.template ?? "standard"
@@ -257,6 +322,7 @@ function PostCard({ article, index }: { article: Article; index: number }) {
               {article.readTime}m read
             </span>
           </div>
+          <PresenceStack editors={editors} />
           {article.lastEdited && (
             <p
               className="mt-1.5 text-[10px] text-muted-foreground flex items-center gap-1"
@@ -469,8 +535,35 @@ function PostCard({ article, index }: { article: Article; index: number }) {
   );
 }
 
+function usePresenceMap(): PresenceMap {
+  const [map, setMap] = useState<PresenceMap>({});
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/admin/posts/presence`, {
+          credentials: "include",
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as { presence?: PresenceMap };
+        if (!cancelled && data.presence) setMap(data.presence);
+      } catch {
+        // Silent: presence is a nice-to-have. Keep the last known map.
+      }
+    };
+    load();
+    const t = setInterval(load, 10_000);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
+  }, []);
+  return map;
+}
+
 export default function AdminPostsPage() {
   const { data: articles = [], isLoading } = useAllArticles();
+  const presence = usePresenceMap();
 
   return (
     <div className="min-h-screen bg-muted/30 font-sans flex flex-col">
@@ -572,7 +665,12 @@ export default function AdminPostsPage() {
         {!isLoading && articles.length > 0 && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {articles.map((article, i) => (
-              <PostCard key={article.id} article={article} index={i} />
+              <PostCard
+                key={article.id}
+                article={article}
+                index={i}
+                editors={presence[article.id] ?? []}
+              />
             ))}
           </div>
         )}

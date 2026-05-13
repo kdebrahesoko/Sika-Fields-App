@@ -95,6 +95,26 @@ async function getPresenceMeta(req: AdminRequest): Promise<PresenceEntry | null>
   }
 }
 
+// Bulk presence — returns active editors for every post that currently has
+// at least one. Used by the All Posts list to show who is editing where
+// without having to issue one request per row.
+router.get("/presence", (_req: Request, res: Response) => {
+  const out: Record<string, Array<{ id: string; name: string; imageUrl?: string }>> = {};
+  for (const [postId, post] of presenceByPost) {
+    pruneStale(post);
+    if (post.size === 0) {
+      presenceByPost.delete(postId);
+      continue;
+    }
+    out[postId] = Array.from(post.values()).map((e) => ({
+      id: e.id,
+      name: e.name,
+      imageUrl: e.imageUrl,
+    }));
+  }
+  res.json({ presence: out });
+});
+
 router.post("/:id/presence", express.json({ limit: "4kb" }), async (req: Request, res: Response) => {
   const id = String(req.params.id ?? "");
   if (!id || !/^[A-Za-z0-9._-]+$/.test(id)) {
