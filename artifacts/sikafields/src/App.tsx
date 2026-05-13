@@ -16,6 +16,7 @@ import AdminPostsPage from "@/pages/AdminPosts";
 import NewPostHubPage from "@/pages/NewPostHub";
 import NewPostAIPage from "@/pages/NewPostAI";
 import AdminUsersPage from "@/pages/AdminUsers";
+import AdminRestoreLogPage from "@/pages/AdminRestoreLog";
 import { SignInPage, SignUpPage } from "@/pages/SignIn";
 import { RequireAdmin } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
@@ -126,6 +127,11 @@ function Router() {
       <Route path="/admin/users">
         <RequireAdmin>
           <AdminUsersPage />
+        </RequireAdmin>
+      </Route>
+      <Route path="/admin/restore-log">
+        <RequireAdmin>
+          <AdminRestoreLogPage />
         </RequireAdmin>
       </Route>
       <Route component={NotFound} />

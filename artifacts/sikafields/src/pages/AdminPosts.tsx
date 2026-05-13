@@ -494,6 +494,13 @@ export default function AdminPostsPage() {
           </div>
           <div className="ml-auto flex items-center gap-2">
             <Link
+              href="/admin/restore-log"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              <History className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Restore log</span>
+            </Link>
+            <Link
               href="/admin/new-post"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-colors"
             >
