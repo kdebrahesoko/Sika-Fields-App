@@ -11,6 +11,7 @@ import {
   Eye,
   ArrowLeft,
   GitCompare,
+  EyeOff,
 } from "lucide-react";
 import {
   StandardTemplate,
@@ -303,6 +304,9 @@ export function RevisionHistoryDialog({
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [tab, setTab] = useState<"revisions" | "audit">("revisions");
+  // Hide auto-saves / no-op revisions (where the diff against the previous
+  // version is empty) by default. The "Current" row is always shown.
+  const [showNoOp, setShowNoOp] = useState(false);
 
   const loadAudit = useCallback(async () => {
     try {
@@ -384,6 +388,7 @@ export function RevisionHistoryDialog({
     setPreviewError(null);
     payloadCacheRef.current = new Map();
     setDiffs({});
+    setShowNoOp(false);
     void load();
   }, [open, load]);
 
@@ -504,6 +509,28 @@ export function RevisionHistoryDialog({
     },
     [postId, queryClient, onRestored, loadAudit],
   );
+
+  // A revision counts as "no-op" when its computed diff against the older
+  // version is an empty array. We never hide the Current row (idx 0), and
+  // rows still loading or that errored stay visible so the user isn't
+  // surprised by missing entries.
+  const noOpIds = useMemo(() => {
+    const ids = new Set<string>();
+    revisions.forEach((rev, idx) => {
+      if (idx === 0) return;
+      const d = diffs[rev.id];
+      if (Array.isArray(d) && d.length === 0) ids.add(rev.id);
+    });
+    return ids;
+  }, [revisions, diffs]);
+
+  const visibleRevisions = useMemo(() => {
+    const indexed = revisions.map((rev, idx) => ({ rev, idx }));
+    if (showNoOp) return indexed;
+    return indexed.filter(({ rev, idx }) => idx === 0 || !noOpIds.has(rev.id));
+  }, [revisions, noOpIds, showNoOp]);
+
+  const hiddenCount = noOpIds.size;
 
   const inPreview = previewing !== null;
   const [showPreviewDiff, setShowPreviewDiff] = useState(true);
@@ -770,9 +797,39 @@ export function RevisionHistoryDialog({
                   </div>
                 )}
 
+                {!loading && revisions.length > 0 && hiddenCount > 0 && (
+                  <div className="flex items-center justify-between gap-2 mb-2 px-2.5 py-2 rounded-lg bg-muted/50 border border-border">
+                    <p className="text-[11px] text-muted-foreground leading-snug">
+                      {showNoOp ? (
+                        <>Showing all {revisions.length} revisions, including auto-saves with no content changes.</>
+                      ) : (
+                        <>
+                          Hiding {hiddenCount} auto-save{hiddenCount === 1 ? "" : "s"} with no content changes.
+                        </>
+                      )}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowNoOp((v) => !v)}
+                      className="flex items-center gap-1 px-2 py-1 rounded-md border border-border bg-white text-[10.5px] font-bold text-muted-foreground hover:text-foreground hover:border-primary/40 transition-colors shrink-0"
+                      title={showNoOp ? "Hide revisions with no content changes" : "Show revisions with no content changes"}
+                    >
+                      {showNoOp ? (
+                        <>
+                          <EyeOff className="w-3 h-3" /> Hide auto-saves
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="w-3 h-3" /> Show all
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+
                 {!loading && revisions.length > 0 && (
                   <ul className="space-y-1.5 py-1">
-                    {revisions.map((rev, idx) => {
+                    {visibleRevisions.map(({ rev, idx }) => {
                       const isCurrent = idx === 0;
                       const isConfirming = confirmId === rev.id;
                       const isRestoring = restoringId === rev.id;
