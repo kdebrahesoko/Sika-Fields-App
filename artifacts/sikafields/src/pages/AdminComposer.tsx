@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@clerk/react";
+import { useApiClient } from "@/lib/api-fetch";
 import {
   ArrowLeft, Plus, Trash2, FileText, ImageIcon, LayoutGrid,
   Type, AlignLeft, Quote, List, Check, Copy, ExternalLink,
@@ -440,9 +441,8 @@ function ImageUploadField({ value, onChange }: { value: CoverImageState | null; 
     setUploading(true);
     try {
       const buffer = await file.arrayBuffer();
-      const res = await fetch(`${API_BASE}/admin/posts/upload`, {
+      const res = await apiFetch(`${API_BASE}/admin/posts/upload`, {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": file.type,
           "X-Filename": file.name,
@@ -681,6 +681,7 @@ function PresenceBar({ others }: { others: PresenceUser[] }) {
 export default function AdminComposerPage() {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const apiFetch = useApiClient();
   const { user } = useUser();
   const meId = user?.id ?? "";
   // Determine edit mode synchronously so we don't briefly hydrate from the
@@ -715,9 +716,8 @@ export default function AdminComposerPage() {
 
     const heartbeat = async () => {
       try {
-        const res = await fetch(url, {
+        const res = await apiFetch(url, {
           method: "POST",
-          credentials: "include",
           headers: { "Content-Type": "application/json" },
           body: "{}",
         });
@@ -789,9 +789,7 @@ export default function AdminComposerPage() {
       setEditLoading(true);
       setEditLoadError(null);
       try {
-        const res = await fetch(`${API_BASE}/admin/posts/${encodeURIComponent(editId)}`, {
-          credentials: "include",
-        });
+        const res = await apiFetch(`${API_BASE}/admin/posts/${encodeURIComponent(editId)}`);
         if (!res.ok) {
           const data = (await res.json().catch(() => ({}))) as { error?: string };
           throw new Error(data.error ?? `Load failed (${res.status})`);
@@ -1002,9 +1000,8 @@ export default function AdminComposerPage() {
         ? `${API_BASE}/admin/posts/${encodeURIComponent(editId!)}`
         : `${API_BASE}/admin/posts`;
       const method = isEditing ? "PATCH" : "POST";
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });

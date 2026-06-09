@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
+import { useApiClient } from "@/lib/api-fetch";
 import {
   History,
   X,
@@ -350,6 +351,7 @@ export function RevisionHistoryDialog({
   onRestored,
 }: RevisionHistoryDialogProps) {
   const queryClient = useQueryClient();
+  const apiFetch = useApiClient();
   const [loading, setLoading] = useState(false);
   const [revisions, setRevisions] = useState<RevisionItem[]>([]);
   const [audit, setAudit] = useState<AuditEntry[]>([]);
@@ -366,9 +368,8 @@ export function RevisionHistoryDialog({
 
   const loadAudit = useCallback(async () => {
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `${API_BASE}/admin/posts/${encodeURIComponent(postId)}/restore-audit`,
-        { credentials: "include" },
       );
       if (!res.ok) return;
       const data = (await res.json()) as AuditResponse;
@@ -395,9 +396,8 @@ export function RevisionHistoryDialog({
     async (revisionId: string): Promise<ServerPostPayload | null> => {
       const cached = payloadCacheRef.current.get(revisionId);
       if (cached) return cached;
-      const res = await fetch(
+      const res = await apiFetch(
         `${API_BASE}/admin/posts/${encodeURIComponent(postId)}/revisions/${encodeURIComponent(revisionId)}`,
-        { credentials: "include" },
       );
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -415,9 +415,8 @@ export function RevisionHistoryDialog({
     setLoadError(null);
     setWarning(null);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `${API_BASE}/admin/posts/${encodeURIComponent(postId)}/revisions`,
-        { credentials: "include" },
       );
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -533,11 +532,10 @@ export function RevisionHistoryDialog({
       setRestoringId(revisionId);
       setRestoreError(null);
       try {
-        const res = await fetch(
+        const res = await apiFetch(
           `${API_BASE}/admin/posts/${encodeURIComponent(postId)}/restore`,
           {
             method: "POST",
-            credentials: "include",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ revisionId }),
           },

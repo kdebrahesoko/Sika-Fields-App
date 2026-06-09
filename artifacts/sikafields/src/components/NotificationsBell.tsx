@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell, RotateCcw, FileText, Loader2, X, Check } from "lucide-react";
+import { useApiClient } from "@/lib/api-fetch";
 
 interface RestoreNotification {
   id: string;
@@ -46,13 +47,12 @@ export function NotificationsBell() {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const qc = useQueryClient();
+  const apiFetch = useApiClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ["restore-notifications"],
     queryFn: async (): Promise<NotificationsResponse> => {
-      const res = await fetch(`${API_BASE}/admin/posts/notifications`, {
-        credentials: "include",
-      });
+      const res = await apiFetch(`${API_BASE}/admin/posts/notifications`);
       if (!res.ok) {
         const body = await res.json().catch(() => ({ error: res.statusText }));
         throw new Error(body.error ?? `HTTP ${res.status}`);
@@ -65,9 +65,8 @@ export function NotificationsBell() {
 
   const markRead = useMutation({
     mutationFn: async (payload: { ids?: string[]; all?: boolean }) => {
-      const res = await fetch(`${API_BASE}/admin/posts/notifications/read`, {
+      const res = await apiFetch(`${API_BASE}/admin/posts/notifications/read`, {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });

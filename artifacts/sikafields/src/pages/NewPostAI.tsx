@@ -6,6 +6,7 @@ import {
   CheckCircle2, PenLine, Calendar, MapPin, Globe2,
 } from "lucide-react";
 import { setAiDraftHandoff } from "@/lib/published-posts";
+import { useApiClient } from "@/lib/api-fetch";
 
 const apiBase = "/api";
 
@@ -56,6 +57,7 @@ function StepDot({ active, done }: { active: boolean; done: boolean }) {
 
 export default function NewPostAIPage() {
   const [, setLocation] = useLocation();
+  const apiFetch = useApiClient();
   const [form, setForm] = useState<FormState>(DEFAULTS);
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -82,10 +84,9 @@ export default function NewPostAIPage() {
     setSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`${apiBase}/admin/posts/draft`, {
+      const res = await apiFetch(`${apiBase}/admin/posts/draft`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify(form),
       });
       if (!res.ok) {

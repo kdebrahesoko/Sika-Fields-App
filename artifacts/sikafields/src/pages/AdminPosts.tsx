@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { useQueryClient } from "@tanstack/react-query";
+import { useApiClient } from "@/lib/api-fetch";
 import {
   ArrowLeft, Copy, Check, Eye, ExternalLink, Palette,
   LayoutDashboard, Calendar, Clock, Loader2, BookOpen, Plus,
@@ -190,6 +191,7 @@ function PostCard({
   editors: PresenceUser[];
 }) {
   const queryClient = useQueryClient();
+  const apiFetch = useApiClient();
   const [activeTemplate, setActiveTemplate] = useState<TemplateId>(
     () => readStoredTemplate(article.slug) ?? article.template ?? "standard"
   );
@@ -227,9 +229,8 @@ function PostCard({
     setDeleteState("deleting");
     setDeleteError(null);
     try {
-      const res = await fetch(`${API_BASE}/admin/posts/${encodeURIComponent(article.id)}`, {
+      const res = await apiFetch(`${API_BASE}/admin/posts/${encodeURIComponent(article.id)}`, {
         method: "DELETE",
-        credentials: "include",
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -537,14 +538,13 @@ function PostCard({
 }
 
 function usePresenceMap(): PresenceMap {
+  const apiFetch = useApiClient();
   const [map, setMap] = useState<PresenceMap>({});
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
-        const res = await fetch(`${API_BASE}/admin/posts/presence`, {
-          credentials: "include",
-        });
+        const res = await apiFetch(`${API_BASE}/admin/posts/presence`);
         if (!res.ok) return;
         const data = (await res.json()) as { presence?: PresenceMap };
         if (!cancelled && data.presence) setMap(data.presence);
