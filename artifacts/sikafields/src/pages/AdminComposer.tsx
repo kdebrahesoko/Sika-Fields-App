@@ -423,7 +423,9 @@ interface UploadResponse {
   asset: { assetId: string; ref: string; url: string };
 }
 
-function ImageUploadField({ value, onChange }: { value: CoverImageState | null; onChange: (v: CoverImageState | null) => void }) {
+type ApiFetch = (url: string, options?: RequestInit) => Promise<Response>;
+
+function ImageUploadField({ value, onChange, apiFetch }: { value: CoverImageState | null; onChange: (v: CoverImageState | null) => void; apiFetch: ApiFetch }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -1309,7 +1311,7 @@ export default function AdminComposerPage() {
                 </div>
               </Field>
               <Field label="Cover image">
-                <ImageUploadField value={draft.coverImage} onChange={(v) => update({ coverImage: v })} />
+                <ImageUploadField value={draft.coverImage} onChange={(v) => update({ coverImage: v })} apiFetch={apiFetch} />
               </Field>
             </SectionCard>
 

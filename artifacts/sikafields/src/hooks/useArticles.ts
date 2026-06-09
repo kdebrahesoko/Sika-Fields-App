@@ -1,12 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { sanityClient, isSanityConfigured } from "@/lib/sanity";
 import { sanityDocToArticle } from "@/lib/sanity-adapter";
-import {
-  ALL_ARTICLES_QUERY,
-  ARTICLE_BY_SLUG_QUERY,
-  RELATED_ARTICLES_QUERY,
-} from "@/lib/sanity-queries";
+import { ARTICLE_BY_SLUG_QUERY, RELATED_ARTICLES_QUERY } from "@/lib/sanity-queries";
 import { ARTICLES, type Article } from "@/data/articles";
+
+const API_BASE = "/api";
 
 function mergeSanityWithBundled(sanityDocs: Article[]): Article[] {
   const sanityIds = new Set(sanityDocs.map((d) => d.id));
@@ -21,12 +19,11 @@ export function useAllArticles() {
   return useQuery<Article[]>({
     queryKey: ["articles"],
     queryFn: async () => {
-      if (!isSanityConfigured || !sanityClient) return ARTICLES;
       try {
-        const docs = await sanityClient.fetch(ALL_ARTICLES_QUERY);
-        const result = (docs as Parameters<typeof sanityDocToArticle>[0][]).map(
-          sanityDocToArticle
-        );
+        const res = await fetch(`${API_BASE}/content/articles`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const docs = (await res.json()) as Parameters<typeof sanityDocToArticle>[0][];
+        const result = docs.map(sanityDocToArticle);
         return mergeSanityWithBundled(result);
       } catch {
         return ARTICLES;
