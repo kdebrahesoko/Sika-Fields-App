@@ -39,6 +39,42 @@ const ALL_ARTICLES_QUERY = `
   }
 `;
 
+const ARTICLE_BY_SLUG_QUERY = `
+  *[_type in ["blog", "news", "event"] && slug.current == $slug][0] {
+    _id,
+    _type,
+    title,
+    "slug": slug.current,
+    "excerpt": coalesce(excerpt, summary),
+    "coverImage": coverImage.asset->url,
+    coverColor,
+    "author": author->{
+      name,
+      role,
+      bio,
+      linkedin,
+      "photo": photo.asset->url
+    },
+    authorInline,
+    tags,
+    category,
+    featured,
+    template,
+    publishedAt,
+    format,
+    startsAt,
+    endsAt,
+    location,
+    virtualLink,
+    host,
+    registerUrl,
+    mediaUrl,
+    recurrence,
+    recurrenceEnd,
+    content
+  }
+`;
+
 router.get("/articles", async (_req: Request, res: Response) => {
   try {
     const client = getSanityWriteClient();
@@ -51,6 +87,22 @@ router.get("/articles", async (_req: Request, res: Response) => {
   } catch (err) {
     console.error("GET /content/articles error:", err);
     res.json([]);
+  }
+});
+
+router.get("/articles/:slug", async (req: Request, res: Response) => {
+  try {
+    const { slug } = req.params;
+    const client = getSanityWriteClient();
+    if (!client) {
+      res.json(null);
+      return;
+    }
+    const doc = await client.fetch(ARTICLE_BY_SLUG_QUERY, { slug });
+    res.json(doc ?? null);
+  } catch (err) {
+    console.error("GET /content/articles/:slug error:", err);
+    res.json(null);
   }
 });
 

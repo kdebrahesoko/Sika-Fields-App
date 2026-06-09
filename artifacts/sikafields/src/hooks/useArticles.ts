@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { sanityClient, isSanityConfigured } from "@/lib/sanity";
 import { sanityDocToArticle } from "@/lib/sanity-adapter";
-import { ARTICLE_BY_SLUG_QUERY, RELATED_ARTICLES_QUERY } from "@/lib/sanity-queries";
+import { RELATED_ARTICLES_QUERY } from "@/lib/sanity-queries";
 import { ARTICLES, type Article } from "@/data/articles";
 
 const API_BASE = "/api";
@@ -34,19 +34,18 @@ export function useAllArticles() {
 }
 
 export function useArticle(slug: string) {
-  return useQuery<Article | undefined>({
+  return useQuery<Article | null>({
     queryKey: ["article", slug],
     queryFn: async () => {
-      if (!isSanityConfigured || !sanityClient) {
-        return ARTICLES.find((a) => a.slug === slug);
-      }
       try {
-        const doc = await sanityClient.fetch(ARTICLE_BY_SLUG_QUERY, { slug });
-        if (!doc) return ARTICLES.find((a) => a.slug === slug);
-        return sanityDocToArticle(doc as Parameters<typeof sanityDocToArticle>[0]);
+        const res = await fetch(`${API_BASE}/content/articles/${encodeURIComponent(slug)}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const doc = (await res.json()) as Parameters<typeof sanityDocToArticle>[0] | null;
+        if (doc) return sanityDocToArticle(doc);
       } catch {
-        return ARTICLES.find((a) => a.slug === slug);
+        // fall through to bundled
       }
+      return ARTICLES.find((a) => a.slug === slug) ?? null;
     },
     staleTime: 1000 * 15,
   });
