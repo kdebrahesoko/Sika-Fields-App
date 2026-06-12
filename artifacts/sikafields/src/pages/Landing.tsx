@@ -9,7 +9,7 @@ import {
   Target, TreePine, DollarSign, Building2, Smartphone,
   SatelliteDish, HeartHandshake, TrendingUp, AlertTriangle,
   Lightbulb, Info, Phone, Mail, Clock, Send, Loader2, Linkedin, Images,
-  LayoutDashboard
+  LayoutDashboard, Apple, Play, ArrowUpRight
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
@@ -154,6 +154,32 @@ const TRUST_LOGOS = [
   "UNFCCC",
   "Climate Action Reserve",
   "Plan Vivo"
+];
+
+const APP_DOWNLOAD_LINKS = {
+  android: "https://play.google.com/store/apps/details?id=com.sikafields.app",
+  ios: "https://apps.apple.com/app/sikafields/id0000000000",
+};
+
+const ADMIN_PORTAL_LINKS = [
+  {
+    title: "Main Admin Portal",
+    href: "https://admin.sikafields.net/",
+    description: "Full platform management, publishing controls and reporting.",
+    accent: "from-teal-500/20 via-white to-white",
+  },
+  {
+    title: "Quality Assurance Admin Portal",
+    href: "https://qa.sikafields.net/",
+    description: "Quality checks, verification queues and review workflows.",
+    accent: "from-emerald-500/20 via-white to-white",
+  },
+  {
+    title: "Supervisor Admin Portal",
+    href: "https://supervisor.sikafields.net/",
+    description: "Field oversight, team coordination and operational approvals.",
+    accent: "from-amber-500/20 via-white to-white",
+  },
 ];
 
 // --- Subcomponents ---
@@ -475,6 +501,10 @@ function Navbar() {
   }, []);
 
   const closeAll = () => setMobileMenuOpen(false);
+  const scrollToPortalSection = () => {
+    closeAll();
+    document.getElementById("portal-cards")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const openDropdown = (name: "about" | "solutions" | "impact" | "resources" | "login") => {
     setAboutOpen(name === "about");
@@ -664,7 +694,12 @@ function Navbar() {
             isOpen={loginOpen}
             setOpen={(v) => { if (v) openDropdown("login"); else setLoginOpen(false); }}
           />
-          <Button className="font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30">Get Started</Button>
+          <Button
+            className="font-bold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30"
+            onClick={scrollToPortalSection}
+          >
+            Get Started
+          </Button>
         </div>
 
         {/* Mobile Toggle */}
@@ -759,7 +794,7 @@ function Navbar() {
 
             <div className="mt-4 pt-4 border-t border-border space-y-2">
               <MobileAuthSlot onClose={closeAll} />
-              <Button className="w-full">Get Started</Button>
+              <Button className="w-full" onClick={scrollToPortalSection}>Get Started</Button>
             </div>
           </motion.div>
         )}
@@ -982,6 +1017,122 @@ function LiveStats() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AppDownloadAndPortalsSection() {
+  return (
+    <section id="portal-access" className="relative bg-background py-20">
+      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-emerald-50/80 to-transparent pointer-events-none" />
+
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="rounded-[2rem] border border-emerald-100 bg-white shadow-xl shadow-emerald-950/5 overflow-hidden">
+          <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-0">
+            <div className="p-8 sm:p-10 lg:p-12 bg-gradient-to-br from-[#0d1f14] via-[#123321] to-[#0f2b1c] text-white">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white/90 backdrop-blur-sm">
+                <Smartphone className="w-4 h-4 text-primary" />
+                Download Apps
+              </div>
+
+              <h2 className="mt-6 text-3xl sm:text-4xl font-display font-black leading-tight">
+                Access the SikaFields app directly from the field.
+              </h2>
+              <p className="mt-4 max-w-2xl text-sm sm:text-base leading-7 text-white/70">
+                Android and iOS apps are available with faster onboarding, offline-friendly workflows, and live sync for both field teams and farmers.
+              </p>
+
+              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                <a
+                  href={APP_DOWNLOAD_LINKS.android}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group inline-flex items-center justify-between gap-4 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-left backdrop-blur-sm transition-all hover:bg-white/15 hover:border-primary/40 hover:-translate-y-0.5"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-emerald-700 shadow-lg">
+                      <Play className="w-5 h-5 fill-current" />
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.24em] text-white/50">Get it on</p>
+                      <p className="text-lg font-bold text-white">Play Store</p>
+                    </div>
+                  </div>
+                  <ArrowUpRight className="w-5 h-5 text-white/50 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </a>
+
+                <a
+                  href={APP_DOWNLOAD_LINKS.ios}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group inline-flex items-center justify-between gap-4 rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-left backdrop-blur-sm transition-all hover:bg-white/15 hover:border-primary/40 hover:-translate-y-0.5"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-emerald-700 shadow-lg">
+                      <Apple className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.24em] text-white/50">Download on the</p>
+                      <p className="text-lg font-bold text-white">App Store</p>
+                    </div>
+                  </div>
+                  <ArrowUpRight className="w-5 h-5 text-white/50 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                </a>
+              </div>
+            </div>
+
+            <div className="p-8 sm:p-10 lg:p-12 bg-gradient-to-br from-emerald-50 via-white to-emerald-100/50 border-t lg:border-t-0 lg:border-l border-emerald-100">
+              <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 text-emerald-900 px-4 py-2 text-sm font-semibold">
+                <LayoutDashboard className="w-4 h-4" />
+                Admin Access
+              </div>
+
+              <h3 className="mt-6 text-2xl sm:text-3xl font-display font-black text-emerald-950">
+                Portal shortcuts
+              </h3>
+              <p className="mt-3 text-sm sm:text-base leading-7 text-emerald-900/70">
+                The portals below open in a new tab so your team can keep the main website and admin workspace open side by side.
+              </p>
+            </div>
+          </div>
+
+          <div id="portal-cards" className="scroll-mt-28 border-t border-emerald-100 bg-white p-8 sm:p-10 lg:p-12">
+            <div className="grid gap-4 lg:grid-cols-3">
+              {ADMIN_PORTAL_LINKS.map((portal) => (
+                <a
+                  key={portal.title}
+                  href={portal.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cn(
+                    "group rounded-[1.75rem] border border-emerald-100 bg-gradient-to-br p-6 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-900/10",
+                    portal.accent,
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-950 text-white shadow-lg shadow-emerald-950/20">
+                      <LayoutDashboard className="w-5 h-5" />
+                    </div>
+                    <ArrowUpRight className="w-5 h-5 text-emerald-800/50 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  </div>
+
+                  <h4 className="mt-6 text-xl font-display font-bold text-emerald-950">
+                    {portal.title}
+                  </h4>
+                  <p className="mt-3 text-sm leading-6 text-emerald-900/70">
+                    {portal.description}
+                  </p>
+
+                  <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-emerald-900">
+                    Open portal
+                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -3340,6 +3491,7 @@ export default function LandingPage() {
       <Navbar />
       <main>
         <HeroSection />
+        <AppDownloadAndPortalsSection />
         <LiveStats />
         <AboutSection />
         <LeadershipSection />
