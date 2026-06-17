@@ -621,17 +621,17 @@ function Navbar() {
 
           {/* Solutions dropdown */}
           <DesktopDropdown label="Solutions" isOpen={solutionsOpen} setOpen={(v) => { if (v) openDropdown("solutions"); else setSolutionsOpen(false); }}>
-            <a href="#farmers" className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors"
+            <a href="#portal-access" className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors"
+              onClick={() => setSolutionsOpen(false)}>
+              <Smartphone className="w-4 h-4 text-primary" /> Access the SikaFields App
+            </a>
+            <a href="#farmers" className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border"
               onClick={() => setSolutionsOpen(false)}>
               <Sprout className="w-4 h-4 text-primary" /> Farmers
             </a>
             <a href="#buyers" className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border"
               onClick={() => setSolutionsOpen(false)}>
               <Globe className="w-4 h-4 text-accent" /> For Buyers
-            </a>
-            <a href="#portal-access" className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border"
-              onClick={() => setSolutionsOpen(false)}>
-              <Smartphone className="w-4 h-4 text-primary" /> Access the SikaFields App
             </a>
           </DesktopDropdown>
 
@@ -748,14 +748,14 @@ function Navbar() {
 
             {/* Solutions accordion */}
             <MobileAccordion label="Solutions" isOpen={mobileSolutionsOpen} setOpen={setMobileSolutionsOpen}>
+              <a href="#portal-access" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={closeAll}>
+                <Smartphone className="w-4 h-4 text-primary" /> Access the SikaFields App
+              </a>
               <a href="#farmers" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={closeAll}>
                 <Sprout className="w-4 h-4 text-primary" /> Farmers
               </a>
               <a href="#buyers" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={closeAll}>
                 <Globe className="w-4 h-4 text-accent" /> For Buyers
-              </a>
-              <a href="#portal-access" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={closeAll}>
-                <Smartphone className="w-4 h-4 text-primary" /> Access the SikaFields App
               </a>
             </MobileAccordion>
 
