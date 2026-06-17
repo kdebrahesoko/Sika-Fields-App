@@ -629,6 +629,10 @@ function Navbar() {
               onClick={() => setSolutionsOpen(false)}>
               <Globe className="w-4 h-4 text-accent" /> For Buyers
             </a>
+            <a href="#portal-access" className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-muted hover:text-primary transition-colors border-t border-border"
+              onClick={() => setSolutionsOpen(false)}>
+              <Smartphone className="w-4 h-4 text-primary" /> Access the SikaFields App
+            </a>
           </DesktopDropdown>
 
           {/* Resources dropdown */}
@@ -749,6 +753,9 @@ function Navbar() {
               </a>
               <a href="#buyers" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={closeAll}>
                 <Globe className="w-4 h-4 text-accent" /> For Buyers
+              </a>
+              <a href="#portal-access" className="flex items-center gap-2 p-3 hover:bg-muted rounded-xl text-sm text-muted-foreground hover:text-primary" onClick={closeAll}>
+                <Smartphone className="w-4 h-4 text-primary" /> Access the SikaFields App
               </a>
             </MobileAccordion>
 

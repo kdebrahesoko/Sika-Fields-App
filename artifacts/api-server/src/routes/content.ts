@@ -75,13 +75,59 @@ const ARTICLE_BY_SLUG_QUERY = `
   }
 `;
 
+const ALL_EVENTS_QUERY = `
+  *[_type == "event"] | order(startsAt desc) {
+    _id,
+    title,
+    "slug": slug.current,
+    format,
+    summary,
+    "coverImage": coverImage.asset->url,
+    "coverAlt": coverImage.alt,
+    startsAt,
+    endsAt,
+    durationMinutes,
+    location,
+    host,
+    registerUrl,
+    mediaUrl,
+    tags,
+    featured
+  }
+`;
+
+const GALLERY_IMAGES_QUERY = `
+  *[_type == "galleryImage"] | order(featured desc, publishedAt desc)[0...12] {
+    _id,
+    title,
+    category,
+    description,
+    "imageUrl": image.asset->url,
+    "alt": image.alt,
+    location,
+    featured,
+    publishedAt
+  }
+`;
+
+const GALLERY_IMAGES_BY_CATEGORY_QUERY = `
+  *[_type == "galleryImage" && category == $category] | order(featured desc, publishedAt desc)[0...12] {
+    _id,
+    title,
+    category,
+    description,
+    "imageUrl": image.asset->url,
+    "alt": image.alt,
+    location,
+    featured,
+    publishedAt
+  }
+`;
+
 router.get("/articles", async (_req: Request, res: Response) => {
   try {
     const client = getSanityWriteClient();
-    if (!client) {
-      res.json([]);
-      return;
-    }
+    if (!client) { res.json([]); return; }
     const docs = await client.fetch(ALL_ARTICLES_QUERY);
     res.json(docs);
   } catch (err) {
@@ -94,15 +140,39 @@ router.get("/articles/:slug", async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
     const client = getSanityWriteClient();
-    if (!client) {
-      res.json(null);
-      return;
-    }
+    if (!client) { res.json(null); return; }
     const doc = await client.fetch(ARTICLE_BY_SLUG_QUERY, { slug });
     res.json(doc ?? null);
   } catch (err) {
     console.error("GET /content/articles/:slug error:", err);
     res.json(null);
+  }
+});
+
+router.get("/events", async (_req: Request, res: Response) => {
+  try {
+    const client = getSanityWriteClient();
+    if (!client) { res.json([]); return; }
+    const docs = await client.fetch(ALL_EVENTS_QUERY);
+    res.json(docs);
+  } catch (err) {
+    console.error("GET /content/events error:", err);
+    res.json([]);
+  }
+});
+
+router.get("/gallery", async (req: Request, res: Response) => {
+  try {
+    const { category } = req.query;
+    const client = getSanityWriteClient();
+    if (!client) { res.json([]); return; }
+    const query = category ? GALLERY_IMAGES_BY_CATEGORY_QUERY : GALLERY_IMAGES_QUERY;
+    const params = category ? { category } : {};
+    const docs = await client.fetch(query, params);
+    res.json(docs);
+  } catch (err) {
+    console.error("GET /content/gallery error:", err);
+    res.json([]);
   }
 });
 
