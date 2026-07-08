@@ -1,1 +1,1 @@
-- [Stylized region maps without geodata](stylized-region-maps.md) — when no district/region-level GeoJSON exists, build a grid-tile SVG map instead of forcing react-simple-maps.
+- [d3-geo/react-simple-maps winding bug](d3-geo-winding-mercator.md) — GeoJSON with standard RFC7946 winding can make every feature render as a full-canvas blob under geoMercator; fix by rewinding rings.

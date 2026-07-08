@@ -1,100 +1,112 @@
-import { useState, useId } from "react";
+import { useState, useId, useMemo, type KeyboardEvent } from "react";
 import { motion } from "framer-motion";
+import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import { geoMercator } from "d3-geo";
+import type { FeatureCollection, Geometry, GeoJsonProperties } from "geojson";
 import { GHANA_REGIONS, STANDARD_META, type GhanaRegion, type StandardKey } from "./data";
-
-const TILE = 74;
-const GAP = 10;
-const STEP = TILE + GAP;
+import ghanaRegionsGeo from "./gha-regions.geo.json";
 
 interface GhanaRegionsMapProps {
   selectedId: string | null;
   onSelect: (region: GhanaRegion) => void;
 }
 
+const MAP_WIDTH = 560;
+const MAP_HEIGHT = 640;
+
+function shapeNameToId(shapeName: string): string {
+  return shapeName
+    .replace(/\s+Region$/i, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-");
+}
+
 export default function GhanaRegionsMap({ selectedId, onSelect }: GhanaRegionsMapProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const titleId = useId();
 
-  const maxCol = Math.max(...GHANA_REGIONS.map((r) => r.col));
-  const maxRow = Math.max(...GHANA_REGIONS.map((r) => r.row));
-  const width = (maxCol + 1) * STEP + GAP;
-  const height = (maxRow + 1) * STEP + GAP;
-
   const hovered = GHANA_REGIONS.find((r) => r.id === hoveredId) ?? null;
+
+  const projection = useMemo(() => {
+    const geo = ghanaRegionsGeo as unknown as FeatureCollection<Geometry, GeoJsonProperties>;
+    const padding = 16;
+    const fitted = geoMercator().fitSize(
+      [MAP_WIDTH - padding * 2, MAP_HEIGHT - padding * 2],
+      geo,
+    );
+    const [tx, ty] = fitted.translate();
+    fitted.translate([tx + padding, ty + padding]);
+    return fitted;
+  }, []);
 
   return (
     <div className="relative">
-      <svg
+      <svg width={0} height={0} className="absolute" aria-hidden="true">
+        <title id={titleId}>
+          Spatial distribution of standards for the SikaFields project — interactive map of active
+          and planned regions in Ghana
+        </title>
+      </svg>
+      <ComposableMap
         role="group"
         aria-labelledby={titleId}
-        viewBox={`0 0 ${width} ${height}`}
+        projection={projection}
+        width={MAP_WIDTH}
+        height={MAP_HEIGHT}
         className="w-full h-auto max-w-[520px] mx-auto"
       >
-        <title id={titleId}>Interactive map of SikaFields active and planned regions in Ghana</title>
-        {GHANA_REGIONS.map((region, idx) => {
-          const meta = STANDARD_META[region.standard];
-          const isSelected = region.id === selectedId;
-          const isHovered = region.id === hoveredId;
-          const x = GAP + region.col * STEP;
-          const y = GAP + region.row * STEP;
-          return (
-            <motion.g
-              key={region.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.03, duration: 0.35 }}
-            >
-              <motion.rect
-                x={x}
-                y={y}
-                width={TILE}
-                height={TILE}
-                rx={16}
-                fill={meta.color}
-                fillOpacity={region.standard === "future" ? 0.35 : isHovered || isSelected ? 1 : 0.85}
-                stroke={isSelected ? "#ffffff" : "transparent"}
-                strokeWidth={isSelected ? 3 : 0}
-                style={{ cursor: "pointer", transformBox: "fill-box", transformOrigin: "center" }}
-                animate={{
-                  scale: isHovered || isSelected ? 1.08 : 1,
-                  filter: isHovered || isSelected
-                    ? `drop-shadow(0 0 14px ${meta.glow})`
-                    : "drop-shadow(0 0 0px transparent)",
-                }}
-                transition={{ type: "spring", stiffness: 260, damping: 18 }}
-                tabIndex={0}
-                role="button"
-                aria-label={`${region.name} — ${meta.label}${region.status === "Active" ? "" : " (planned)"}`}
-                aria-pressed={isSelected}
-                onMouseEnter={() => setHoveredId(region.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                onFocus={() => setHoveredId(region.id)}
-                onBlur={() => setHoveredId(null)}
-                onClick={() => onSelect(region)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    onSelect(region);
-                  }
-                }}
-              />
-              <text
-                x={x + TILE / 2}
-                y={y + TILE / 2}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                className="pointer-events-none select-none"
-                fill="#ffffff"
-                fontSize={9.5}
-                fontWeight={700}
-              >
-                {region.name.length > 11 ? `${region.name.slice(0, 10)}…` : region.name}
-              </text>
-            </motion.g>
-          );
-        })}
-      </svg>
+        <Geographies geography={ghanaRegionsGeo}>
+          {({ geographies }) =>
+            geographies.map((geo) => {
+              const id = shapeNameToId(String(geo.properties?.shapeName ?? ""));
+              const region = GHANA_REGIONS.find((r) => r.id === id);
+              if (!region) return null;
+              const meta = STANDARD_META[region.standard];
+              const isSelected = region.id === selectedId;
+              const isHovered = region.id === hoveredId;
+              return (
+                <motion.g
+                  key={geo.rsmKey}
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4 }}
+                >
+                  <Geography
+                    geography={geo}
+                    fill={meta.color}
+                    fillOpacity={region.standard === "future" ? 0.35 : isHovered || isSelected ? 1 : 0.82}
+                    stroke="#ffffff"
+                    strokeWidth={isSelected ? 2 : 0.75}
+                    filter={isHovered || isSelected ? `drop-shadow(0 0 10px ${meta.glow})` : undefined}
+                    style={{
+                      default: { outline: "none", cursor: "pointer", transition: "fill-opacity 150ms, filter 150ms" },
+                      hover: { outline: "none", cursor: "pointer" },
+                      pressed: { outline: "none", cursor: "pointer" },
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${region.name} — ${meta.label}${region.status === "Active" ? "" : " (planned)"}`}
+                    aria-pressed={isSelected}
+                    onMouseEnter={() => setHoveredId(region.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    onFocus={() => setHoveredId(region.id)}
+                    onBlur={() => setHoveredId(null)}
+                    onClick={() => onSelect(region)}
+                    onKeyDown={(e: KeyboardEvent) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        onSelect(region);
+                      }
+                    }}
+                  />
+                </motion.g>
+              );
+            })
+          }
+        </Geographies>
+      </ComposableMap>
 
       {hovered && (
         <div

@@ -3500,6 +3500,15 @@ function Footer() {
 }
 
 export default function LandingPage() {
+  useEffect(() => {
+    if (!window.location.hash) return;
+    const id = window.location.hash.slice(1);
+    const el = document.getElementById(id);
+    if (el) {
+      requestAnimationFrame(() => el.scrollIntoView({ behavior: "smooth", block: "start" }));
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-background font-sans overflow-x-hidden">
       <AnnouncementBanner />

@@ -2,11 +2,13 @@ declare module "react-simple-maps" {
   import * as React from "react";
 
   export interface ComposableMapProps {
-    projection?: string;
+    projection?: string | ((...args: unknown[]) => unknown);
     projectionConfig?: Record<string, unknown>;
     className?: string;
     width?: number;
     height?: number;
+    role?: string;
+    "aria-labelledby"?: string;
     children?: React.ReactNode;
   }
 
@@ -17,6 +19,7 @@ declare module "react-simple-maps" {
 
   export interface Geography {
     rsmKey: string;
+    properties?: Record<string, unknown>;
     [key: string]: unknown;
   }
 
@@ -24,8 +27,20 @@ declare module "react-simple-maps" {
     key?: string;
     geography: Geography;
     fill?: string;
+    fillOpacity?: number;
     stroke?: string;
     strokeWidth?: number;
+    filter?: string;
+    tabIndex?: number;
+    role?: string;
+    "aria-label"?: string;
+    "aria-pressed"?: boolean;
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
+    onFocus?: () => void;
+    onBlur?: () => void;
+    onClick?: () => void;
+    onKeyDown?: (e: React.KeyboardEvent) => void;
     style?: {
       default?: React.CSSProperties;
       hover?: React.CSSProperties;

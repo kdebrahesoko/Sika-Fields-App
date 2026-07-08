@@ -33,6 +33,14 @@ export default function GhanaExplorerSection() {
         className="grid lg:grid-cols-5 gap-8 items-stretch mb-14"
       >
         <div className="lg:col-span-3 rounded-3xl border border-border/60 bg-white/50 dark:bg-white/5 backdrop-blur-xl shadow-lg p-6 md:p-8">
+          <div className="text-center mb-6">
+            <p className="text-[11px] sm:text-xs font-bold uppercase tracking-[0.15em] text-primary">
+              Spatial Distribution of Standards
+            </p>
+            <p className="text-[11px] sm:text-xs font-medium uppercase tracking-[0.1em] text-muted-foreground mt-0.5">
+              for the SikaFields Project
+            </p>
+          </div>
           <GhanaRegionsMap selectedId={selected?.id ?? null} onSelect={setSelected} />
         </div>
         <div className="lg:col-span-2">
