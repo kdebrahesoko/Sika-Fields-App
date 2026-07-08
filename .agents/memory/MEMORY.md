@@ -1,1 +1,2 @@
 - [d3-geo/react-simple-maps winding bug](d3-geo-winding-mercator.md) — GeoJSON with standard RFC7946 winding can make every feature render as a full-canvas blob under geoMercator; fix by rewinding rings.
+- [Verifying reference-PDF legend/data before coding](reference-pdf-data-verification.md) — always OCR/sample actual colors and re-derive mappings from source PDFs/spreadsheets before trusting existing "illustrative" placeholder data.

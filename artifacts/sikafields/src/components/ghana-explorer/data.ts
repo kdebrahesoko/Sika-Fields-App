@@ -3,12 +3,17 @@ import {
   UserPlus, Map, ScanSearch, ClipboardCheck, Calculator, ShieldCheck, Award, Banknote,
 } from "lucide-react";
 
-export type StandardKey = "ofp" | "vm0042" | "vm0047" | "future";
+export type StandardKey = "ofp" | "vm0042" | "vm0047" | "mixed" | "future";
 
+/**
+ * Colors match the legend in the reference source map exactly (OFP = orange,
+ * Verra VM0047 = green, Verra VM0042 = magenta) — see data provenance note below.
+ */
 export const STANDARD_META: Record<StandardKey, { label: string; shortLabel: string; color: string; glow: string }> = {
-  ofp: { label: "Open Forest Protocol (OFP)", shortLabel: "OFP", color: "#1f9d55", glow: "rgba(31,157,85,0.55)" },
-  vm0042: { label: "Verra VM0042", shortLabel: "VM0042", color: "#2563eb", glow: "rgba(37,99,235,0.5)" },
-  vm0047: { label: "Verra VM0047", shortLabel: "VM0047", color: "#e08a1e", glow: "rgba(224,138,30,0.5)" },
+  ofp: { label: "Open Forest Protocol (OFP)", shortLabel: "OFP", color: "#e69800", glow: "rgba(230,152,0,0.5)" },
+  vm0047: { label: "Verra VM0047", shortLabel: "VM0047", color: "#63b43b", glow: "rgba(99,180,59,0.5)" },
+  vm0042: { label: "Verra VM0042", shortLabel: "VM0042", color: "#cd6699", glow: "rgba(205,102,153,0.5)" },
+  mixed: { label: "Mixed (OFP + VM0047)", shortLabel: "Mixed", color: "#8b5cf6", glow: "rgba(139,92,246,0.5)" },
   future: { label: "Future Expansion", shortLabel: "Planned", color: "#94a3b8", glow: "rgba(148,163,184,0.45)" },
 };
 
@@ -28,11 +33,24 @@ export interface GhanaRegion {
 }
 
 /**
- * Region layout uses a stylized grid position (col/row), not surveyed geographic
- * boundaries — see task scope notes. Standard assignment for districts named in
- * the "Combined Standards Map" reference is illustrative (the source PDF's legend
- * colors could not be extracted from text), grouped by the districts that appear
- * on that map; unlisted regions are shown as future-expansion territory.
+ * Data provenance: standard/district assignment is sourced from
+ * `attached_assets/Combined_Standards_Map_(1)_1783510454545.pdf`
+ * ("Spatial Distribution of Standards for the SikaFields Project"), read directly
+ * from its legend and per-district inset maps (OFP = orange, Verra VM0047 = green,
+ * Verra VM0042 = magenta). Regions with no colored district in that source map are
+ * marked "future" (planned expansion). Bono region contains districts under two
+ * different standards (Jaman North/South = OFP, Dormaa East/Municipal = VM0047)
+ * and is marked "mixed" accordingly, since region-level boundaries can only show
+ * one fill color.
+ *
+ * Farmers/hectares figures are derived estimates, not per-region source data: the
+ * per-region breakdown isn't published, only current/expected totals per standard
+ * (`attached_assets/Sikafields_Project_Statistics_Summary_1783510466925.xlsx`).
+ * Figures below split each standard's current-onboarded total (or, for VM0042
+ * where current onboarding is still zero, its expected total) proportionally by
+ * district count across the regions carrying that standard. `col`/`row` retain a
+ * stylized grid layout value for potential fallback/legacy use but are no longer
+ * used for map positioning (positioning now comes from real GeoJSON boundaries).
  */
 export const GHANA_REGIONS: GhanaRegion[] = [
   {
@@ -66,39 +84,39 @@ export const GHANA_REGIONS: GhanaRegion[] = [
     benefits: ["Future farmer income", "Climate resilience"],
   },
   {
-    id: "bono", name: "Bono", standard: "vm0042", status: "Active", col: 0, row: 2,
-    districts: ["Jaman North", "Jaman South Municipal", "Dormaa East", "Dormaa Municipal"],
-    farmers: "6,200+", hectares: "9,800 ha",
-    activities: ["Regenerative farming", "Soil carbon management", "Agroforestry"],
-    monitoring: ["Satellite imagery", "Soil sampling", "Field agent inspections"],
-    benefits: ["Farmer income", "Soil health", "Carbon credits"],
-  },
-  {
-    id: "bono-east", name: "Bono East", standard: "vm0042", status: "Active", col: 1, row: 3,
-    districts: ["Sene East", "Pru West"],
-    farmers: "3,100+", hectares: "5,400 ha",
-    activities: ["Regenerative farming", "Soil carbon management"],
-    monitoring: ["Satellite imagery", "Soil sampling"],
-    benefits: ["Farmer income", "Soil health", "Carbon credits"],
-  },
-  {
-    id: "ahafo", name: "Ahafo", standard: "vm0042", status: "Active", col: 0, row: 3,
-    districts: ["Tano South Municipal", "Asutifi North", "Asutifi South"],
-    farmers: "2,900+", hectares: "4,700 ha",
-    activities: ["Regenerative farming", "Agroforestry"],
+    id: "bono", name: "Bono", standard: "mixed", status: "Active", col: 0, row: 2,
+    districts: ["Jaman North (OFP)", "Jaman South Municipal (OFP)", "Dormaa East (VM0047)", "Dormaa Municipal (VM0047)"],
+    farmers: "~2,000+", hectares: "~3,150 ha",
+    activities: ["Agroforestry", "Afforestation", "Regenerative farming"],
     monitoring: ["Satellite imagery", "Field agent inspections"],
-    benefits: ["Farmer income", "Carbon credits", "Biodiversity"],
+    benefits: ["Farmer income", "Carbon credits", "Forest restoration"],
   },
   {
-    id: "ashanti", name: "Ashanti", standard: "ofp", status: "Active", col: 1, row: 4,
+    id: "bono-east", name: "Bono East", standard: "vm0047", status: "Active", col: 1, row: 3,
+    districts: ["Sene East", "Pru West"],
+    farmers: "~850+", hectares: "~1,360 ha",
+    activities: ["Afforestation", "Reforestation", "Community woodlots"],
+    monitoring: ["Satellite imagery", "Drone verification"],
+    benefits: ["Farmer income", "Carbon credits", "Forest restoration"],
+  },
+  {
+    id: "ahafo", name: "Ahafo", standard: "vm0047", status: "Active", col: 0, row: 3,
+    districts: ["Tano South Municipal", "Asutifi North", "Asutifi South"],
+    farmers: "~1,300+", hectares: "~2,050 ha",
+    activities: ["Afforestation", "Reforestation", "Community woodlots"],
+    monitoring: ["Satellite imagery", "Field agent inspections"],
+    benefits: ["Farmer income", "Carbon credits", "Forest restoration"],
+  },
+  {
+    id: "ashanti", name: "Ashanti", standard: "vm0047", status: "Active", col: 1, row: 4,
     districts: [
       "Atwima Mponua", "Bekwai Municipal", "Ejisu Municipal", "Juaben Municipal",
       "Mampong Municipal", "Sekyere Central", "Sekyere Afram Plains North", "Sekyere Kumawu",
     ],
-    farmers: "11,400+", hectares: "17,200 ha",
-    activities: ["Agroforestry", "Tree planting", "Regenerative farming"],
+    farmers: "~3,400+", hectares: "~5,450 ha",
+    activities: ["Afforestation", "Reforestation", "Community woodlots"],
     monitoring: ["Satellite imagery", "Drone verification", "Field agent inspections"],
-    benefits: ["Farmer income", "Carbon credits", "Biodiversity", "Climate resilience"],
+    benefits: ["Farmer income", "Carbon credits", "Forest restoration", "Biodiversity"],
   },
   {
     id: "western-north", name: "Western North", standard: "future", status: "Planned", col: 0, row: 4,
@@ -107,28 +125,28 @@ export const GHANA_REGIONS: GhanaRegion[] = [
     benefits: ["Future farmer income"],
   },
   {
-    id: "eastern", name: "Eastern", standard: "ofp", status: "Active", col: 2, row: 4,
+    id: "eastern", name: "Eastern", standard: "vm0042", status: "Onboarding", col: 2, row: 4,
     districts: ["Asuogyaman", "Upper Manya", "Yilo Krobo", "Lower Manya"],
-    farmers: "8,700+", hectares: "13,100 ha",
+    farmers: "~8,900 (est.)", hectares: "~22,200 ha (est.)",
+    activities: ["Farmer registration", "Soil baseline mapping"],
+    monitoring: ["Satellite baseline mapping", "Soil sampling"],
+    benefits: ["Future farmer income", "Soil health", "Carbon credits"],
+  },
+  {
+    id: "oti", name: "Oti", standard: "ofp", status: "Active", col: 3, row: 1,
+    districts: ["Nkwanta North", "Nkwanta South Municipal", "Krachi East Municipal", "Kadjebi", "Jasikan", "Biakoye"],
+    farmers: "~3,400+", hectares: "~5,400 ha",
     activities: ["Agroforestry", "Tree planting", "Regenerative farming"],
     monitoring: ["Satellite imagery", "Drone verification", "Field agent inspections"],
     benefits: ["Farmer income", "Carbon credits", "Biodiversity", "Climate resilience"],
   },
   {
-    id: "oti", name: "Oti", standard: "vm0047", status: "Active", col: 3, row: 1,
-    districts: ["Nkwanta North", "Nkwanta South Municipal", "Krachi East Municipal", "Kadjebi", "Jasikan", "Biakoye"],
-    farmers: "5,600+", hectares: "8,900 ha",
-    activities: ["Afforestation", "Reforestation", "Community woodlots"],
-    monitoring: ["Satellite imagery", "Drone verification", "Field agent inspections"],
-    benefits: ["Farmer income", "Carbon credits", "Forest restoration"],
-  },
-  {
-    id: "volta", name: "Volta", standard: "vm0047", status: "Active", col: 3, row: 3,
+    id: "volta", name: "Volta", standard: "vm0042", status: "Onboarding", col: 3, row: 3,
     districts: ["Kpando Municipal", "North Dayi", "South Dayi", "North Tongu", "South Tongu"],
-    farmers: "4,300+", hectares: "6,600 ha",
-    activities: ["Afforestation", "Reforestation", "Community woodlots"],
-    monitoring: ["Satellite imagery", "Drone verification"],
-    benefits: ["Farmer income", "Carbon credits", "Forest restoration"],
+    farmers: "~11,200 (est.)", hectares: "~27,800 ha (est.)",
+    activities: ["Farmer registration", "Soil baseline mapping"],
+    monitoring: ["Satellite baseline mapping", "Soil sampling"],
+    benefits: ["Future farmer income", "Soil health", "Carbon credits"],
   },
   {
     id: "western", name: "Western", standard: "future", status: "Planned", col: 0, row: 5,
