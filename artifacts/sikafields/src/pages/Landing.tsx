@@ -22,6 +22,7 @@ import HeroCanvas from "@/components/HeroCanvas";
 import RotatingGlobe from "@/components/RotatingGlobe";
 import GallerySection from "@/components/GallerySection";
 import EventsSection from "@/components/EventsSection";
+import GhanaExplorerSection from "@/components/ghana-explorer/GhanaExplorerSection";
 
 // Constants & Data
 const geoUrl = "https://unpkg.com/world-atlas@2.0.2/countries-110m.json";
@@ -2543,10 +2544,17 @@ function HowItWorks() {
   return (
     <section id="how-it-works" className="py-24 bg-card">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12">
+        <div className="text-center max-w-3xl mx-auto mb-14">
           <h2 className="text-primary font-semibold tracking-wide uppercase text-sm mb-3">How It Works</h2>
-          <h3 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-6">From Seedling to Carbon Credit<br className="hidden md:block" /> in 4 Simple Steps.</h3>
-          <p className="text-muted-foreground text-lg">Whether you're a farmer or a corporate buyer, SikaFields makes participation straightforward.</p>
+          <h3 className="text-3xl md:text-5xl font-display font-bold text-foreground mb-6">How SikaFields Works<br className="hidden md:block" /> Across Ghana</h3>
+          <p className="text-muted-foreground text-lg">SikaFields combines satellite monitoring, field verification, AI and international carbon standards to help farmers generate verified carbon credits.</p>
+        </div>
+
+        <GhanaExplorerSection />
+
+        <div className="text-center max-w-2xl mx-auto mb-10">
+          <h4 className="text-2xl md:text-3xl font-display font-bold text-foreground mb-4">From Seedling to Carbon Credit<br className="hidden md:block" /> in 4 Simple Steps.</h4>
+          <p className="text-muted-foreground">Whether you're a farmer or a corporate buyer, SikaFields makes participation straightforward.</p>
         </div>
 
         {/* Tab switcher */}

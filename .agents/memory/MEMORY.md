@@ -1,0 +1,1 @@
+- [Stylized region maps without geodata](stylized-region-maps.md) — when no district/region-level GeoJSON exists, build a grid-tile SVG map instead of forcing react-simple-maps.
