@@ -1,0 +1,324 @@
+Redesign the "How It Works" section of the SikaFields landing page into an interactive "Explore Active Regions in Ghana" experience.
+
+The current 3-step cards should remain but become secondary. The main focus should be an interactive Ghana map.
+
+Reference the uploaded project map titled:
+
+"Combined Standards Map (1).pdf"
+
+Use it only as a design reference—not as an image embedded in the website.
+
+====================================
+SECTION TITLE
+====================================
+
+How SikaFields Works Across Ghana
+
+Subtitle:
+
+SikaFields combines satellite monitoring, field verification, AI and international carbon standards to help farmers generate verified carbon credits.
+
+====================================
+MAIN LAYOUT
+====================================
+
+Desktop
+
+Left side (60%)
+
+Interactive SVG map of Ghana
+
+Right side (40%)
+
+Dynamic information panel
+
+Mobile
+
+Map first
+
+Information panel underneath
+
+====================================
+MAP FEATURES
+====================================
+
+Create a clean vector map of Ghana.
+
+Highlight project districts using different colours.
+
+Green
+Open Forest Protocol (OFP)
+
+Blue
+Verra VM0042
+
+Orange
+Verra VM0047
+
+Grey
+Future Expansion
+
+Hover animation
+
+Hovering over a district should:
+
+Glow
+
+Scale slightly
+
+Show tooltip
+
+Click animation
+
+Clicking a district updates the right information panel.
+
+====================================
+DEFAULT STATE
+====================================
+
+Show:
+
+"Select a region to explore active projects."
+
+====================================
+WHEN USER SELECTS A REGION
+====================================
+
+Animate panel transition.
+
+Display:
+
+Region Name
+
+District
+
+Project Standard
+
+Current Status
+
+Estimated Farmers
+
+Estimated Hectares
+
+Monitoring Method
+
+Verification Standard
+
+Carbon Potential
+
+Example
+
+---------------------------------
+
+Eastern Region
+
+Project Type
+
+Open Forest Protocol
+
+Status
+
+Active
+
+Activities
+
+Agroforestry
+
+Tree planting
+
+Regenerative farming
+
+AI Monitoring
+
+Satellite imagery
+
+Drone verification
+
+Field agent inspections
+
+Expected Benefits
+
+Farmer income
+
+Carbon credits
+
+Biodiversity
+
+Climate resilience
+
+====================================
+BOTTOM TIMELINE
+====================================
+
+Under the map create a horizontal timeline.
+
+1
+
+Farmer Registration
+
+↓
+
+2
+
+Farm Mapping
+
+↓
+
+3
+
+AI Boundary Detection
+
+↓
+
+4
+
+Field Verification
+
+↓
+
+5
+
+Carbon Assessment
+
+↓
+
+6
+
+Verification
+
+↓
+
+7
+
+Carbon Credit Issuance
+
+↓
+
+8
+
+Payments to Farmers
+
+Animate each icon while scrolling.
+
+====================================
+LIVE PROJECT STATISTICS
+====================================
+
+Use animated counters.
+
+Read values from:
+
+"Sikafields Project Statistics Summary.xlsx"
+
+Examples
+
+Registered Farmers
+
+Mapped Farms
+
+Hectares Monitored
+
+Active Districts
+
+Trees Protected
+
+Estimated CO₂
+
+Each counter animates from zero.
+
+====================================
+SCROLL ANIMATIONS
+====================================
+
+Use Framer Motion.
+
+Map fades upward.
+
+Regions stagger in.
+
+Timeline slides.
+
+Statistics count upward.
+
+Information panel crossfades.
+
+====================================
+VISUAL STYLE
+====================================
+
+Glassmorphism cards
+
+Rounded corners (24px)
+
+Green gradients
+
+White cards
+
+Soft shadows
+
+Blur background
+
+Use subtle animated particles.
+
+====================================
+BACKGROUND
+====================================
+
+Satellite imagery with very low opacity.
+
+Animated contour lines.
+
+Moving connection lines between active regions.
+
+====================================
+TECH STACK
+====================================
+
+React
+
+TailwindCSS
+
+Framer Motion
+
+React Simple Maps
+
+D3
+
+Lucide Icons
+
+CountUp
+
+====================================
+ACCESSIBILITY
+====================================
+
+Keyboard navigation
+
+ARIA labels
+
+High contrast
+
+Screen reader support
+
+====================================
+PERFORMANCE
+====================================
+
+Lazy load map.
+
+Code split animations.
+
+SVG instead of raster images.
+
+====================================
+FINAL RESULT
+====================================
+
+The section should feel like an interactive climate-tech dashboard similar to Google Earth, ESRI StoryMaps, or Microsoft Planetary Computer—not a traditional landing page section.
+
+The user should immediately understand:
+
+• Where SikaFields operates
+• Which carbon standards are active
+• How farmers progress through the MRV workflow
+• The environmental impact being created across Ghana
