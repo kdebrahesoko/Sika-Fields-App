@@ -16,6 +16,7 @@ RUN pnpm install --no-frozen-lockfile
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV BASE_PATH=/
+ENV VITE_CLERK_PUBLISHABLE_KEY=pk_test_aGFuZHktaGlwcG8tNjcuY2xlcmsuYWNjb3VudHMuZGV2JA
 
 RUN cd artifacts/api-server && pnpm exec tsx ./build.ts
 
